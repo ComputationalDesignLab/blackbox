@@ -1,2 +1,2 @@
-from .baseclass import *
+from .baseproblem import *
 from .airfoilbaseclass import *
