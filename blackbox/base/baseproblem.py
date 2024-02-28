@@ -6,9 +6,17 @@ class BaseProblem(ABC):
     """
 
     @abstractmethod
-    def evaluate(self):
+    def evaluateSample(self):
         """
-            Method to perform a single run.
+            Method to evaluate a single sample.
+        """
+
+        pass
+
+    @abstractmethod
+    def evaluateDOE(self):
+        """
+            Method to evaluate a DOE/Sampling plan.
         """
 
         pass
