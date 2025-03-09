@@ -127,10 +127,16 @@ class AirfoilFFD(AirfoilBaseClass):
         """
             Method for adding a DV for CST parameterization.
 
-            Input:
-                name: string indicating name of the DV.
-                lowerBound: float or 1D numpy array for lower bound of DV.
-                upperBound: float or 1D numpy array for lower bound of DV.
+            Parameters
+            ----------
+            name: str
+                Name of the DV. It can be "shape", "alpha", "mach" or "altitude".
+
+            lowerBound: float or 1D numpy array
+                Lower bound of the DV
+
+            upperBound: float or 1D numpy array
+                Upper bound of the DV
         """
 
         # Checking
@@ -175,6 +181,11 @@ class AirfoilFFD(AirfoilBaseClass):
     def removeDV(self, name: str) -> None:
         """
             Method to remove a DV. 
+
+            Parameters
+            ----------
+            name: str
+                Name of the DV to be removed. It can be "shape", "alpha", "mach" or "altitude".
         """
 
         if name not in self.DV:
@@ -205,9 +216,20 @@ class AirfoilFFD(AirfoilBaseClass):
     #                       Methods related to validation
     # ----------------------------------------------------------------------------
 
-    def _checkDV(self, name: str, lb: float or np.ndarray, ub: float or np.ndarray) -> None:
+    def _checkDV(self, name: str, lb, ub) -> None:
         """
             Method for validating DV user wants to add.
+
+            Parameters
+            ----------
+            name: str
+                Name of the DV. It can be "shape", "alpha", "mach" or "altitude".
+
+            lowerBound: float or 1D numpy array
+                Lower bound of the DV
+            
+            upperBound: float or 1D numpy array
+                Upper bound of the DV
         """
 
         # List of possible DVs
@@ -297,12 +319,16 @@ class AirfoilFFD(AirfoilBaseClass):
     def LaplacianSmoothing(self, x: np.ndarray) -> np.ndarray:
         """
             Method for performing Laplacian smoothing on the FFD points.
-            
-            Input:
-                x: 1D numpy array containing the only the DV values.
 
-            Output:
-                x_smooth: 1D numpy array containing the smoothed DV values.
+            Parameters
+            ----------
+            x: 1D numpy array
+                Array containing the design variable values.
+
+            Returns
+            -------
+            x_smooth: 1D numpy array
+                Array containing the smoothed design variable values.
         """
 
         # Performing checks

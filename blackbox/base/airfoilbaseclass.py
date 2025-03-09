@@ -3,7 +3,7 @@
 # General imports
 import os, pickle, psutil, time, shutil, sys
 import numpy as np
-from pyDOE2 import lhs
+# from pyDOE2 import lhs
 from baseclasses import AeroProblem
 from scipy.io import savemat
 from mpi4py import MPI
@@ -82,12 +82,20 @@ class AirfoilBaseClass():
 
     def generateSamples(self, numSamples: int=None, doe: np.ndarray=None) -> None:
         """
-            Method for generating samples.
+            This method generates samples using user provided number of 
+            samples or user provided design of experiments (doe). It performs
+            the analysis for each sample and saves the results in the output directory.
 
-            Inputs (only one is rquired, depending on user preference):
-            numSamples (int): Number of samples
-            doe (np.ndarray): User provided samples of size n x numSamples. 
-                            If not provided, then LHS samples are generated.
+            Parameters
+            ----------
+            numSamples: int, optional
+                Number of samples to be generated. If provided, then LHS samples are generated
+                using `smt` package.
+
+            doe: np.ndarray, optional
+                User provided samples (doe) of size n x numSamples.
+
+            **Note**: Either numSamples or doe should be provided, both cannot be provided at the same time.
         """
 
         # Checking if inputs to the method are correct
@@ -230,16 +238,21 @@ class AirfoilBaseClass():
 
     def getObjectives(self, x: np.ndarray) -> tuple:
         """
-            Method for running an analysis at a given sample.
+            Method for running a single analysis for a given sample.
 
-            Input:
-                x: 1D numpy array containing the design variables.
+            Parameters
+            ----------
 
-            Output:
-                output: A tuple containing two dictionaries. 
-                First dictionary contains the output from the analysis.
-                Second dictionary contains the flow field data, if requested.
-                Otherwise, it is None.
+            x: 1D numpy array
+                Design variable for the analysis.
+
+            Returns
+            -------
+            output: tuple
+                A tuple containing the outputs generated from the analysis.
+                First entry of the tuple is a dictionary containing scalar outputs
+                from the analysis. Second entry is a dictionary containing the
+                field data, if requested. Otherwise, it is None.
         """
 
         # Checking if the appropriate options are set for analysis
@@ -391,14 +404,18 @@ class AirfoilBaseClass():
 
     def getAirfoil(self, x: np.ndarray) -> np.ndarray:
         """
-            Method for getting the airfoil for a given design variable
-            using parameterization within in pyGeo.
+            Method for getting the airfoil coordinates from a design variable
+            using parameterization within pyGeo.
 
-            Input:
-            x - 1D numpy array (value of dv).
+            Parameters
+            ----------
+            x: 1D numpy array
+                design variable
 
-            Output:
-            points - 2D numpy array containing the airfoil coordinates.
+            Returns
+            -------
+            points: 2D numpy array
+                Airfoil coordinates based on the design variable.
         """
 
         # Performing checks
@@ -456,16 +473,20 @@ class AirfoilBaseClass():
             getObjectives. That method has its own implementation
             of area calculation.
 
-            Function to calculate the area of the airfoil
+            Method to calculate the area of the airfoil
             based on the value of design variable.
 
-            Input:
-            x - 1D numpy array (value of dv).
+            Parameters
+            ----------
+            x: 1D numpy array
+                design variable
 
-            Ouput:
-            area: area of the airfoil.
+            Returns
+            -------
+            area: float
+                Area of the airfoil.
 
-            Note: To use this method, atleast lower or upper surface CST
+            **Note**: To use this method, atleast lower or upper surface CST
             coefficient should be added as a DV.
         """
 
@@ -492,6 +513,19 @@ class AirfoilBaseClass():
         """
             This is a general method for validating options dictionary provided by
             user based on default and mandatory options.
+
+            Parameters
+            ----------
+            defaultOptions: list
+                List of default options.
+
+            requiredOptions: list
+                List of required options.
+
+            options: dict
+                User provided options.
+
+            **Note**: This method is for internal use only
         """
 
         allowedUserOptions = defaultOptions
@@ -738,25 +772,32 @@ class AirfoilBaseClass():
             else:
                 self.options[key] = options[key]
 
-    def _lhs(self, numSamples) -> np.ndarray:
-        """
-            Method to generate the lhs samples.
-        """
+    # def _lhs(self, numSamples) -> np.ndarray:
+    #     """
+    #         Method to generate the lhs samples.
+    #     """
 
-        # Number of dimensions
-        dim = len(self.lowerBound)
+    #     # Number of dimensions
+    #     dim = len(self.lowerBound)
 
-        # Generating normalized lhs samples
-        samples = lhs(dim, samples=numSamples, criterion='cm', iterations=100*dim)
+    #     # Generating normalized lhs samples
+    #     samples = lhs(dim, samples=numSamples, criterion='cm', iterations=100*dim)
 
-        # Scaling the samples
-        x = self.lowerBound + (self.upperBound - self.lowerBound) * samples
+    #     # Scaling the samples
+    #     x = self.lowerBound + (self.upperBound - self.lowerBound) * samples
 
-        return x
+    #     return x
 
     def _creatInputFile(self, x:np.ndarray) -> None:
         """
-            Method to create an input file for analysis.
+            Method to create an input file for a specific analysis.
+
+            Parameters
+            ----------
+            x: 1D numpy array
+                design variable
+
+            **Note**: This method is for internal use only
         """
 
         # Creating input dict
@@ -795,9 +836,19 @@ class AirfoilBaseClass():
         pickle.dump(input, filehandler)
         filehandler.close()
 
-    def _writeCoords(self, coords, filename) -> None:
+    def _writeCoords(self, coords: np.ndarray, filename: str) -> None:
         """
-            Writes out a set of airfoil coordinates in dat format.
+            Writes out a set of airfoil coordinates in selig format in dat format
+
+            Parameters
+            ----------
+            coords: 2D numpy array
+                Airfoil coordinates.
+
+            filename: str
+                Name of the file to write the coordinates.
+
+            **Note**: This method is for internal use only
         """
 
         # X and Y ccordinates of the airfoil
@@ -812,7 +863,17 @@ class AirfoilBaseClass():
 
     def _writeSurfMesh(self, coords, filename):
         """
-            Writes out surface mesh in Plot 3D format (one element in z direction)
+            Writes out surface mesh in Plot 3D format (only one element in z direction)
+
+            Parameters
+            ----------
+            coords: 2D numpy array
+                Airfoil coordinates.
+
+            filename: str
+                Name of the file to write the coordinates.
+            
+            **Note**: This method is for internal use only
         """
 
         # X and Y ccordinates of the airfoil
@@ -835,10 +896,21 @@ class AirfoilBaseClass():
 
         f.close()
 
-    def _plotAirfoil(self, plt, orig_airfoil, def_airfoil) -> None:
+    def _plotAirfoil(self, plt, orig_airfoil: np.ndarray, def_airfoil: np.ndarray) -> None:
         """
             Method for plotting the base airfoil
             and the deformed airfoil.
+
+            Parameters
+            ----------
+            plt: matplotlib.pyplot
+                Matplotlib pyplot object.
+            
+            orig_airfoil: 2D numpy array
+                Original airfoil coordinates.
+
+            def_airfoil: 2D numpy array
+                Deformed airfoil coordinates.
         """
 
         _, ax = plt.subplots()
@@ -857,9 +929,14 @@ class AirfoilBaseClass():
         """
             Method for printing errors in nice manner.
 
-            Inputs:
-            message: a string containing the message to be displayed.
-            type: an integer value to specify whether it is warning or error.
+            Parameters
+            ----------
+            message: str
+                Message to be displayed.
+
+            type: int
+                Type of the message. 0 for error and 1 for warning.
+                Default is 0.
         """
 
         # Initial message - total len is 80 characters

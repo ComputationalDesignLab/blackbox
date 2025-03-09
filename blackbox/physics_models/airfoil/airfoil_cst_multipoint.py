@@ -137,7 +137,18 @@ class AirfoilCSTMultipoint(AirfoilBaseClass):
 
     def addDV(self, name: str, lowerBound: list, upperBound: list) -> None:
         """
-            Method for adding ONLY CST related DV.
+            Method for adding ONLY CST related DVs.
+
+            Parameters
+            ----------
+            name : str
+                Name of the DV. It can be "upper" or "lower".
+
+            lowerBound : float or np.ndarray
+                Lower bound of the DV.
+
+            upperBound : float or np.ndarray
+                Upper bound of the DV.
         """
 
         # Checking
@@ -181,9 +192,20 @@ class AirfoilCSTMultipoint(AirfoilBaseClass):
         # Creating the sampler
         self.sampler = LHS(xlimits=xlimits, criterion=self.options["samplingCriterion"], random_state=self.options["randomState"])
 
-    def _checkDV(self, name: str, lb: float or np.ndarray, ub: float or np.ndarray) -> None:
+    def _checkDV(self, name: str, lb, ub) -> None:
         """
             Method for validating DV.
+
+            Parameters
+            ----------
+            name : str
+                Name of the DV.
+
+            lb : float or np.ndarray
+                Lower bound of the DV.
+            
+            ub : float or np.ndarray
+                Upper bound of the DV.
         """
 
         # List of possible DVs

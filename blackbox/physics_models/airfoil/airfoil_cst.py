@@ -122,6 +122,19 @@ class AirfoilCST(AirfoilBaseClass):
     def addDV(self, name: str, lowerBound: list, upperBound: list) -> None:
         """
             Method for adding a DV for CST parameterization.
+
+            Parameters
+            ----------
+            name : str
+                Name of the DV. It can be "upper", "lower", "N1", "N2", 
+                "N1_upper", "N2_upper", "N1_lower", "N2_lower", "alpha", 
+                "mach" or "altitude".
+
+            lowerBound : float or numpy.ndarray
+                Lower bound of the DV
+
+            upperBound : float or numpy.ndarray
+                Upper bound of the DV
         """
 
         # Checking
@@ -166,6 +179,13 @@ class AirfoilCST(AirfoilBaseClass):
     def removeDV(self, name: str) -> None:
         """
             Method to remove a DV. 
+
+            Parameters
+            ----------
+            name : str
+                Name of the DV. It can be "upper", "lower", "N1", "N2", 
+                "N1_upper", "N2_upper", "N1_lower", "N2_lower", "alpha", 
+                "mach" or "altitude".
         """
 
         if name not in self.DV:
@@ -196,9 +216,23 @@ class AirfoilCST(AirfoilBaseClass):
     #                       Methods related to validation
     # ----------------------------------------------------------------------------
 
-    def _checkDV(self, name: str, lb: float or np.ndarray, ub: float or np.ndarray) -> None:
+    def _checkDV(self, name: str, lb, ub) -> None:
         """
             Method for validating DV.
+
+            Parameters
+            ----------
+
+            name : str
+                Name of the DV. It can be "upper", "lower", "N1", "N2", 
+                "N1_upper", "N2_upper", "N1_lower", "N2_lower", "alpha", 
+                "mach" or "altitude".
+
+            lb : float or numpy.ndarray
+                Lower bound of the DV
+
+            ub : float or numpy.ndarray
+                Upper bound of the DV
         """
 
         # List of possible DVs

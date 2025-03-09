@@ -124,6 +124,18 @@ class WingFFD():
     def addDV(self, name: str, lowerBound: list, upperBound: list) -> None:
         """
             Method for adding a DV for CST parameterization.
+
+            Parameters
+            ----------
+
+            name: str
+                Name of the design variable.
+
+            lowerBound: list
+                Lower bound of the design variable.
+
+            upperBound: list
+                Upper bound of the design variable.
         """
 
         # Checking
@@ -295,6 +307,11 @@ class WingFFD():
     def getObjectives(self, x: np.ndarray) -> tuple:
         """
             Method for running a single analysis.
+
+            Parameters
+            ----------
+            x: np.ndarray
+                design variable for which the analysis is to be run.
         """
 
         # Performing checks
@@ -423,10 +440,15 @@ class WingFFD():
             # Increase the number of generated samples
             self.genSamples += 1
 
-    def calculateVolume(self, x):
+    def calculateVolume(self, x: np.ndarray) -> float:
         """
             Method for calculating volume of the wing based 
             on the given design variables.
+
+            Parameters
+            ----------
+            x: np.ndarray
+                design variable for which the volume is to be calculated.
         """
 
         # Performing checks
@@ -492,6 +514,14 @@ class WingFFD():
     def _checkOptions(self, options: dict, requiredOptions: list) -> None:
         """
             This method validates user provided options.
+
+            Parameters
+            ----------
+            options: dict
+                User provided options.
+
+            requiredOptions: list
+                List of required options.
         """
 
         defaultOptions = list(self.options.keys())
@@ -577,9 +607,20 @@ class WingFFD():
                     if not isinstance(options["startingAlpha"], float):
                         self._error("\"startingAlpha\" option is not float.")
 
-    def _checkDV(self, name: str, lb: float or np.ndarray, ub: float or np.ndarray) -> None:
+    def _checkDV(self, name: str, lb, ub) -> None:
         """
-            Method for validating DV user wants to add.
+            Method for validating a DV user wants to add
+
+            Parameters
+            ----------
+            name: str
+                Name of the design variable
+
+            lb: float or np.ndarray
+                Lower bound of the design variable
+
+            ub: float or np.ndarray
+                Upper bound of the design variable
         """
 
         # List of possible DVs
@@ -676,9 +717,14 @@ class WingFFD():
             else:
                 self.options[key] = options[key]
 
-    def _lhs(self, numSamples) -> np.ndarray:
+    def _lhs(self, numSamples: int) -> np.ndarray:
         """
             Method to generate the lhs samples.
+
+            Parameters
+            ----------
+            numSamples: int
+                Number of samples to be generated.
         """
 
         # Number of dimensions
@@ -695,6 +741,11 @@ class WingFFD():
     def _creatInputFile(self, x:np.ndarray) -> None:
         """
             Method to create an input file for analysis.
+
+            Parameters
+            ----------
+            x: np.ndarray
+                design variable for which the analysis is to be run.
         """
 
         # Creating input dict
@@ -731,35 +782,14 @@ class WingFFD():
         pickle.dump(input, filehandler)
         filehandler.close()
 
-    def _warning(self, message: str) -> None:
-        """
-            Method for printing warnings in nice manner.
-        """
-
-        ############ To Do: Redundant - error and warning method can be combined.
-
-        # Initial message - total len is 80 characters
-        msg = "\n+" + "-" * 78 + "+" + "\n" + "| Blackbox Warning: "
-
-        # Initial number of characters
-        i = 16
-
-        for word in message.split():
-            if len(word) + i + 1 > 76:  # Finish line and start new one
-                msg += " " * (76 - i) + " |\n| " + word + " " # Adding space and word in new line
-                i = len(word) + 1 # Setting i value for new line
-            else:
-                msg += word + " " # Adding the word with a space
-                i += len(word) + 1 # Increase the number of characters
-        msg += " " * (76 - i) + " |\n" + "+" + "-" * 78 + "+" + "\n" # Adding last line
- 
-        print(msg, flush=True)
-
-        exit()
-
     def _error(self, message: str) -> None:
         """
             Method for printing errors in nice manner.
+
+            Parameters
+            ----------
+            message: str
+                Error message to be printed.
         """
 
         # Initial message - total len is 80 characters
