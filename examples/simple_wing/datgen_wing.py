@@ -46,16 +46,17 @@ options = {
     "noOfProcessors": 8,
     "sliceLocation": [0.14, 3.22, 6.3, 9.38, 12.46, 13.86],
     "writeDeformedFFD": True,
-    "alpha": "implicit",
-    "targetCLTol": 1e-4,
-    "startingAlpha": 3.0,
+    # "alpha": "implicit",
+    # "targetCLTol": 1e-4,
+    # "startingAlpha": 3.0,
+    "samplingCriterion": "ese"
 }
 
 # Create the wing object
 wing = WingFFD(options=options)
 
 # Add alpha as a design variable
-# wing.addDV("alpha", lowerBound=2.0, upperBound=5.0)
+wing.addDV("alpha", lowerBound=1.5, upperBound=4.5)
 
 # Add the wing shape as a design variable
 lowerBound = np.array([-0.03]*wing.nffd)
@@ -68,4 +69,4 @@ upperBound = np.array([2.0]*wing.nTwist)
 wing.addDV("twist", lowerBound=lowerBound, upperBound=upperBound)
 
 # Generate samples
-wing.generateSamples(15)
+wing.generateSamples(5)

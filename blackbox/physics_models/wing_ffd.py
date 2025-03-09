@@ -2,7 +2,7 @@
 import os, sys, shutil, pickle, time, psutil
 import numpy as np
 from scipy.io import savemat
-from pyDOE2 import lhs
+from smt.sampling_methods import LHS
 from mpi4py import MPI
 from baseclasses import AeroProblem
 from pygeo import DVGeometry
@@ -35,6 +35,10 @@ class DefaultOptions():
         self.targetCL = 0.5
         self.targetCLTol = 1e-4
         self.startingAlpha = 2.5
+
+        # Sampling options
+        self.samplingCriterion = "cm"
+        self.randomState = None
 
 class WingFFD():
     """
@@ -178,46 +182,66 @@ class WingFFD():
         # Adding the DV to the list
         self.DV.append(name)
 
+        # Limits for sampler
+        xlimits = np.hstack((self.lowerBound.reshape(-1,1), self.upperBound.reshape(-1,1)))
+
+        # Creating the sampler
+        self.sampler = LHS(xlimits=xlimits, criterion=self.options["samplingCriterion"], random_state=self.options["randomState"])
+
     # ----------------------------------------------------------------------------
     #                   Methods related to sample generation
     # ----------------------------------------------------------------------------
 
-    def generateSamples(self, numSamples: int, doe: np.ndarray=None) -> None:
+    def generateSamples(self, numSamples: int=None, doe: np.ndarray=None) -> None:
         """
-            Method for generating samples.
+            This method generates samples using user provided number of 
+            samples or user provided design of experiments (doe). It performs
+            the analysis for each sample and saves the results in the output directory.
 
-            Inputs: 
-            numSamples (int): Number of samples
-            doe (np.ndarray): User provided samples of size n x numSamples. 
-                            If not provided, then LHS samples are generated.
+            Parameters
+            ----------
+            numSamples: int, optional
+                Number of samples to be generated. If provided, then LHS samples are generated
+                using `smt` package.
+
+            doe: np.ndarray, optional
+                User provided samples (doe) of size n x numSamples.
+
+            **Note**: Either numSamples or doe should be provided, both cannot be provided at the same time.
         """
+
+        # Checking if inputs to the method are correct
+        if numSamples is None and doe is None:
+            self._error("Provide either number of samples (int) or doe (2D numpy array)")
+
+        if numSamples is not None and doe is not None:
+            self._error("Provide either number of samples (int) or doe (2D numpy array)")
+
+        # Checking if the appropriate options are set for analysis
+        if self.options["solverOptions"] == {} or self.options["aeroProblem"] == None:
+            self._error("You need to set solverOptions and aeroProblem in the options dictionary for running the analysis.")
 
         # Performing checks
         if len(self.DV) == 0:
-            self._error("Add design variables before running the analysis.")
+            self._error("Add design variables before running the analysis")
 
-        if not isinstance(numSamples, int):
-            self._error("Number of samples argument is not an integer.")
+        # Sampling plan
+        if isinstance(numSamples, int):
+            samples = self.sampler(numSamples)
+
+        elif isinstance(doe, np.ndarray):
+            if doe.ndim != 2:
+                self._error("doe argument is not a 2D numpy array.")
+            
+            samples = doe
+            numSamples = samples.shape[0]
+
+        else:
+            self._error("Data type of numSamples/doe is not correct.")
 
         # Number of analysis passed/failed
         failed =[]
         totalTime = 0
-
-        # Generating LHS samples or using user provided samples
-        if isinstance(doe, np.ndarray):
-            if doe.ndim != 2:
-                self._error("doe argument is not a 2D numpy array.")
-            
-            if doe.shape[0] != numSamples:
-                self._error("Number of samples in doe argument is not equal to numSamples argument.")
-
-            samples = doe
-
-        elif doe is None:
-            samples = self._lhs(numSamples)
-
-        else:
-            self._error("doe argument should be NONE or a numpy array.")
 
         # Creating empty dictionary for storing the data
         data = {}
@@ -716,27 +740,6 @@ class WingFFD():
                     self.options[key] = options[key]
             else:
                 self.options[key] = options[key]
-
-    def _lhs(self, numSamples: int) -> np.ndarray:
-        """
-            Method to generate the lhs samples.
-
-            Parameters
-            ----------
-            numSamples: int
-                Number of samples to be generated.
-        """
-
-        # Number of dimensions
-        dim = len(self.lowerBound)
-
-        # Generating normalized lhs samples
-        samples = lhs(dim, samples=numSamples, criterion='cm', iterations=100*dim)
-
-        # Scaling the samples
-        x = self.lowerBound + (self.upperBound - self.lowerBound) * samples
-
-        return x
     
     def _creatInputFile(self, x:np.ndarray) -> None:
         """
