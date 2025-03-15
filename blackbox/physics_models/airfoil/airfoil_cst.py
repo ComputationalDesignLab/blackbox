@@ -56,10 +56,10 @@ class AirfoilCST(AirfoilBaseClass):
         self._setOptions(options)
 
         # Overiding/set some solver options
-        self.options["solverOptions"]["printAllOptions"] = False
-        self.options["solverOptions"]["printIntro"] = False
-        self.options["solverOptions"]["outputDirectory"] = "."
-        self.options["solverOptions"]["numberSolutions"] = False
+        # self.options["solverOptions"]["printAllOptions"] = False
+        # self.options["solverOptions"]["printIntro"] = False
+        # self.options["solverOptions"]["outputDirectory"] = "."
+        # self.options["solverOptions"]["numberSolutions"] = False
 
         # Raise an error if pyvista is not installed
         if self.options["getFlowFieldData"]:

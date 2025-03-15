@@ -22,7 +22,7 @@ class DefaultOptions():
     def __init__(self):
 
         # Aero solver / Meshing Options
-        self.aeroSolver = "adflow"
+        self.solver = "adflow"
         self.solverOptions = {}
         self.meshingOptions = {}
         self.aeroProblem = None
@@ -260,11 +260,12 @@ class AirfoilBaseClass():
             self._error("You need to set solverOptions, meshingOptions and aeroProblem in the options dictionary for running the analysis.")
 
         # Overiding/set some solver options
-        self.options["solverOptions"]["printAllOptions"] = False
-        self.options["solverOptions"]["printIntro"] = False
-        self.options["solverOptions"]["outputDirectory"] = "."
-        self.options["solverOptions"]["numberSolutions"] = False
-        self.options["solverOptions"]["printTiming"] = False
+        if self.options["solver"] == "adflow":
+            self.options["solverOptions"]["printAllOptions"] = False
+            self.options["solverOptions"]["printIntro"] = False
+            self.options["solverOptions"]["outputDirectory"] = "."
+            self.options["solverOptions"]["numberSolutions"] = False
+            self.options["solverOptions"]["printTiming"] = False
 
         # Raise an error if pyvista is not installed
         if self.options["getFlowFieldData"]:
@@ -284,17 +285,29 @@ class AirfoilBaseClass():
         pkgdir = sys.modules["blackbox"].__path__[0]
 
         # Setting filepath based on the how alpha is treated alpha
-        if type(self).__name__ == "AirfoilCSTMultipoint":
-            filepath = os.path.join(pkgdir, "runscripts/airfoil/runscript_airfoil_cst_mp.py")
-        else:
-            if self.options["alpha"] == "explicit":
-                filepath = os.path.join(pkgdir, "runscripts/airfoil/runscript_airfoil.py")
+        if self.options["solver"] == "adflow":
+
+            if type(self).__name__ == "AirfoilCSTMultipoint":
+                filepath = os.path.join(pkgdir, "runscripts/airfoil/runscript_airfoil_cst_mp.py")
             else:
-                # filepath = os.path.join(pkgdir, "runscripts/airfoil/runscipt_airfoil_cst_opt.py")
-                filepath = os.path.join(pkgdir, "runscripts/airfoil/runscript_airfoil_rf.py")
+                if self.options["alpha"] == "explicit":
+                    filepath = os.path.join(pkgdir, "runscripts/airfoil/runscript_airfoil.py")
+                else:
+                    # filepath = os.path.join(pkgdir, "runscripts/airfoil/runscipt_airfoil_cst_opt.py")
+                    filepath = os.path.join(pkgdir, "runscripts/airfoil/runscript_airfoil_rf.py")
+
+        elif self.options["solver"] == "dafoam":
+
+            filepath = os.path.join(pkgdir, "runscripts/airfoil/runscript_airfoil_dafoam.py")
 
         # Copy the runscript to analysis directory
         shutil.copy(filepath, "{}/{}/runscript.py".format(directory, self.genSamples+1))
+
+        # Copying openfoam standard folders
+        dirpath = os.path.join(pkgdir, "runscripts/openfoam_files/")
+        os.system(f"cp -r {dirpath}/0 {directory}/{self.genSamples+1}")
+        os.system(f"cp -r {dirpath}/constant {directory}/{self.genSamples+1}")
+        os.system(f"cp -r {dirpath}/system {directory}/{self.genSamples+1}")
 
         # Changing the directory to analysis folder
         os.chdir("{}/{}".format(directory, self.genSamples+1))
