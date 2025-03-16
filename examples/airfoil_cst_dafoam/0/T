@@ -23,10 +23,13 @@ boundaryField
 {
     "wing.*"
     {
-        type            fixedValue;
-        value           $internalField;
+        type            zeroGradient;
     }
-    sym
+    symmetry1
+    {
+        type            symmetry;
+    }
+    symmetry2
     {
         type            symmetry;
     }

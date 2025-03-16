@@ -26,7 +26,11 @@ boundaryField
         type            nutUSpaldingWallFunction;
         value           $internalField;
     }
-    sym
+    symmetry1
+    {
+        type            symmetry;
+    }
+    symmetry2
     {
         type            symmetry;
     }

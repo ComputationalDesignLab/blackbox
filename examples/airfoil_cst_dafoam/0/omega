@@ -11,27 +11,34 @@ FoamFile
     format      ascii;
     class       volScalarField;
     location    "0";
-    object      p;
+    object      omega;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [1 -1 -2 0 0 0 0];
+dimensions      [0 0 -1 0 0 0 0];
 
-internalField   uniform 101325;
+internalField   uniform 5.6e4;
 
 boundaryField
 {
-    "wing.*"
+    "(wing|wingte)"
     {
-        type            zeroGradient;
+        type            omegaWallFunction;
+        value           $internalField;
+        blended         true;
     }
-    sym
+    symmetry1
+    {
+        type            symmetry;
+    }
+    symmetry2
     {
         type            symmetry;
     }
     inout
     {
-        type            fixedValue;
+        type            inletOutlet;
+        inletValue      $internalField;
         value           $internalField;
     }
 }

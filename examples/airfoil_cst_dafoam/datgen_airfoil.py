@@ -11,7 +11,7 @@ T0 = 300.0
 nuTilda0 = 4.5e-5
 CL_target = 0.5
 aoa0 = 3.0
-A0 = 0.1
+A0 = 1.0
 # rho is used for normalizing CD and CL
 rho0 = p0 / T0 / 287
 
@@ -19,7 +19,7 @@ rho0 = p0 / T0 / 287
 solverOptions = {
     "designSurfaces": ["wing"],
     "solverName": "DARhoSimpleCFoam",
-    "primalMinResTol": 1.0e-8,
+    "primalMinResTol": 1e-8,
     "primalBC": {
         "U0": {"variable": "U", "patches": ["inout"], "value": [U0, 0.0, 0.0]},
         "p0": {"variable": "p", "patches": ["inout"], "value": [p0]},
@@ -45,9 +45,6 @@ solverOptions = {
             "scale": 1.0 / (0.5 * U0 * U0 * A0 * rho0),
         },
     },
-    "adjEqnOption": {"gmresRelTol": 1.0e-6, "pcFillLevel": 1, "jacMatReOrdering": "rcm"},
-    # transonic preconditioner to speed up the adjoint convergence
-    "transonicPCOption": 1,
     "normalizeStates": {
         "U": U0,
         "p": p0,
@@ -56,7 +53,6 @@ solverOptions = {
         "phi": 1.0,
     },
     "inputInfo": {
-        "aero_vol_coords": {"type": "volCoord", "components": ["solver", "function"]},
         "patchV": {
             "type": "patchVelocity",
             "patches": ["inout"],

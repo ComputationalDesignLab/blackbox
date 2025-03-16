@@ -23,6 +23,7 @@ class DefaultOptions():
 
         # Aero solver / Meshing Options
         self.solver = "adflow"
+        self.openfoamDir = "."
         self.solverOptions = {}
         self.meshingOptions = {}
         self.aeroProblem = None
@@ -304,10 +305,11 @@ class AirfoilBaseClass():
         shutil.copy(filepath, "{}/{}/runscript.py".format(directory, self.genSamples+1))
 
         # Copying openfoam standard folders
-        dirpath = os.path.join(pkgdir, "runscripts/openfoam_files/")
-        os.system(f"cp -r {dirpath}/0 {directory}/{self.genSamples+1}")
-        os.system(f"cp -r {dirpath}/constant {directory}/{self.genSamples+1}")
-        os.system(f"cp -r {dirpath}/system {directory}/{self.genSamples+1}")
+        if self.options["solver"] == "dafoam":
+            ofdir = self.options["openfoamDir"]
+            os.system(f"cp -r {ofdir}/0 {directory}/{self.genSamples+1}")
+            os.system(f"cp -r {ofdir}/constant {directory}/{self.genSamples+1}")
+            os.system(f"cp -r {ofdir}/system {directory}/{self.genSamples+1}")
 
         # Changing the directory to analysis folder
         os.chdir("{}/{}".format(directory, self.genSamples+1))
@@ -587,6 +589,38 @@ class AirfoilBaseClass():
                     self._error("Second entry in \"numCST\" is not an integer.")
                 elif options["numCST"][1] <= 0:
                     self._error("Second entry in \"numCST\" is less than 1.")
+
+        ############ Validating openfoamDir option
+        if "openfoamDir" in userProvidedOptions:
+            if not isinstance(options["openfoamDir"], str):
+                self._error("\"openfoamDir\" attribute is not a string.")
+
+            for fname in ["0", "constant", "system"]:
+                if not os.path.isdir(os.path.join(os.path.abspath(options["openfoamDir"]), f"{fname}")):
+                    self._error(f"The folder \"{fname}\" requried for openfoam simulation is not available at given location")
+
+        ############ Validating solver
+        if "solver" in userProvidedOptions:
+            if not isinstance(options["solver"], str):
+                self._error("\"solver\" attribute is not a string.")
+
+            if options["solver"] not in ["adflow", "dafoam"]:
+                self._error("\"solver\" should be either adflow or dafoam")
+
+            if options["solver"] == "dafoam":
+
+                if "openfoamDir" in userProvidedOptions:
+                    if not isinstance(options["openfoamDir"], str):
+                        self._error("\"openfoamDir\" attribute is not a string.")
+
+                    for fname in ["0", "constant", "system"]:
+                        if not os.path.isdir(os.path.join(os.path.abspath(options["openfoamDir"]), f"{fname}")):
+                            self._error(f"The folder \"{fname}\" requried for openfoam simulation is not available at given location")
+
+                else:
+                    for fname in ["0", "constant", "system"]:
+                        if not os.path.isdir(os.path.join(os.path.abspath("."), f"{fname}")):
+                            self._error(f"The folder \"{fname}\" requried for openfoam simulation is not available at given location")
 
         ############ Validating aeroProblem
         if type(self).__name__ == "AirfoilCSTMultipoint":

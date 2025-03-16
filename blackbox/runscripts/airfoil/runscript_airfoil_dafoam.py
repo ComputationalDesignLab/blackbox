@@ -5,7 +5,10 @@ from mpi4py import MPI
 from pyhyp import pyHyp
 from cgnsutilities.cgnsutilities import readGrid
 import openmdao.api as om
-from dafoam.mphys import DAFoamBuilder
+from dafoam.mphys import DAFoamBuilder, OptFuncs
+from mphys import Multipoint
+from mphys.scenario_aerodynamic import ScenarioAerodynamic
+import numpy as np
 
 # Getting MPI comm
 comm = MPI.COMM_WORLD
@@ -62,40 +65,46 @@ try:
 
     hyp = pyHyp(options=meshingOptions, comm=comm)
     hyp.run()
-    # hyp.writeCGNS("volMesh.cgns")
-    hyp.writePlot3D("volMesh.xyz")
+    hyp.writeCGNS("volMesh.cgns")
+    # hyp.writePlot3D("volMesh.xyz")
 
     ############## Refining the mesh
 
     # Only one processor has to do this
     if comm.rank == 0:
 
-    #     # Read the grid
-    #     grid = readGrid("volMesh.cgns")
+        # Read the grid
+        grid = readGrid("volMesh.cgns")
 
-    #     if refine == 1:
-    #         grid.refine(['i', 'k'])
-    #     if refine == 2:
-    #         grid.refine(['i', 'k'])
-    #         grid.refine(['i', 'k'])
-    #     if refine == -1:
-    #         grid.coarsen()
-    #     if refine == -2:
-    #         grid.coarsen()
-    #         grid.coarsen()
+        if refine == 1:
+            grid.refine(['i', 'k'])
+        if refine == 2:
+            grid.refine(['i', 'k'])
+            grid.refine(['i', 'k'])
+        if refine == -1:
+            grid.coarsen()
+        if refine == -2:
+            grid.coarsen()
+            grid.coarsen()
 
-    #     grid.writePlot3d("volMesh.xyz")
-    #     os.system("rm volMesh.cgns")
+        grid.writePlot3d("volMesh.xyz")
+        os.system("rm volMesh.cgns")
+
+        if comm.rank == 0:
+            print("#" + "-"*129 + "#")
+            print(" "*59 + "OpenFoam meshing Log" + ""*59)
+            print("#" + "-"*129 + "#")
+            print("")
 
         # Converting plot3d vol mesh to openfoam friendly vol mesh
-        os.system("plot3dToFoam -noBlank volumeMesh.xyz")
+        os.system("plot3dToFoam -noBlank volMesh.xyz")
         os.system("autoPatch 30 -overwrite")
         os.system("createPatch -overwrite")
         os.system("renumberMesh -overwrite")
 
     # Wait till root is done with refining/coarse of mesh
     comm.barrier()
-    
+
     ############## Settign up dafoam
 
     if comm.rank == 0:
@@ -105,8 +114,66 @@ try:
         print("#" + "-"*129 + "#")
         print("")
 
-    # Creating adflow object
-    # CFDSolver = ADFLOW(options=solverOptions, comm=comm)
+    # Top class to setup the optimization problem
+    class Top(Multipoint):
+
+        def setup(self):
+
+            # create the builder to initialize the DASolvers
+            dafoam_builder = DAFoamBuilder(solverOptions, scenario="aerodynamic")
+            dafoam_builder.initialize(self.comm)
+
+            # # add the design variable component to keep the top level design variables
+            self.add_subsystem("dvs", om.IndepVarComp(), promotes=["*"])
+
+            # add the mesh component
+            # self.add_subsystem("mesh", dafoam_builder.get_mesh_coordinate_subsystem())
+
+            # # add the geometry component (FFD)
+            # self.add_subsystem("geometry", OM_DVGEOCOMP(file="FFD/wingFFD.xyz", type="ffd"))
+
+            # add a scenario (flow condition) for optimization, we pass the builder
+            # to the scenario to actually run the flow and adjoint
+            self.mphys_add_scenario("scenario1", ScenarioAerodynamic(aero_builder=dafoam_builder))
+
+            # # need to manually connect the x_aero0 between the mesh and geometry components
+            # # here x_aero0 means the surface coordinates of structurally undeformed mesh
+            # self.connect("mesh.x_aero0", "geometry.x_aero_in")
+            # # need to manually connect the x_aero0 between the geometry component and the scenario1
+            # # scenario group
+            # self.connect("geometry.x_aero0", "scenario1.x_aero")
+
+            # Connecting mesh and scenario
+            # self.connect("mesh.x_aero0", "scenario1.x_aero")
+
+            # add the design variables to the dvs component's output
+            self.dvs.add_output("patchV", val=np.array([238.0, ap.alpha]))
+
+            # manually connect the dvs output to the geometry and scenario1
+            self.connect("patchV", "scenario1.patchV")
+
+        # def configure(self):
+
+            # define the design variables to the top level
+            # self.add_design_var("shape", lower=-1.0, upper=1.0, scaler=10.0)
+
+            # here we fix the U0 magnitude and allows the aoa to change
+            # self.add_design_var("patchV", lower=[U0, 0.0], upper=[U0, 10.0], scaler=0.1)
+
+            # # add objective and constraints to the top level
+            # self.add_objective("scenario1.aero_post.CD", scaler=1.0)
+            # self.add_constraint("scenario1.aero_post.CL", equals=CL_target, scaler=1.0)
+            # self.add_constraint("geometry.thickcon", lower=0.5, upper=3.0, scaler=1.0)
+            # self.add_constraint("geometry.volcon", lower=1.0, scaler=1.0)
+            # self.add_constraint("geometry.rcon", lower=0.8, scaler=1.0)
+    
+    # OpenMDAO setup
+    prob = om.Problem()
+    prob.model = Top()
+    prob.setup()
+    om.n2(prob, show_browser=False, outfile="mphys.html")
+
+    prob.run_model()
 
     # Adding pressure distribution output
     # if slice:
