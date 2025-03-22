@@ -5,7 +5,7 @@ from mpi4py import MPI
 from pyhyp import pyHyp
 from cgnsutilities.cgnsutilities import readGrid
 import openmdao.api as om
-from dafoam.mphys import DAFoamBuilder, OptFuncs
+from dafoam.mphys import DAFoamBuilder
 from mphys import Multipoint
 from mphys.scenario_aerodynamic import ScenarioAerodynamic
 import numpy as np

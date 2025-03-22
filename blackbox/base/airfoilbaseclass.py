@@ -326,7 +326,12 @@ class AirfoilBaseClass():
         self._creatInputFile(x)
 
         # Writing the surface mesh
-        self._writeSurfMesh(coords=points, filename="surfMesh.xyz")
+        if self.options["solver"] == "dafoam":
+            zSpan = 0.1
+        elif self.options["solver"] == "adflow":
+            zSpan = 1.0
+            
+        self._writeSurfMesh(coords=points, filename="surfMesh.xyz", zSpan=zSpan)
 
         try:
             # Spawning the runscript on desired number of processors
@@ -891,7 +896,7 @@ class AirfoilBaseClass():
 
         f.close()
 
-    def _writeSurfMesh(self, coords, filename, zHeight=1.0):
+    def _writeSurfMesh(self, coords, filename, zSpan=1.0):
         """
             Writes out surface mesh in Plot 3D format (only one element in z direction)
 
@@ -903,8 +908,8 @@ class AirfoilBaseClass():
             filename: str
                 Name of the file to write the coordinates.
 
-            zHeigth: float
-                Distance to travel in z direction, default=1.0
+            zSpan: float
+                Width in the z direction, default=1.0
             
             **Note**: This method is for internal use only
         """
@@ -912,7 +917,7 @@ class AirfoilBaseClass():
         # X and Y ccordinates of the airfoil
         x = coords[:, 0]
         y = coords[:, 1]
-        z = [0.0, zHeight]
+        z = [0.0, zSpan]
 
         # Writing the file
         with open(filename, "w") as f:

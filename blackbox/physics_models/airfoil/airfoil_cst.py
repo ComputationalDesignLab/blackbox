@@ -98,11 +98,14 @@ class AirfoilCST(AirfoilBaseClass):
         if self.origCoords[0,1] != self.origCoords[-1,1]:
             self._error("The Y coordinate of airfoil doesn't start and end at same point.")
 
-        if self.origCoords[0,0] != 1.0 or self.origCoords[0,1] != 0.0:
-            self._error("The coordinates of airfoil doesn't start at (0.0, 1.0)")
+        # if self.origCoords[0,0] != 1.0 or self.origCoords[0,1] != 0.0:
+        #     self._error("The coordinates of airfoil doesn't start at (0.0, 1.0)")
 
         if np.min(self.origCoords[:,0]) < 0.0 or np.max(self.origCoords[:,0]) > 1.0:
             self._error("The X coordinates of airfoil are not in range [0,1]")
+
+        if self.origCoords[np.argmin(self.origCoords[:,0]),1] != 0.0:
+            self._error("The Y coordinate of airfoil at the LE is not 0.0")
 
         # Initializing the parametrization object
         self.DVGeo = CST(self.options["airfoilFile"], numCST=self.options["numCST"])
