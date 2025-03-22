@@ -67,7 +67,7 @@ options = {
     "solverOptions": solverOptions,
     "noOfProcessors": 8,
     "aeroProblem": ap,
-    "airfoilFile": "rae2822.dat",
+    "airfoilFile": "rae2822_orig.dat",
     "numCST": [6, 6],
     "meshingOptions": meshingOptions,
     "writeAirfoilCoordinates": True,
@@ -83,13 +83,13 @@ options = {
 airfoil = AirfoilCST(options=options)
 
 # Adding lower surface CST coeffs as DV
-coeff = airfoil.DVGeo.defaultDV["lower"] # get the fitted CST coeff
+coeff = airfoil.DVGeo.lowerCST # get the fitted CST coeff
 lb = coeff - np.sign(coeff)*0.3*coeff
 ub = coeff + np.sign(coeff)*0.3*coeff
 airfoil.addDV("lower", lowerBound=lb, upperBound=ub)
 
 # Adding upper surface CST coeffs as DV
-coeff = airfoil.DVGeo.defaultDV["upper"] # get the fitted CST coeff
+coeff = airfoil.DVGeo.upperCST # get the fitted CST coeff
 lb = coeff - np.sign(coeff)*0.3*coeff
 ub = coeff + np.sign(coeff)*0.3*coeff
 airfoil.addDV("upper", lowerBound=lb, upperBound=ub)

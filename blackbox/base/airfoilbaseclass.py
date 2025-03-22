@@ -3,7 +3,6 @@
 # General imports
 import os, pickle, psutil, time, shutil, sys
 import numpy as np
-# from pyDOE2 import lhs
 from baseclasses import AeroProblem
 from scipy.io import savemat
 from mpi4py import MPI
@@ -285,7 +284,7 @@ class AirfoilBaseClass():
         # Getting the directory where package is saved
         pkgdir = sys.modules["blackbox"].__path__[0]
 
-        # Setting filepath based on the how alpha is treated alpha
+        # Setting filepath based on the how alpha is treated
         if self.options["solver"] == "adflow":
 
             if type(self).__name__ == "AirfoilCSTMultipoint":
@@ -405,8 +404,8 @@ class AirfoilBaseClass():
 
         finally:
             # Cleaning the directory
-            files = ["surfMesh.xyz", "volMesh.cgns", "input.pickle", "runscript.py",
-                    "output.pickle", "fort.6", "opt.hst"]
+            files = ["volMesh.cgns", "input.pickle", "runscript.py",
+                    "output.pickle", "fort.6", "opt.hst", "surfMesh.xyz"] 
             for file in files:
                 if os.path.exists(file):
                     os.system("rm {}".format(file))
@@ -819,22 +818,6 @@ class AirfoilBaseClass():
             else:
                 self.options[key] = options[key]
 
-    # def _lhs(self, numSamples) -> np.ndarray:
-    #     """
-    #         Method to generate the lhs samples.
-    #     """
-
-    #     # Number of dimensions
-    #     dim = len(self.lowerBound)
-
-    #     # Generating normalized lhs samples
-    #     samples = lhs(dim, samples=numSamples, criterion='cm', iterations=100*dim)
-
-    #     # Scaling the samples
-    #     x = self.lowerBound + (self.upperBound - self.lowerBound) * samples
-
-    #     return x
-
     def _creatInputFile(self, x:np.ndarray) -> None:
         """
             Method to create an input file for a specific analysis.
@@ -908,7 +891,7 @@ class AirfoilBaseClass():
 
         f.close()
 
-    def _writeSurfMesh(self, coords, filename):
+    def _writeSurfMesh(self, coords, filename, zHeight=1.0):
         """
             Writes out surface mesh in Plot 3D format (only one element in z direction)
 
@@ -919,6 +902,9 @@ class AirfoilBaseClass():
 
             filename: str
                 Name of the file to write the coordinates.
+
+            zHeigth: float
+                Distance to travel in z direction, default=1.0
             
             **Note**: This method is for internal use only
         """
@@ -926,6 +912,7 @@ class AirfoilBaseClass():
         # X and Y ccordinates of the airfoil
         x = coords[:, 0]
         y = coords[:, 1]
+        z = [0.0, zHeight]
 
         # Writing the file
         with open(filename, "w") as f:
@@ -939,7 +926,8 @@ class AirfoilBaseClass():
                         elif iDim == 1:
                             f.write("%g\n" % y[i])
                         else:
-                            f.write("%g\n" % (float(j)))
+                            # f.write("%g\n" % (float(j)))
+                            f.write("%g\n" % z[j])
 
         f.close()
 
