@@ -114,58 +114,99 @@ try:
         print("#" + "-"*129 + "#")
         print("")
 
+    # Parameters for DAfoam options
+    U0 = float(ap.V)
+    rho0 = float(ap.rho)
+    p0 = float(ap.P)
+    T0 = float(ap.T)
+    nuTilda0 = 4.5e-5
+    A0 = ap.areaRef
+    L0 = ap.chordRef
+
+    # Some DAfoam options
+    solverOptions["designSurfaces"] = ["wing"]
+    solverOptions["function"] = {}
+    
+    for obj in ap.evalFuncs:
+
+        if obj == "cd":
+            
+            solverOptions["function"]["CD"] = {}
+            solverOptions["function"]["CD"]["type"] = "force"
+            solverOptions["function"]["CD"]["source"] = "patchToFace"
+            solverOptions["function"]["CD"]["patches"] = ["wing"]
+            solverOptions["function"]["CD"]["directionMode"] = "parallelToFlow"
+            solverOptions["function"]["CD"]["patchVelocityInputName"] = "patchV"
+            solverOptions["function"]["CD"]["scale"] = 1.0 / (0.5 * U0 * U0 * A0 * rho0)
+
+        elif obj == "cl":
+            
+            solverOptions["function"]["CL"] = {}
+            solverOptions["function"]["CL"]["type"] = "force"
+            solverOptions["function"]["CL"]["source"] = "patchToFace"
+            solverOptions["function"]["CL"]["patches"] = ["wing"]
+            solverOptions["function"]["CL"]["directionMode"] = "normalToFlow"
+            solverOptions["function"]["CL"]["patchVelocityInputName"] = "patchV"
+            solverOptions["function"]["CL"]["scale"] = 1.0 / (0.5 * U0 * U0 * A0 * rho0)
+
+        elif obj == "cmz":
+
+            solverOptions["function"]["CMZ"] = {}
+            solverOptions["function"]["CMZ"]["type"] = "moment"
+            solverOptions["function"]["CMZ"]["source"] = "patchToFace"
+            solverOptions["function"]["CMZ"]["patches"] = ["wing"]
+            solverOptions["function"]["CMZ"]["axis"] = [0.0, 0.0, 1.0]
+            solverOptions["function"]["CMZ"]["center"] = [ap.xRef, ap.yRef, ap.zRef]
+            solverOptions["function"]["CMZ"]["scale"] = 1.0 / (0.5 * U0 * U0 * A0 * L0 * rho0)
+
+    solverOptions["normalizeStates"] = { # internal
+        "U": U0,
+        "p": p0,
+        "T": T0,
+        "nuTilda": nuTilda0 * 10.0,
+        "phi": 1.0,
+    }
+
+    solverOptions["primalBC"] = { # internal
+        "U0": {"variable": "U", "patches": ["inout"], "value": [U0, 0.0, 0.0]},
+        "p0": {"variable": "p", "patches": ["inout"], "value": [p0]},
+        "T0": {"variable": "T", "patches": ["inout"], "value": [T0]},
+        "nuTilda0": {"variable": "nuTilda", "patches": ["inout"], "value": [nuTilda0]},
+        "useWallFunction": True,
+    }
+
+    if "alpha" in input.keys():
+
+        solverOptions["inputInfo"] = { # internal
+            "patchV": {
+                "type": "patchVelocity",
+                "patches": ["inout"],
+                "flowAxis": "x",
+                "normalAxis": "y",
+                "components": ["solver", "function"],
+            },
+        }
+
     # Top class to setup the optimization problem
     class Top(Multipoint):
 
         def setup(self):
 
-            # create the builder to initialize the DASolvers
+            # create the builder to initialize the DASolver
             dafoam_builder = DAFoamBuilder(solverOptions, scenario="aerodynamic")
             dafoam_builder.initialize(self.comm)
 
-            # # add the design variable component to keep the top level design variables
+            # add the design variable component to keep the top level design variables
             self.add_subsystem("dvs", om.IndepVarComp(), promotes=["*"])
 
-            # add the mesh component
-            # self.add_subsystem("mesh", dafoam_builder.get_mesh_coordinate_subsystem())
-
-            # # add the geometry component (FFD)
-            # self.add_subsystem("geometry", OM_DVGEOCOMP(file="FFD/wingFFD.xyz", type="ffd"))
-
-            # add a scenario (flow condition) for optimization, we pass the builder
-            # to the scenario to actually run the flow and adjoint
+            # add a scenario (flow condition) for 
             self.mphys_add_scenario("scenario1", ScenarioAerodynamic(aero_builder=dafoam_builder))
 
-            # # need to manually connect the x_aero0 between the mesh and geometry components
-            # # here x_aero0 means the surface coordinates of structurally undeformed mesh
-            # self.connect("mesh.x_aero0", "geometry.x_aero_in")
-            # # need to manually connect the x_aero0 between the geometry component and the scenario1
-            # # scenario group
-            # self.connect("geometry.x_aero0", "scenario1.x_aero")
-
-            # Connecting mesh and scenario
-            # self.connect("mesh.x_aero0", "scenario1.x_aero")
-
             # add the design variables to the dvs component's output
-            self.dvs.add_output("patchV", val=np.array([238.0, ap.alpha]))
+            self.dvs.add_output("patchV", val=np.array([U0, ap.alpha]))
 
             # manually connect the dvs output to the geometry and scenario1
             self.connect("patchV", "scenario1.patchV")
-
-        # def configure(self):
-
-            # define the design variables to the top level
-            # self.add_design_var("shape", lower=-1.0, upper=1.0, scaler=10.0)
-
-            # here we fix the U0 magnitude and allows the aoa to change
-            # self.add_design_var("patchV", lower=[U0, 0.0], upper=[U0, 10.0], scaler=0.1)
-
-            # # add objective and constraints to the top level
-            # self.add_objective("scenario1.aero_post.CD", scaler=1.0)
-            # self.add_constraint("scenario1.aero_post.CL", equals=CL_target, scaler=1.0)
-            # self.add_constraint("geometry.thickcon", lower=0.5, upper=3.0, scaler=1.0)
-            # self.add_constraint("geometry.volcon", lower=1.0, scaler=1.0)
-            # self.add_constraint("geometry.rcon", lower=0.8, scaler=1.0)
     
     # OpenMDAO setup
     prob = om.Problem()
@@ -173,45 +214,42 @@ try:
     prob.setup()
     om.n2(prob, show_browser=False, outfile="mphys.html")
 
-    prob.run_model()
-
     # Adding pressure distribution output
     # if slice:
     #     CFDSolver.addSlices("z", 0.5, sliceType="absolute")
 
     ############## Run CFD
-    # CFDSolver(ap)
-
-    ############## Evaluating objectives
-    # funcs = {}
-    # CFDSolver.evalFunctions(ap, funcs)
-    # CFDSolver.checkSolutionFailure(ap, funcs)
+    prob.run_model()
 
     ############# Post-processing
 
     # printing the result
     if comm.rank == 0:
-        # print("")
-        # print("#" + "-"*129 + "#")
-        # print(" "*59 + "Result" + ""*59)
-        # print("#" + "-"*129 + "#")
-        # print("")
 
-        # output = {}
+        print("")
+        print("#" + "-"*129 + "#")
+        print(" "*59 + "Result" + ""*59)
+        print("#" + "-"*129 + "#")
+        print("")
 
-        # # Printing and storing results based on evalFuncs in aero problem
-        # for obj in ap.evalFuncs:
-        #     print("{} = ".format(obj), funcs["{}_{}".format(ap.name, obj)])
-        #     output["{}".format(obj)] = funcs["{}_{}".format(ap.name, obj)]
+        output = {}
 
-        # # Other mandatory outputs
-        # print("fail = ", funcs["fail"])
-        # output["fail"] = funcs["fail"]
+        # Printing and storing results based on evalFuncs in aero problem
+        for obj in solverOptions["function"].keys():
+            print(f"{obj} = ", prob.get_val(f"scenario1.aero_post.{obj}"))
+            output[f"{obj}"] = prob.get_val(f"scenario1.aero_post.{obj}")
 
-        # # Storing the results in output file
-        # filehandler = open("output.pickle", "xb")
-        # pickle.dump(output, filehandler)
-        # filehandler.close()
+        # Other mandatory outputs - TO DO
+        print("fail = ", False)#funcs["fail"])
+        output["fail"] = False #funcs["fail"]
+
+        # Storing the results in output file
+        filehandler = open("output.pickle", "xb")
+        pickle.dump(output, filehandler)
+        filehandler.close()
+
+        os.system("reconstructPar")
+        os.system("rm -rf processor*")
 
         # Redirecting to original stdout
         os.dup2(stdout, 1)

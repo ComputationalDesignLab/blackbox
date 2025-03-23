@@ -1,72 +1,13 @@
 # Script for generating airfoil samples 
-
 from blackbox import AirfoilCST
 from baseclasses import AeroProblem
 import numpy as np
-
-# Input Parameters
-U0 = 238.0
-p0 = 101325.0
-T0 = 300.0
-nuTilda0 = 4.5e-5
-CL_target = 0.5
-aoa0 = 3.0
-A0 = 1.0
-# rho is used for normalizing CD and CL
-rho0 = p0 / T0 / 287
-
-# Shift most of the solver options inside
-# function can be based on the evalfuncs from aeroproblem
-# inputinfo can be based on operating condition design variables
-# primalBC can be done inside
-# constant variables U0, p0, T0, nutilda, rho0 can be done in runscript 
 
 # options for DAFoam
 solverOptions = {
     "designSurfaces": ["wing"], # internal
     "solverName": "DARhoSimpleCFoam", # user
     "primalMinResTol": 1e-8, # user
-    "primalBC": { # internal
-        "U0": {"variable": "U", "patches": ["inout"], "value": [U0, 0.0, 0.0]},
-        "p0": {"variable": "p", "patches": ["inout"], "value": [p0]},
-        "T0": {"variable": "T", "patches": ["inout"], "value": [T0]},
-        "nuTilda0": {"variable": "nuTilda", "patches": ["inout"], "value": [nuTilda0]},
-        "useWallFunction": True,
-    },
-    "function": { # internal
-        "CD": {
-            "type": "force",
-            "source": "patchToFace",
-            "patches": ["wing"],
-            "directionMode": "parallelToFlow",
-            "patchVelocityInputName": "patchV",
-            "scale": 1.0 / (0.5 * U0 * U0 * A0 * rho0),
-        },
-        "CL": {
-            "type": "force",
-            "source": "patchToFace",
-            "patches": ["wing"],
-            "directionMode": "normalToFlow",
-            "patchVelocityInputName": "patchV",
-            "scale": 1.0 / (0.5 * U0 * U0 * A0 * rho0),
-        },
-    },
-    "normalizeStates": { # internal
-        "U": U0,
-        "p": p0,
-        "T": T0,
-        "nuTilda": nuTilda0 * 10.0,
-        "phi": 1.0,
-    },
-    "inputInfo": { # internal
-        "patchV": {
-            "type": "patchVelocity",
-            "patches": ["inout"],
-            "flowAxis": "x",
-            "normalAxis": "y",
-            "components": ["solver", "function"],
-        },
-    },
 }
 
 # options for pyhyp
