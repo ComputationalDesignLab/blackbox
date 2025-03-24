@@ -240,8 +240,8 @@ try:
             output[f"{obj}"] = prob.get_val(f"scenario1.aero_post.{obj}")
 
         # Other mandatory outputs - TO DO
-        print("fail = ", False)#funcs["fail"])
-        output["fail"] = False #funcs["fail"]
+        print("fail = ", prob.model.scenario1.coupling.solver.DASolver.primalFail)
+        output["fail"] = prob.model.scenario1.coupling.solver.DASolver.primalFail
 
         # Storing the results in output file
         filehandler = open("output.pickle", "xb")
