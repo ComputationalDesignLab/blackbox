@@ -5,9 +5,16 @@ import numpy as np
 
 # options for DAFoam
 solverOptions = {
-    "designSurfaces": ["wing"], # internal
-    "solverName": "DARhoSimpleCFoam", # user
-    "primalMinResTol": 1e-8, # user
+    "designSurfaces": ["wing"],
+    "solverName": "DARhoSimpleCFoam",
+    "primalMinResTol": 1e-6,
+    "primalMinResTolDiff": 1e4,
+    "checkMeshThreshold": {
+            "maxAspectRatio": 1000.0,
+            "maxNonOrth": 70.0,
+            "maxSkewness": 4.0,
+            "maxIncorrectlyOrientedFaces": 0,
+        }
 }
 
 # options for pyhyp
@@ -83,4 +90,4 @@ ub = coeff + np.sign(coeff)*0.3*coeff
 airfoil.addDV("upper", lowerBound=lb, upperBound=ub)
 
 # Generating the samples
-airfoil.generateSamples(numSamples=2)
+airfoil.generateSamples(numSamples=5)

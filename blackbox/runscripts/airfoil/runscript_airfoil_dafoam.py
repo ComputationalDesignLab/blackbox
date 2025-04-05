@@ -124,7 +124,7 @@ try:
     L0 = ap.chordRef
 
     # Some DAfoam options
-    solverOptions["designSurfaces"] = ["wing"]
+    solverOptions["printDAOptions"] = False
     solverOptions["function"] = {}
     
     for obj in ap.evalFuncs:
@@ -134,7 +134,7 @@ try:
             solverOptions["function"]["CD"] = {}
             solverOptions["function"]["CD"]["type"] = "force"
             solverOptions["function"]["CD"]["source"] = "patchToFace"
-            solverOptions["function"]["CD"]["patches"] = ["wing"]
+            solverOptions["function"]["CD"]["patches"] = solverOptions["designSurfaces"]
             solverOptions["function"]["CD"]["directionMode"] = "parallelToFlow"
             solverOptions["function"]["CD"]["patchVelocityInputName"] = "patchV"
             solverOptions["function"]["CD"]["scale"] = 1.0 / (0.5 * U0 * U0 * A0 * rho0)
@@ -144,7 +144,7 @@ try:
             solverOptions["function"]["CL"] = {}
             solverOptions["function"]["CL"]["type"] = "force"
             solverOptions["function"]["CL"]["source"] = "patchToFace"
-            solverOptions["function"]["CL"]["patches"] = ["wing"]
+            solverOptions["function"]["CL"]["patches"] = solverOptions["designSurfaces"]
             solverOptions["function"]["CL"]["directionMode"] = "normalToFlow"
             solverOptions["function"]["CL"]["patchVelocityInputName"] = "patchV"
             solverOptions["function"]["CL"]["scale"] = 1.0 / (0.5 * U0 * U0 * A0 * rho0)
@@ -154,7 +154,7 @@ try:
             solverOptions["function"]["CMZ"] = {}
             solverOptions["function"]["CMZ"]["type"] = "moment"
             solverOptions["function"]["CMZ"]["source"] = "patchToFace"
-            solverOptions["function"]["CMZ"]["patches"] = ["wing"]
+            solverOptions["function"]["CMZ"]["patches"] = solverOptions["designSurfaces"]
             solverOptions["function"]["CMZ"]["axis"] = [0.0, 0.0, 1.0]
             solverOptions["function"]["CMZ"]["center"] = [ap.xRef, ap.yRef, ap.zRef]
             solverOptions["function"]["CMZ"]["scale"] = 1.0 / (0.5 * U0 * U0 * A0 * L0 * rho0)
@@ -236,8 +236,8 @@ try:
 
         # Printing and storing results based on evalFuncs in aero problem
         for obj in solverOptions["function"].keys():
-            print(f"{obj} = ", prob.get_val(f"scenario1.aero_post.{obj}"))
-            output[f"{obj}"] = prob.get_val(f"scenario1.aero_post.{obj}")
+            print(f"{obj.lower()} = ", prob.get_val(f"scenario1.aero_post.{obj}"))
+            output[f"{obj.lower()}"] = prob.get_val(f"scenario1.aero_post.{obj}")
 
         # Other mandatory outputs - TO DO
         print("fail = ", prob.model.scenario1.coupling.solver.DASolver.primalFail)
@@ -248,8 +248,8 @@ try:
         pickle.dump(output, filehandler)
         filehandler.close()
 
+        # Reconstruct the field
         os.system("reconstructPar")
-        os.system("rm -rf processor*")
 
         # Redirecting to original stdout
         os.dup2(stdout, 1)
@@ -262,6 +262,11 @@ except Exception as e:
 finally:
     # close the file
     if comm.rank == 0:
+
+        os.system("rm -rf processor*")
+        os.system("rm -rf runscript_out")
+        os.system("rm volMesh.xyz")
+
         log.close()
 
     # Getting intercomm and disconnecting

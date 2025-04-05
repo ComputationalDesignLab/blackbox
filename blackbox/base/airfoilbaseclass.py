@@ -415,6 +415,11 @@ class AirfoilBaseClass():
                 if os.path.exists(file):
                     os.system("rm {}".format(file))
 
+            if self.options["solver"] == "dafoam":
+                os.system("rm -r 0")
+                os.system("rm -r constant")
+                os.system("rm -r system")
+
             # Changing the directory back to root
             os.chdir("../..")
 
