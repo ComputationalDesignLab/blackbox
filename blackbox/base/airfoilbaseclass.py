@@ -284,7 +284,7 @@ class AirfoilBaseClass():
         # Getting the directory where package is saved
         pkgdir = sys.modules["blackbox"].__path__[0]
 
-        # Setting filepath based on the how alpha is treated
+        # Setting filepath based on the solver
         if self.options["solver"] == "adflow":
 
             if type(self).__name__ == "AirfoilCSTMultipoint":
@@ -598,15 +598,6 @@ class AirfoilBaseClass():
                     self._error("Second entry in \"numCST\" is not an integer.")
                 elif options["numCST"][1] <= 0:
                     self._error("Second entry in \"numCST\" is less than 1.")
-
-        ############ Validating openfoamDir option
-        if "openfoamDir" in userProvidedOptions:
-            if not isinstance(options["openfoamDir"], str):
-                self._error("\"openfoamDir\" attribute is not a string.")
-
-            for fname in ["0", "constant", "system"]:
-                if not os.path.isdir(os.path.join(os.path.abspath(options["openfoamDir"]), f"{fname}")):
-                    self._error(f"The folder \"{fname}\" requried for openfoam simulation is not available at given location")
 
         ############ Validating solver
         if "solver" in userProvidedOptions:

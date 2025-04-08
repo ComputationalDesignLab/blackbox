@@ -22,13 +22,15 @@ class DefaultOptions():
     def __init__(self):
         
         # Aero solver Options
-        self.aeroSolver = "adflow"
+        self.solver = "adflow"
+        self.openfoamDir = "."
 
         # Other options
         self.directory = "output"
         self.noOfProcessors = 4
         self.sliceLocation = [] # defines slice location
         self.writeDeformedFFD = False
+        self.refine = 0
 
         # Alpha implicit related options
         self.alpha = "explicit"
@@ -70,11 +72,11 @@ class WingFFD():
         self._setOptions(options)
 
         # Overiding/set some solver options
-        self.options["solverOptions"]["printAllOptions"] = False
-        self.options["solverOptions"]["printIntro"] = False
-        self.options["solverOptions"]["outputDirectory"] = "."
-        self.options["solverOptions"]["numberSolutions"] = False
-        self.options["solverOptions"]["printTiming"] = False
+        # self.options["solverOptions"]["printAllOptions"] = False
+        # self.options["solverOptions"]["printIntro"] = False
+        # self.options["solverOptions"]["outputDirectory"] = "."
+        # self.options["solverOptions"]["numberSolutions"] = False
+        # self.options["solverOptions"]["printTiming"] = False
 
         # Getting abs path for the storage directory
         self.options["directory"] = os.path.abspath(self.options["directory"])
@@ -361,14 +363,34 @@ class WingFFD():
         # Getting the directory where package is saved
         pkgdir = sys.modules["blackbox"].__path__[0]
 
-        # Setting filepath based on the how alpha is treated alpha
-        if self.options["alpha"] == "explicit":
-            filepath = os.path.join(pkgdir, "runscripts/runscript_wing.py")
-        else:
-            filepath = os.path.join(pkgdir, "runscripts/runscript_wing_rf.py")
+        # Setting filepath based on the solver
+        if self.options["solver"] == "adflow":
+
+            # Overiding/set some solver options
+            self.options["solverOptions"]["printAllOptions"] = False
+            self.options["solverOptions"]["printIntro"] = False
+            self.options["solverOptions"]["outputDirectory"] = "."
+            self.options["solverOptions"]["numberSolutions"] = False
+            self.options["solverOptions"]["printTiming"] = False
+        
+            if self.options["alpha"] == "explicit":
+                filepath = os.path.join(pkgdir, "runscripts/runscript_wing.py")
+            else:
+                filepath = os.path.join(pkgdir, "runscripts/runscript_wing_rf.py")
+
+        elif self.options["solver"] == "dafoam":
+
+            filepath = os.path.join(pkgdir, "runscripts/runscript_wing_dafoam.py")
 
         # Copy the runscript to analysis directory
         shutil.copy(filepath, "{}/{}/runscript.py".format(directory, self.genSamples+1))
+
+        # Copying openfoam standard folders
+        if self.options["solver"] == "dafoam":
+            ofdir = self.options["openfoamDir"]
+            os.system(f"cp -r {ofdir}/0 {directory}/{self.genSamples+1}")
+            os.system(f"cp -r {ofdir}/constant {directory}/{self.genSamples+1}")
+            os.system(f"cp -r {ofdir}/system {directory}/{self.genSamples+1}")
 
         # Creating the new design variable dict
         # If there are no shape DV, then DVGeo
@@ -587,6 +609,29 @@ class WingFFD():
         else:
             options["ffdFile"] = os.path.abspath(options["ffdFile"])
 
+        ############ Validating solver
+        if "solver" in userProvidedOptions:
+            if not isinstance(options["solver"], str):
+                self._error("\"solver\" attribute is not a string.")
+
+            if options["solver"] not in ["adflow", "dafoam"]:
+                self._error("\"solver\" should be either adflow or dafoam")
+
+            if options["solver"] == "dafoam":
+
+                if "openfoamDir" in userProvidedOptions:
+                    if not isinstance(options["openfoamDir"], str):
+                        self._error("\"openfoamDir\" attribute is not a string.")
+
+                    for fname in ["0", "constant", "system"]:
+                        if not os.path.isdir(os.path.join(os.path.abspath(options["openfoamDir"]), f"{fname}")):
+                            self._error(f"The folder \"{fname}\" requried for openfoam simulation is not available at given location")
+
+                else:
+                    for fname in ["0", "constant", "system"]:
+                        if not os.path.isdir(os.path.join(os.path.abspath("."), f"{fname}")):
+                            self._error(f"The folder \"{fname}\" requried for openfoam simulation is not available at given location")
+
         ############ Validating noOfProcessors
         if "noOfProcessors" in userProvidedOptions:
             if not isinstance(options["noOfProcessors"], int):
@@ -755,7 +800,8 @@ class WingFFD():
         input = {
             "solverOptions": self.options["solverOptions"],
             "aeroProblem": self.options["aeroProblem"],
-            "sliceLocation": self.options["sliceLocation"]
+            "sliceLocation": self.options["sliceLocation"],
+            "refine": self.options["refine"]
         }
 
         # Adding non-shape DV
