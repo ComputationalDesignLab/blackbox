@@ -13,16 +13,16 @@ import numpy as np
 comm = MPI.COMM_WORLD
 parent_comm = comm.Get_parent()
 
+# Redirecting the stdout - only root processor does printing
+if comm.rank == 0:
+    stdout = os.dup(1)
+    log = open("log.txt", "a")
+    os.dup2(log.fileno(), 1)
+
 # Send the processor
 parent_comm.send(os.getpid(), dest=0, tag=comm.rank)
 
 try:
-    # Redirecting the stdout - only root processor does printing
-    if comm.rank == 0:
-        log = open("log.txt", "a")
-        stdout = os.dup(1)
-        os.dup2(log.fileno(), 1)
-
     ############## Reading input file for the analysis
 
     # Reading input file
@@ -33,7 +33,7 @@ try:
     # Getting aero problem from input file
     ap = input["aeroProblem"]
     refine = input["refine"]
-    # slice = input["writeSliceFile"]
+    getSurfaceForces = input["getSurfaceForces"]
 
     # Assigning non-shape DVs
     if "alpha" in input.keys():
@@ -49,7 +49,6 @@ try:
     solverOptions = input["solverOptions"]
     solverOptions.pop("gridFile")
     solverOptions.pop("liftIndex")
-
 
     ############## Refining the mesh
 
@@ -88,13 +87,6 @@ try:
     comm.barrier()
 
     ############## Setting up dafoam
-
-    if comm.rank == 0:
-        print("")
-        print("#" + "-"*129 + "#")
-        print(" "*59 + "Analysis Log" + ""*59)
-        print("#" + "-"*129 + "#")
-        print("")
 
     # Parameters for DAfoam options
     U0 = float(ap.V)
@@ -179,6 +171,13 @@ try:
             },
         }
 
+    if getSurfaceForces:
+
+        solverOptions["inputInfo"]["aero_vol_coords"] = { # internal
+            "type": "volCoord",
+            "components": ["solver", "function"]
+        }
+
     # Top class to setup the optimization problem
     class Top(Multipoint):
 
@@ -186,7 +185,7 @@ try:
 
             # create the builder to initialize the DASolver
             dafoam_builder = DAFoamBuilder(solverOptions, scenario="aerodynamic")
-            dafoam_builder.initialize(self.comm)
+            dafoam_builder.initialize(comm)
 
             # add the design variable component to keep the top level design variables
             self.add_subsystem("dvs", om.IndepVarComp(), promotes=["*"])
@@ -199,16 +198,16 @@ try:
 
             # manually connect the dvs output to the geometry and scenario1
             self.connect("patchV", "scenario1.patchV")
+
+            # manually connnecting the volume coordinates to post processing component
+            if getSurfaceForces:
+                self.connect("scenario1.coupling.solver.aero_vol_coords", "scenario1.aero_post.functionals.aero_vol_coords")
     
     # OpenMDAO setup
-    prob = om.Problem()
+    prob = om.Problem(comm=comm)
     prob.model = Top()
-    prob.setup()
+    prob.setup(mode="rev")
     om.n2(prob, show_browser=False, outfile="mphys.html")
-
-    # Adding pressure distribution output
-    # if slice:
-    #     CFDSolver.addSlices("z", 0.5, sliceType="absolute")
 
     ############## Run CFD
     prob.run_model()
@@ -217,6 +216,9 @@ try:
 
     # printing the result
     if comm.rank == 0:
+
+        # Reconstruct the field
+        os.system("reconstructPar")
 
         print("")
         print("#" + "-"*129 + "#")
@@ -240,9 +242,6 @@ try:
         pickle.dump(output, filehandler)
         filehandler.close()
 
-        # Reconstruct the field
-        os.system("reconstructPar")
-
         # Redirecting to original stdout
         os.dup2(stdout, 1)
         os.close(stdout)
@@ -261,6 +260,10 @@ finally:
 
         log.close()
 
+    # Important to wait for all processors to finish before calling disconnect
+    # Otherwise, program will enter deadlock
+    comm.barrier()
+        
     # Getting intercomm and disconnecting
     # Otherwise, program will enter deadlock
     parent_comm.Disconnect()
