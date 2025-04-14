@@ -171,13 +171,6 @@ try:
             },
         }
 
-    if getSurfaceForces:
-
-        solverOptions["inputInfo"]["aero_vol_coords"] = { # internal
-            "type": "volCoord",
-            "components": ["solver", "function"]
-        }
-
     # Top class to setup the optimization problem
     class Top(Multipoint):
 
@@ -198,10 +191,6 @@ try:
 
             # manually connect the dvs output to the geometry and scenario1
             self.connect("patchV", "scenario1.patchV")
-
-            # manually connnecting the volume coordinates to post processing component
-            if getSurfaceForces:
-                self.connect("scenario1.coupling.solver.aero_vol_coords", "scenario1.aero_post.functionals.aero_vol_coords")
     
     # OpenMDAO setup
     prob = om.Problem(comm=comm)
@@ -242,10 +231,6 @@ try:
         pickle.dump(output, filehandler)
         filehandler.close()
 
-        # Redirecting to original stdout
-        os.dup2(stdout, 1)
-        os.close(stdout)
-
 except Exception as e:
     if comm.rank == 0:
         print(e)
@@ -258,6 +243,9 @@ finally:
         os.system("rm -rf runscript_out")
         os.system("rm volMesh.xyz")
 
+        # Redirecting to original stdout
+        os.dup2(stdout, 1)
+        os.close(stdout)
         log.close()
 
     # Important to wait for all processors to finish before calling disconnect

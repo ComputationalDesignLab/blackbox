@@ -30,6 +30,7 @@ class DefaultOptions():
         self.noOfProcessors = 4
         self.sliceLocation = [] # defines slice location
         self.writeDeformedFFD = False
+        self.getSurfaceForces = False
         self.refine = 0
 
         # Alpha implicit related options
@@ -330,7 +331,7 @@ class WingFFD():
         # Closing the description file
         description.close()
 
-    def getObjectives(self, x: np.ndarray) -> tuple:
+    def getObjectives(self, x: np.ndarray) -> dict:
         """
             Method for running a single analysis.
 
@@ -338,6 +339,11 @@ class WingFFD():
             ----------
             x: np.ndarray
                 design variable for which the analysis is to be run.
+
+            Returns
+            -------
+            output: dict
+                A dictionary containing the outputs generated from the analysis.
         """
 
         # Performing checks
@@ -392,6 +398,11 @@ class WingFFD():
             os.system(f"cp -r {ofdir}/constant {directory}/{self.genSamples+1}")
             os.system(f"cp -r {ofdir}/system {directory}/{self.genSamples+1}")
 
+            # Copy the surface forces runscript
+            if self.options["getSurfaceForces"]:
+                filepath = os.path.join(pkgdir, "runscripts/runscript_dafoam_get_forces.py")
+                shutil.copy(filepath, "{}/{}/runscript_get_forces.py".format(directory, self.genSamples+1))
+
         # Creating the new design variable dict
         # If there are no shape DV, then DVGeo
         # will not update the wing surface.
@@ -424,27 +435,34 @@ class WingFFD():
         # Create input file
         self._creatInputFile(x)
 
-        # Spawning the runscript on desired number of processors
-        child_comm = MPI.COMM_SELF.Spawn(sys.executable, args=["runscript.py"], maxprocs=self.options["noOfProcessors"])
-
-        # Creating empty process id list
-        pid_list = []
-
-        # Getting each spawned process
-        for processor in range(self.options["noOfProcessors"]):
-            pid = child_comm.recv(source=MPI.ANY_SOURCE, tag=processor)
-            pid_list.append(psutil.Process(pid))
-
-        # Disconnecting from intercommunicator
-        child_comm.Disconnect()
-
-        # Waiting till all the child processors are finished
-        while len(pid_list) != 0:
-            for pid in pid_list:
-                if not pid.is_running():
-                    pid_list.remove(pid)
-
         try:
+
+            # Spawning the runscript on desired number of processors
+            child_comm = MPI.COMM_SELF.Spawn(sys.executable, args=["runscript.py"], maxprocs=self.options["noOfProcessors"])
+
+            # Creating empty process id list
+            pid_list = []
+
+            # Getting each spawned process
+            for processor in range(self.options["noOfProcessors"]):
+                pid = child_comm.recv(source=MPI.ANY_SOURCE, tag=processor)
+                pid_list.append(psutil.Process(pid))
+
+            # Disconnecting from intercommunicator
+            child_comm.Disconnect()
+
+            # Waiting till all the child processors are finished
+            while len(pid_list) != 0:
+                for pid in pid_list:
+                    if not pid.is_running():
+                        pid_list.remove(pid)
+
+            # Getting surface force output for dafoam
+            if self.options["solver"] == "dafoam":
+                if self.options["getSurfaceForces"]:
+                    pRef = float(self.options["aeroProblem"].P)
+                    os.system(f"python runscript_get_forces.py --pRef {pRef} >> log_forces.txt")
+
             # Reading the output file containing results
             filehandler = open("output.pickle", 'rb')
 
@@ -475,10 +493,15 @@ class WingFFD():
         finally:
             # Cleaning the directory
             files = ["surfMesh.xyz", "volMesh.cgns", "input.pickle", "runscript.py",
-                    "output.pickle", "fort.6", "opt.hst"]
+                    "output.pickle", "fort.6", "opt.hst", "runscript_get_forces.py", "log_forces.txt"]
             for file in files:
                 if os.path.exists(file):
                     os.system("rm {}".format(file))
+
+            if self.options["solver"] == "dafoam":
+                os.system("rm -r 0")
+                os.system("rm -r constant")
+                os.system("rm -r system")
 
             # Changing the directory back to root
             os.chdir("../..")
@@ -650,6 +673,11 @@ class WingFFD():
             if not isinstance(options["writeDeformedFFD"], bool):
                 self._error("\"writeDeformedFFD\" attribute is not a boolean value.")
 
+        ############ Validating getSurfaceForces
+        if "getSurfaceForces" in userProvidedOptions:
+            if not isinstance(options["getSurfaceForces"], bool):
+                self._error("\"getSurfaceForces\" attribute is not a boolean value.")
+
         ############ Validating directory attribute
         if "directory" in userProvidedOptions:
             if not isinstance(options["directory"], str):
@@ -801,7 +829,8 @@ class WingFFD():
             "solverOptions": self.options["solverOptions"],
             "aeroProblem": self.options["aeroProblem"],
             "sliceLocation": self.options["sliceLocation"],
-            "refine": self.options["refine"]
+            "refine": self.options["refine"],
+            "getSurfaceForces": self.options["getSurfaceForces"]
         }
 
         # Adding non-shape DV

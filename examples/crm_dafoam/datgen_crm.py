@@ -9,7 +9,7 @@ solverOptions = {
     "designSurfaces": ["wing"],
     "solverName": "DARhoSimpleCFoam",
     "primalMinResTol": 1e-6,
-    "primalMinResTolDiff": 1e4,
+    "primalMinResTolDiff": 1e2,
     "checkMeshThreshold": {
         "maxAspectRatio": 1000.0,
         "maxNonOrth": 70.0,
@@ -31,8 +31,8 @@ options = {
     "ffdFile": "crm_ffd.xyz",
     "aeroProblem": ap,
     "noOfProcessors": 8,
-    "sliceLocation": [0.883, 1.003, 2.093, 2.612, 3.112, 3.548],
-    "writeDeformedFFD": True
+    "writeDeformedFFD": True,
+    "getSurfaceForces": True
 }
 
 # Create the wing object
@@ -55,4 +55,4 @@ wing.addDV("mach", lowerBound=0.7, upperBound=0.8)
 # wing.addDV("twist", lowerBound=lowerBound, upperBound=upperBound)
 
 # Generate samples
-wing.generateSamples(2)
+wing.generateSamples(5)

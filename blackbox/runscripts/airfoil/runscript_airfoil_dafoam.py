@@ -226,6 +226,9 @@ try:
     # printing the result
     if comm.rank == 0:
 
+        # Reconstruct the field
+        os.system("reconstructPar")
+
         print("")
         print("#" + "-"*129 + "#")
         print(" "*59 + "Result" + ""*59)
@@ -248,12 +251,7 @@ try:
         pickle.dump(output, filehandler)
         filehandler.close()
 
-        # Reconstruct the field
-        os.system("reconstructPar")
-
-        # Redirecting to original stdout
-        os.dup2(stdout, 1)
-        os.close(stdout)
+        
 
 except Exception as e:
     if comm.rank == 0:
@@ -267,6 +265,9 @@ finally:
         os.system("rm -rf runscript_out")
         os.system("rm volMesh.xyz")
 
+        # Redirecting to original stdout
+        os.dup2(stdout, 1)
+        os.close(stdout)
         log.close()
 
     # Getting intercomm and disconnecting
