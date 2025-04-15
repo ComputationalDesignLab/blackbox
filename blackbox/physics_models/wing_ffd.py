@@ -103,7 +103,7 @@ class WingFFD():
             self.spanIndex = "k" # If y is lift index, then span is along z (k)
             self.liftIndex = "y"
         elif self.options["liftIndex"] == 3: # z
-            self.spanIndex = "j" # If z is lift index, then span is along y (i)
+            self.spanIndex = "j" # If z is lift index, then span is along y (j)
             self.liftIndex = "z"
 
         # Create reference axis
@@ -831,6 +831,7 @@ class WingFFD():
 
         if self.options["solver"] == "dafoam":
             input["getSurfaceForces"] = self.options["getSurfaceForces"]
+            input["liftIndex"] = self.liftIndex # y or z
 
         # Adding non-shape DV
         if "alpha" in self.DV:

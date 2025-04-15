@@ -33,6 +33,7 @@ try:
     # Getting aero problem from input file
     ap = input["aeroProblem"]
     getSurfaceForces = input["getSurfaceForces"]
+    normalAxis = input["liftIndex"]
 
     # Assigning non-shape DVs
     if "alpha" in input.keys():
@@ -151,7 +152,7 @@ try:
                 "type": "patchVelocity",
                 "patches": ["inout"],
                 "flowAxis": "x",
-                "normalAxis": "y",
+                "normalAxis": normalAxis,
                 "components": ["solver", "function"],
             },
         }
