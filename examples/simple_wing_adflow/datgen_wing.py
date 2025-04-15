@@ -4,8 +4,7 @@ import numpy as np
 
 solverOptions = {
     # Common Parameters
-    "gridFile": "crm_volMesh.cgns",
-    "monitorvariables": ["cl", "cd", "cmy", "yplus"],
+    "monitorvariables": ["cl", "cd", "yplus"],
     "writeTecplotSurfaceSolution": True,
     "writeSurfaceSolution": False,
     "writeVolumeSolution": False,
@@ -15,7 +14,6 @@ solverOptions = {
     "MGCycle": "sg",
     "nsubiterturb": 10,
     "nCycles": 7000,
-    "liftIndex": 3, # Very important
     # ANK Solver Parameters
     "useANKSolver": True,
     "ANKSubspaceSize": 400,
@@ -37,31 +35,33 @@ solverOptions = {
     "L2Convergence": 1e-14
 }
 
-# Creating aeroproblem for adflow
-ap = AeroProblem(
-    name="crm", alpha=2.2, mach=0.85, reynolds=5e6, reynoldsLength=1.0, T=298.15,
-    areaRef=3.407014, chordRef=1.0, evalFuncs=["cl", "cd", "cmy"], xRef = 1.2077, yRef = 0.0, 
-    zRef = 0.007669
-)
+ap = AeroProblem(name="wing", alpha=2.5, mach=0.85, altitude=10000, areaRef=45.5, chordRef=3.56, evalFuncs=["cl", "cd"])
 
 options = {
+    "solver": "adflow",
     "solverOptions": solverOptions,
-    "ffdFile": "crm_ffd.xyz",
+    "gridFile": "wing_volMesh.cgns",
+    "ffdFile": "wing_ffd.xyz",
+    "liftIndex": 2, # Very important
     "aeroProblem": ap,
     "noOfProcessors": 8,
-    "sliceLocation": [0.883, 1.003, 2.093, 2.612, 3.112, 3.548],
-    "writeDeformedFFD": True
+    "sliceLocation": [0.14, 3.22, 6.3, 9.38, 12.46, 13.86],
+    "writeDeformedFFD": True,
+    # "alpha": "implicit",
+    # "targetCLTol": 1e-4,
+    # "startingAlpha": 3.0,
+    "samplingCriterion": "ese"
 }
 
 # Create the wing object
 wing = WingFFD(options=options)
 
 # Add alpha as a design variable
-wing.addDV("alpha", lowerBound=1.5, upperBound=3.5)
+wing.addDV("alpha", lowerBound=1.5, upperBound=4.5)
 
 # Add the wing shape as a design variable
-lowerBound = np.array([-0.01]*wing.nffd)
-upperBound = np.array([0.01]*wing.nffd)
+lowerBound = np.array([-0.03]*wing.nffd)
+upperBound = np.array([0.03]*wing.nffd)
 wing.addDV("shape", lowerBound=lowerBound, upperBound=upperBound)
 
 # Add the wing twist as a design variable
