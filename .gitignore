@@ -16,3 +16,4 @@ examples/simple_wing_adflow/output
 examples/crm_adflow/output
 examples/crm_dafoam/output
 examples/sampling_plan/output
+examples/onera_adflow/output
