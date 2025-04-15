@@ -31,7 +31,6 @@ class DefaultOptions():
         self.sliceLocation = [] # defines slice location
         self.writeDeformedFFD = False
         self.getSurfaceForces = False
-        self.refine = 0
 
         # Alpha implicit related options
         self.alpha = "explicit"
@@ -64,20 +63,13 @@ class WingFFD():
         self._getDefaultOptions()
 
         # Setting up the required options list
-        requiredOptions = ["solverOptions", "ffdFile", "aeroProblem"]
+        requiredOptions = ["solverOptions", "gridFile", "ffdFile", "liftIndex", "aeroProblem"]
 
         # Validating user provided options
         self._checkOptions(options, requiredOptions)
 
         # Updating/Appending the default option list with user provided options
         self._setOptions(options)
-
-        # Overiding/set some solver options
-        # self.options["solverOptions"]["printAllOptions"] = False
-        # self.options["solverOptions"]["printIntro"] = False
-        # self.options["solverOptions"]["outputDirectory"] = "."
-        # self.options["solverOptions"]["numberSolutions"] = False
-        # self.options["solverOptions"]["printTiming"] = False
 
         # Getting abs path for the storage directory
         self.options["directory"] = os.path.abspath(self.options["directory"])
@@ -93,7 +85,7 @@ class WingFFD():
             os.system("mkdir {}".format(directory))
 
         # Create mesh deformation object
-        self.mesh = USMesh(options={"gridFile": self.options["solverOptions"]["gridFile"]})
+        self.mesh = USMesh(options={"gridFile": self.options["gridFile"]})
 
         # Get the surface mesh coordinates
         surfMesh = self.mesh.getSurfaceCoordinates()
@@ -107,10 +99,10 @@ class WingFFD():
         # Adding surface mesh co-ordinates as a pointset
         self.DVGeo.addPointSet(surfMesh, "wing_surface_mesh")
 
-        if self.options["solverOptions"]["liftIndex"] == 2: # y
+        if self.options["liftIndex"] == 2: # y
             self.spanIndex = "k" # If y is lift index, then span is along z (k)
             self.liftIndex = "y"
-        elif self.options["solverOptions"]["liftIndex"] == 3: # z
+        elif self.options["liftIndex"] == 3: # z
             self.spanIndex = "j" # If z is lift index, then span is along y (i)
             self.liftIndex = "z"
 
@@ -123,6 +115,16 @@ class WingFFD():
         # Some initializations which will be used later
         self.DV = []
         self.genSamples = 0
+
+        # Overiding/setting some adflow solver options
+        if self.options["solver"] == "adflow":
+            self.options["solverOptions"]["printAllOptions"] = False
+            self.options["solverOptions"]["printIntro"] = False
+            self.options["solverOptions"]["outputDirectory"] = "."
+            self.options["solverOptions"]["numberSolutions"] = False
+            self.options["solverOptions"]["printTiming"] = False
+            self.options["solverOptions"]["gridFile"] = self.options["gridFile"]
+            self.options["solverOptions"]["liftIndex"] = self.options["liftIndex"]
 
     # ----------------------------------------------------------------------------
     #                       Design Variable related methods
@@ -371,13 +373,6 @@ class WingFFD():
 
         # Setting filepath based on the solver
         if self.options["solver"] == "adflow":
-
-            # Overiding/set some solver options
-            self.options["solverOptions"]["printAllOptions"] = False
-            self.options["solverOptions"]["printIntro"] = False
-            self.options["solverOptions"]["outputDirectory"] = "."
-            self.options["solverOptions"]["numberSolutions"] = False
-            self.options["solverOptions"]["printTiming"] = False
         
             if self.options["alpha"] == "explicit":
                 filepath = os.path.join(pkgdir, "runscripts/runscript_wing.py")
@@ -616,21 +611,24 @@ class WingFFD():
         if not isinstance(options["solverOptions"], dict):
             self._error("\"solverOptions\" attribute is not a dictionary.")
 
-        if "gridFile" not in options["solverOptions"].keys():
-            self._error("\"gridFile\" attribute in solver options is not provided.")
-        elif not os.path.exists(os.path.abspath(options["solverOptions"]["gridFile"])):
-            self._error("Provided grid file doesn't exists.")
-        else:
-            options["solverOptions"]["gridFile"] = os.path.abspath(options["solverOptions"]["gridFile"])
-
-        if "liftIndex" not in options["solverOptions"].keys():
-            self._error("\"liftIndex\" attribute in solver options is not provided.")
-
         ############ Validating ffdFile
         if not os.path.exists(os.path.abspath(options["ffdFile"])):
             self._error("Provided FFD file doesn't exists.")
         else:
             options["ffdFile"] = os.path.abspath(options["ffdFile"])
+
+        ############ Validating gridFile
+        if not os.path.exists(os.path.abspath(options["gridFile"])):
+            self._error("Provided grid file file doesn't exists.")
+        else:
+            options["gridFile"] = os.path.abspath(options["gridFile"])
+
+        ############ Validating liftIndex
+        if not isinstance(options["liftIndex"], int):
+            self._error("\"liftIndex\" attribute in options is not an integer.")
+
+        if options["liftIndex"] not in [2, 3]:
+            self._error("\"liftIndex\" attribute in options is not recognized. It can be either 2 or 3.")
 
         ############ Validating solver
         if "solver" in userProvidedOptions:
@@ -828,10 +826,11 @@ class WingFFD():
         input = {
             "solverOptions": self.options["solverOptions"],
             "aeroProblem": self.options["aeroProblem"],
-            "sliceLocation": self.options["sliceLocation"],
-            "refine": self.options["refine"],
-            "getSurfaceForces": self.options["getSurfaceForces"]
+            "sliceLocation": self.options["sliceLocation"]
         }
+
+        if self.options["solver"] == "dafoam":
+            input["getSurfaceForces"] = self.options["getSurfaceForces"]
 
         # Adding non-shape DV
         if "alpha" in self.DV:

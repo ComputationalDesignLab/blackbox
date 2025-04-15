@@ -251,8 +251,6 @@ try:
         pickle.dump(output, filehandler)
         filehandler.close()
 
-        
-
 except Exception as e:
     if comm.rank == 0:
         print(e)
@@ -269,6 +267,10 @@ finally:
         os.dup2(stdout, 1)
         os.close(stdout)
         log.close()
+
+    # Important to wait for all processors to finish before calling disconnect
+    # Otherwise, program will enter deadlock
+    comm.barrier()
 
     # Getting intercomm and disconnecting
     # Otherwise, program will enter deadlock

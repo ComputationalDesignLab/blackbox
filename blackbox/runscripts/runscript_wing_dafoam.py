@@ -32,7 +32,6 @@ try:
 
     # Getting aero problem from input file
     ap = input["aeroProblem"]
-    refine = input["refine"]
     getSurfaceForces = input["getSurfaceForces"]
 
     # Assigning non-shape DVs
@@ -47,28 +46,14 @@ try:
 
     # Getting solver and meshing options from input file
     solverOptions = input["solverOptions"]
-    solverOptions.pop("gridFile")
-    solverOptions.pop("liftIndex")
 
     ############## Refining the mesh
 
     # Only one processor has to do this
     if comm.rank == 0:
 
-        # Read the grid
+        # Read the cgns file and write plot3d file
         grid = readGrid("volMesh.cgns")
-
-        if refine == 1:
-            grid.refine(['i', 'k'])
-        if refine == 2:
-            grid.refine(['i', 'k'])
-            grid.refine(['i', 'k'])
-        if refine == -1:
-            grid.coarsen()
-        if refine == -2:
-            grid.coarsen()
-            grid.coarsen()
-
         grid.writePlot3d("volMesh.xyz")
 
         if comm.rank == 0:

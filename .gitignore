@@ -12,7 +12,7 @@ examples/airfoil_cst/output
 examples/airfoil_cst_dafoam/output
 examples/airfoil_cst_multipoint/output
 examples/airfoil_ffd/output
-examples/simple_wing/output
-examples/crm/output
+examples/simple_wing_adflow/output
+examples/crm_adflow/output
 examples/crm_dafoam/output
 examples/sampling_plan/output

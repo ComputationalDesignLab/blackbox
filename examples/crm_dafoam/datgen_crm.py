@@ -4,8 +4,6 @@ import numpy as np
 
 # options for DAFoam
 solverOptions = {
-    "gridFile": "crm_volMesh.cgns",
-    "liftIndex": 3,
     "designSurfaces": ["wing"],
     "solverName": "DARhoSimpleCFoam",
     "primalMinResTol": 1e-6,
@@ -20,15 +18,16 @@ solverOptions = {
 
 # Creating aeroproblem for adflow
 ap = AeroProblem(
-    name="crm", alpha=2.2, mach=0.85, reynolds=5e6, reynoldsLength=1.0, T=298.15,
-    areaRef=3.407014, chordRef=1.0, evalFuncs=["cl", "cd", "cmy"], xRef = 1.2077, yRef = 0.0, 
-    zRef = 0.007669
+    name="crm", alpha=2.0, mach=0.85, reynolds=5e6, reynoldsLength=1.0, T=298.15,
+    areaRef=3.407014, chordRef=1.0, evalFuncs=["cl", "cd", "cmy"], xRef=1.2077, yRef=0.0, zRef=0.007669
 )
 
 options = {
     "solver": "dafoam",
     "solverOptions": solverOptions,
+    "gridFile": "crm_volMesh.cgns",
     "ffdFile": "crm_ffd.xyz",
+    "liftIndex": 3, # Very important
     "aeroProblem": ap,
     "noOfProcessors": 8,
     "writeDeformedFFD": True,

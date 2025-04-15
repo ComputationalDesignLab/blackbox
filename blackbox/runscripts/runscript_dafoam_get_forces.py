@@ -3,12 +3,26 @@
 import numpy as np
 from mpi4py import MPI
 from dafoam import PYDAFOAM
-import argparse
+import pickle
 from scipy.io import savemat
 
-parser = argparse.ArgumentParser(description="Get forces from DAFoam")
-parser.add_argument("--pRef")
-args = parser.parse_args()
+# Reading input file
+filehandler = open("input.pickle", 'rb') 
+input = pickle.load(filehandler)
+filehandler.close()
+
+# Getting aero problem from input file
+ap = input["aeroProblem"]
+
+# Assigning non-shape DVs to get correct pref
+if "alpha" in input.keys():
+    ap.alpha = input["alpha"][0]
+
+if "mach" in input.keys():
+    ap.mach = input["mach"][0]
+
+if "altitude" in input.keys():
+    ap.altitude = input["altitude"][0]
 
 daOptions = {
     "designSurfaces": ["wing"],
@@ -18,7 +32,7 @@ daOptions = {
             "type": "forceCouplingOutput",
             "patches": ["wing"],
             "components": ["forceCoupling"],
-            "pRef": float(args.pRef),
+            "pRef": float(ap.P),
         },
     },
     "printDAOptions": False
