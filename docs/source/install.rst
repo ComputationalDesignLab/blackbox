@@ -1,3 +1,5 @@
+.. _install:
+
 Installation
 ============
 
@@ -17,7 +19,8 @@ Due to this dependency, Blackbox is limited to these systems only. The dependenc
     `baseclasses <https://github.com/mdolab/baseclasses>`_      1.7.0 or higher
     `pyGeo <https://github.com/mdolab/pygeo>`_                  1.12.2 or higher
     `pyHyp <https://github.com/mdolab/pyhyp>`_                  2.6.0 or higher
-    `cgnsutilities <https://github.com/mdolab/cgnsutilities>`_  
+    `idwarp <https://github.com/mdolab/idwarp>`_                2.6.1 or higher
+    `cgnsutilities <https://github.com/mdolab/cgnsutilities>`_  2.7.1 or higher
     `ADflow <https://github.com/mdolab/adflow>`_                2.7.4 or higher
     =========================================================== ================
 
