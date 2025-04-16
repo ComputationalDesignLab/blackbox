@@ -19,4 +19,5 @@ wing data generation. Blackbox can also run on High-Performance Computing resour
 
    install
    airfoil/intro
+   wing/intro
    hpc
