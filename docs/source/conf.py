@@ -9,7 +9,7 @@ import sphinx_rtd_theme
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'Blackbox'
-copyright = '2023, CODE Lab'
+copyright = '2025, CODE Lab'
 author = 'CODE Lab'
 
 # -- General configuration ---------------------------------------------------
