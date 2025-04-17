@@ -1,19 +1,19 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sample generation using DAFoam &mdash; Blackbox  documentation</title>
-      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
-        <script src="../_static/doctools.js?v=888ff710"></script>
-        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -26,11 +26,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> Blackbox
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Blackbox
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -67,9 +71,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="intro.html">Wing sample generation</a> &raquo;</li>
-      <li>Sample generation using DAFoam</li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="intro.html">Wing sample generation</a></li>
+      <li class="breadcrumb-item active">Sample generation using DAFoam</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/wing/dafoam.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -80,19 +84,19 @@
            <div itemprop="articleBody">
              
   <section id="sample-generation-using-dafoam">
-<h1>Sample generation using DAFoam<a class="headerlink" href="#sample-generation-using-dafoam" title="Permalink to this heading">¶</a></h1>
+<h1>Sample generation using DAFoam<a class="headerlink" href="#sample-generation-using-dafoam" title="Link to this heading">¶</a></h1>
 <p>This section explains how to use <code class="docutils literal notranslate"><span class="pre">WingFFD</span></code> module for generating samples using DAFoam. There are typically three
 main steps involved in the process: setting up options and initializing the module, adding design variables
 and generating samples. The <code class="docutils literal notranslate"><span class="pre">WingFFD</span></code> module is demonstrated using a CRM wing example. This script is
 available in <code class="docutils literal notranslate"><span class="pre">examples</span></code> directory of the repository on github.</p>
 <section id="setting-up-options">
-<h2>Setting up options<a class="headerlink" href="#setting-up-options" title="Permalink to this heading">¶</a></h2>
+<h2>Setting up options<a class="headerlink" href="#setting-up-options" title="Link to this heading">¶</a></h2>
 <p>First step involves creating options dictionary which is used for initializating the module. There are five
 mandatory options: <code class="docutils literal notranslate"><span class="pre">solverOptions</span></code>, <code class="docutils literal notranslate"><span class="pre">ffdFile</span></code>, <code class="docutils literal notranslate"><span class="pre">gridFile</span></code>, <code class="docutils literal notranslate"><span class="pre">liftIndex</span></code> and <code class="docutils literal notranslate"><span class="pre">aeroProblem</span></code>, rest all are optional,
 please refer <a class="reference internal" href="options_wing.html#options"><span class="std std-ref">options</span></a> section for more details. Following snippet of the code shows an example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">blackbox</span> <span class="kn">import</span> <span class="n">WingFFD</span>
-<span class="kn">from</span> <span class="nn">baseclasses</span> <span class="kn">import</span> <span class="n">AeroProblem</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">blackbox</span><span class="w"> </span><span class="kn">import</span> <span class="n">WingFFD</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">baseclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">AeroProblem</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="n">solverOptions</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;designSurfaces&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;wing&quot;</span><span class="p">],</span>
@@ -145,7 +149,7 @@ section for more details.</p>
 </div></blockquote>
 </section>
 <section id="adding-design-variables">
-<h2>Adding design variables<a class="headerlink" href="#adding-design-variables" title="Permalink to this heading">¶</a></h2>
+<h2>Adding design variables<a class="headerlink" href="#adding-design-variables" title="Link to this heading">¶</a></h2>
 <p>Next step is to add design variables based on which samples will be generated. The <code class="docutils literal notranslate"><span class="pre">addDV</span></code> method needs three arguments:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">name</span> <span class="pre">(str)</span></code>: name of the design variable to add. The available design variables are:</p>
@@ -184,7 +188,7 @@ sections can be accessed via <code class="docutils literal notranslate"><span cl
 </div>
 </section>
 <section id="generating-samples-and-accessing-data">
-<h2>Generating samples and accessing data<a class="headerlink" href="#generating-samples-and-accessing-data" title="Permalink to this heading">¶</a></h2>
+<h2>Generating samples and accessing data<a class="headerlink" href="#generating-samples-and-accessing-data" title="Link to this heading">¶</a></h2>
 <p>After adding design variables, generating samples is very easy. You just need to use <code class="docutils literal notranslate"><span class="pre">generateSamples</span></code>
 method from the initialized object. This method has two arguments:</p>
 <ul class="simple">
@@ -225,7 +229,7 @@ values will be FFD coefficients, and then <code class="docutils literal notransl
 decides the user desired outputs. Along with these outputs, <cite>volume</cite> of the wing is the mandatory output. Following snippet
 shows how to access the data.mat file. In this tutorial, <code class="docutils literal notranslate"><span class="pre">evalFuncs</span></code> argument contains <code class="docutils literal notranslate"><span class="pre">cl</span></code>, <code class="docutils literal notranslate"><span class="pre">cd</span></code>, <code class="docutils literal notranslate"><span class="pre">cmy</span></code>. So, data.mat
 will contain these variables, along with <code class="docutils literal notranslate"><span class="pre">volume</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scipy.io</span> <span class="kn">import</span> <span class="n">loadmat</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scipy.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">loadmat</span>
 <span class="n">data</span> <span class="o">=</span> <span class="n">loadmat</span><span class="p">(</span><span class="s2">&quot;data.mat&quot;</span><span class="p">)</span> <span class="c1"># mention the location of mat file</span>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
@@ -242,7 +246,7 @@ will contain these variables, along with <code class="docutils literal notransla
 </ul>
 </section>
 <section id="extracting-surface-force-data">
-<h2>Extracting surface force data<a class="headerlink" href="#extracting-surface-force-data" title="Permalink to this heading">¶</a></h2>
+<h2>Extracting surface force data<a class="headerlink" href="#extracting-surface-force-data" title="Link to this heading">¶</a></h2>
 <p>To get forces at each surface mesh coordinate, set the option <code class="docutils literal notranslate"><span class="pre">getSurfaceForces</span></code> to True, refer <a class="reference internal" href="options_wing.html#options"><span class="std std-ref">options</span></a>
 section for more details. This creates a <code class="docutils literal notranslate"><span class="pre">surfaceForces.mat</span></code> file in each corresponding analysis folder. This mat file contains two
 variables: <code class="docutils literal notranslate"><span class="pre">forces</span></code> and <code class="docutils literal notranslate"><span class="pre">surfaceCoords</span></code>. The <code class="docutils literal notranslate"><span class="pre">forces</span></code> is a 2d numpy of size Ncoords x 3, where Ncoords is the number of surface
