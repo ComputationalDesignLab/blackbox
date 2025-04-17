@@ -13,6 +13,10 @@ First step involves creating options dictionary which is used for initializating
 and ``nffd`` are the two mandatory options, rest all are optional, please refer :ref:`options<options>` 
 section for more details. Following snippet of the code shows an example::
 
+    from blackbox import AirfoilCST
+    from baseclasses import AeroProblem
+    import numpy as np
+
     solverOptions = {
         # Common Parameters
         "monitorvariables": ["cl", "cd", "cmz", "yplus"],

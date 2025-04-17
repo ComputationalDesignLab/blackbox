@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Installation &mdash; Blackbox  documentation</title>
@@ -11,12 +11,9 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -42,6 +39,7 @@
               <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="airfoil/intro.html">Airfoil sample generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wing/intro.html">Wing sample generation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hpc.html">Running on HPC</a></li>
 </ul>
 
@@ -58,8 +56,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a></li>
-      <li class="breadcrumb-item active">Installation</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Installation</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/install.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -70,14 +68,14 @@
            <div itemprop="articleBody">
              
   <section id="installation">
-<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h1>
+<span id="install"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h1>
 <p>Blackbox uses various packages for sample generation and many of them are only supported on Linux-based systems.
 Due to this dependency, Blackbox is limited to these systems only. The dependencies are divided into two categories:</p>
 <ul>
 <li><p><strong>MACH-Aero packages</strong>: <a class="reference external" href="https://mdolab-mach-aero.readthedocs-hosted.com/en/latest/index.html">MACH-Aero</a> is a
 framework for performing aerodynamic shape optimization. It consists of various packages, some of which are used
 by Blackbox while generating samples. Below table outlines the requried packages:</p>
-<table class="colwidths-auto docutils align-default">
+<table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Package</p></th>
 <th class="head"><p>Version</p></th>
@@ -93,10 +91,13 @@ by Blackbox while generating samples. Below table outlines the requried packages
 <tr class="row-even"><td><p><a class="reference external" href="https://github.com/mdolab/pyhyp">pyHyp</a></p></td>
 <td><p>2.6.0 or higher</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/mdolab/cgnsutilities">cgnsutilities</a></p></td>
-<td></td>
+<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/mdolab/idwarp">idwarp</a></p></td>
+<td><p>2.6.1 or higher</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://github.com/mdolab/adflow">ADflow</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/mdolab/cgnsutilities">cgnsutilities</a></p></td>
+<td><p>2.7.1 or higher</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/mdolab/adflow">ADflow</a></p></td>
 <td><p>2.7.4 or higher</p></td>
 </tr>
 </tbody>
@@ -105,7 +106,7 @@ by Blackbox while generating samples. Below table outlines the requried packages
 for more details about installing these packages.</p>
 </li>
 <li><p><strong>Other packages</strong>: Other than MACH-Aero packages, Blackbox also requries following packages:</p>
-<table class="colwidths-auto docutils align-default">
+<table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Package</p></th>
 <th class="head"><p>Version</p></th>
@@ -148,7 +149,7 @@ for more details about installing these packages.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2023, CODE Lab.</p>
+    <p>&#169; Copyright 2025, CODE Lab.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wing sample generation &mdash; Blackbox  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Sample generation using ADflow" href="adflow.html" />
+    <link rel="prev" title="Options" href="../airfoil/options.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Blackbox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../airfoil/intro.html">Airfoil sample generation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Wing sample generation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="adflow.html">Sample generation using ADflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dafoam.html">Sample generation using DAFoam</a></li>
+<li class="toctree-l2"><a class="reference internal" href="options_wing.html">Options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../hpc.html">Running on HPC</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Blackbox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Wing sample generation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/wing/intro.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="wing-sample-generation">
+<h1>Wing sample generation<a class="headerlink" href="#wing-sample-generation" title="Permalink to this heading">¶</a></h1>
+<p>Blackbox also provides a module for generating wing samples. The <code class="docutils literal notranslate"><span class="pre">WingFFD</span></code> module provides various
+methods for running analysis and generating wing data with FFD Parametrization. This module
+supports two types of solver: <a class="reference external" href="https://github.com/mdolab/adflow">ADflow</a> and <a class="reference external" href="https://github.com/mdolab/dafoam">DAFoam</a>.
+To use this module, two files are requried:</p>
+<ul class="simple">
+<li><p>Volume mesh in cgns format which defines computational mesh for the analysis</p></li>
+<li><p>FFD file in plot3d format which defines a FFD box around the wing</p></li>
+</ul>
+<p>Unlike airfoil sample generation, whenever shape of the wing is modified using FFD, the volume mesh is deformed using
+<a class="reference external" href="https://github.com/mdolab/idwarp">idwarp</a>. So, ensure that idwarp is installed before using this module,
+refer <a class="reference internal" href="../install.html#installation"><span class="std std-ref">installation</span></a> details.</p>
+<p>There are other required files depending on the solver, refer below sections to know more about
+how to use this module. All the examples used in below sections can be found in <code class="docutils literal notranslate"><span class="pre">examples</span></code> directory on github.</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="adflow.html">Sample generation using ADflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="adflow.html#setting-up-options">Setting up options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adflow.html#adding-design-variables">Adding design variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adflow.html#generating-samples-and-accessing-data">Generating samples and accessing data</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dafoam.html">Sample generation using DAFoam</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dafoam.html#setting-up-options">Setting up options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dafoam.html#adding-design-variables">Adding design variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dafoam.html#generating-samples-and-accessing-data">Generating samples and accessing data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dafoam.html#extracting-surface-force-data">Extracting surface force data</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="options_wing.html">Options</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="options_wing.html#mandatory-arguments">Mandatory arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="options_wing.html#optional-arguments">Optional arguments</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../airfoil/options.html" class="btn btn-neutral float-left" title="Options" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="adflow.html" class="btn btn-neutral float-right" title="Sample generation using ADflow" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, CODE Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

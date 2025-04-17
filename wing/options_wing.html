@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Options &mdash; Blackbox  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Running on HPC" href="../hpc.html" />
+    <link rel="prev" title="Sample generation using DAFoam" href="dafoam.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Blackbox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../airfoil/intro.html">Airfoil sample generation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="intro.html">Wing sample generation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="adflow.html">Sample generation using ADflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dafoam.html">Sample generation using DAFoam</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Options</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mandatory-arguments">Mandatory arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#optional-arguments">Optional arguments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../hpc.html">Running on HPC</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Blackbox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="intro.html">Wing sample generation</a> &raquo;</li>
+      <li>Options</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/wing/options_wing.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="options">
+<span id="options-wing"></span><h1>Options<a class="headerlink" href="#options" title="Permalink to this heading">¶</a></h1>
+<p>Following is the list of options for <code class="docutils literal notranslate"><span class="pre">WingFFD</span></code> module. Options are divided
+into two categories: mandatory and optional.</p>
+<section id="mandatory-arguments">
+<h2>Mandatory arguments<a class="headerlink" href="#mandatory-arguments" title="Permalink to this heading">¶</a></h2>
+<blockquote>
+<div><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">solverOptions</span> <span class="pre">(dict)</span></code></dt><dd><p>options for the flow solver, either adflow or dafoam</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">gridFile</span> <span class="pre">(str)</span></code></dt><dd><p>filename containing volume mesh of the wing in cgns format</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">ffdFile</span> <span class="pre">(str)</span></code></dt><dd><p>filename containing coordinates of the ffd points in plot3d format</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">liftIndex</span> <span class="pre">(int)</span></code></dt><dd><p>an int describing lift direction. Only two possible values: when the
+value is 2, lift direction is y. When the value is 3, lift direction is z</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">aeroProblem</span></code></dt><dd><p>aero-problem from baseclasses package defining information related aerodynamic analysis</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="optional-arguments">
+<h2>Optional arguments<a class="headerlink" href="#optional-arguments" title="Permalink to this heading">¶</a></h2>
+<blockquote>
+<div><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">solver</span> <span class="pre">(str,</span> <span class="pre">default=&quot;adflow&quot;)</span></code></dt><dd><p>name of the solver, only two values are possible: “adflow” or “dafoam”</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">openfoamDir</span> <span class="pre">(str,</span> <span class="pre">default=&quot;.&quot;)</span></code></dt><dd><p>name of the directory containing supporting openfoam folders such as 0, constant, and system.
+The default value is the current directory</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">directory</span> <span class="pre">(str,</span> <span class="pre">default=&quot;output&quot;)</span></code></dt><dd><p>name of the directory where the results will saved</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">noOfProcessors</span> <span class="pre">(int,</span> <span class="pre">default=4)</span></code></dt><dd><p>desired number of processors to run the analysis on</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">sliceLocation</span> <span class="pre">(list,</span> <span class="pre">default=[])</span></code></dt><dd><p>a list containing spanwise locations where the slice is required, only works with adflow</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">writeDeformedFFD</span> <span class="pre">(bool,</span> <span class="pre">default=False)</span></code></dt><dd><p>option to specify whether to write deformed FFD file or not</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">getSurfaceForces</span> <span class="pre">(bool,</span> <span class="pre">default=False)</span></code></dt><dd><p>option to specify whether to get force at each surface mesh coordinate or not</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">(str,</span> <span class="pre">default=&quot;explicit&quot;)</span></code></dt><dd><p>option to specify whether to consider alpha as an explicit or implicit variable. There are only two possbile values:
+<code class="docutils literal notranslate"><span class="pre">explicit</span></code> (normal analysis) and <code class="docutils literal notranslate"><span class="pre">implicit</span></code> (internal root finder). When this option is set to implicit, then for each sample secant method
+is used to find alpha such that target CL is achived. So, this option also takes longer to evaluate. <strong>Note</strong>: When this option is set to implicit, then
+<code class="docutils literal notranslate"><span class="pre">alpha</span></code> cannot be added as a DV. This option is only for adflow</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">targetCL</span> <span class="pre">(float,</span> <span class="pre">default=0.824)</span></code></dt><dd><p>this option only applies when <code class="docutils literal notranslate"><span class="pre">alpha</span></code> is set to <code class="docutils literal notranslate"><span class="pre">implicit</span></code>.
+This option specifies the value of target CL to be met. This option is only for adflow</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">targetCLTol</span> <span class="pre">(float,</span> <span class="pre">default=1e-4)</span></code></dt><dd><p>this option only applies when <code class="docutils literal notranslate"><span class="pre">alpha</span></code> is set to <code class="docutils literal notranslate"><span class="pre">implicit</span></code>.
+This option specifies the required tolerance to be met for target CL. This option is only for adflow.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">startingAlpha</span> <span class="pre">(float,</span> <span class="pre">default=2.5)</span></code></dt><dd><p>this option only applies when <code class="docutils literal notranslate"><span class="pre">alpha</span></code> is set to <code class="docutils literal notranslate"><span class="pre">implicit</span></code>.
+This option specifies the initial guess for angle of attack (in degrees)
+for secant method. Note that this value has a huge impact on the convergence speed of the secant method.
+So, it is recommended to set this value close to the expected value. This option is only for adflow</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">samplingCriterion</span> <span class="pre">(str,</span> <span class="pre">default=&quot;cm&quot;)</span></code></dt><dd><p>this option decides which method to use to generate Latin Hypercube samples. Only four options are available:
+<code class="docutils literal notranslate"><span class="pre">c</span></code>, <code class="docutils literal notranslate"><span class="pre">m</span></code>, <code class="docutils literal notranslate"><span class="pre">cm</span></code>, <code class="docutils literal notranslate"><span class="pre">ese</span></code></p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">randomState</span> <span class="pre">(int,</span> <span class="pre">default=None)</span></code></dt><dd><p>this option is used to set the random state while generating Latin Hypercube samples</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="dafoam.html" class="btn btn-neutral float-left" title="Sample generation using DAFoam" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../hpc.html" class="btn btn-neutral float-right" title="Running on HPC" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, CODE Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

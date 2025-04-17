@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sample generation using DAFoam &mdash; Blackbox  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Options" href="options_wing.html" />
+    <link rel="prev" title="Sample generation using ADflow" href="adflow.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Blackbox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../airfoil/intro.html">Airfoil sample generation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="intro.html">Wing sample generation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="adflow.html">Sample generation using ADflow</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Sample generation using DAFoam</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#setting-up-options">Setting up options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adding-design-variables">Adding design variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#generating-samples-and-accessing-data">Generating samples and accessing data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#extracting-surface-force-data">Extracting surface force data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="options_wing.html">Options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../hpc.html">Running on HPC</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Blackbox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="intro.html">Wing sample generation</a> &raquo;</li>
+      <li>Sample generation using DAFoam</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/wing/dafoam.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="sample-generation-using-dafoam">
+<h1>Sample generation using DAFoam<a class="headerlink" href="#sample-generation-using-dafoam" title="Permalink to this heading">¶</a></h1>
+<p>This section explains how to use <code class="docutils literal notranslate"><span class="pre">WingFFD</span></code> module for generating samples using DAFoam. There are typically three
+main steps involved in the process: setting up options and initializing the module, adding design variables
+and generating samples. The <code class="docutils literal notranslate"><span class="pre">WingFFD</span></code> module is demonstrated using a CRM wing example. This script is
+available in <code class="docutils literal notranslate"><span class="pre">examples</span></code> directory of the repository on github.</p>
+<section id="setting-up-options">
+<h2>Setting up options<a class="headerlink" href="#setting-up-options" title="Permalink to this heading">¶</a></h2>
+<p>First step involves creating options dictionary which is used for initializating the module. There are five
+mandatory options: <code class="docutils literal notranslate"><span class="pre">solverOptions</span></code>, <code class="docutils literal notranslate"><span class="pre">ffdFile</span></code>, <code class="docutils literal notranslate"><span class="pre">gridFile</span></code>, <code class="docutils literal notranslate"><span class="pre">liftIndex</span></code> and <code class="docutils literal notranslate"><span class="pre">aeroProblem</span></code>, rest all are optional,
+please refer <a class="reference internal" href="options_wing.html#options"><span class="std std-ref">options</span></a> section for more details. Following snippet of the code shows an example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">blackbox</span> <span class="kn">import</span> <span class="n">WingFFD</span>
+<span class="kn">from</span> <span class="nn">baseclasses</span> <span class="kn">import</span> <span class="n">AeroProblem</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">solverOptions</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;designSurfaces&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;wing&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;solverName&quot;</span><span class="p">:</span> <span class="s2">&quot;DARhoSimpleCFoam&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;primalMinResTol&quot;</span><span class="p">:</span> <span class="mf">1e-6</span><span class="p">,</span>
+    <span class="s2">&quot;primalMinResTolDiff&quot;</span><span class="p">:</span> <span class="mf">1e2</span><span class="p">,</span>
+    <span class="s2">&quot;checkMeshThreshold&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;maxAspectRatio&quot;</span><span class="p">:</span> <span class="mf">1000.0</span><span class="p">,</span>
+        <span class="s2">&quot;maxNonOrth&quot;</span><span class="p">:</span> <span class="mf">70.0</span><span class="p">,</span>
+        <span class="s2">&quot;maxSkewness&quot;</span><span class="p">:</span> <span class="mf">4.0</span><span class="p">,</span>
+        <span class="s2">&quot;maxIncorrectlyOrientedFaces&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1"># Creating aeroproblem for adflow</span>
+<span class="c1"># Chord ref is 1.0 since all the dimensions are scaled according to it</span>
+<span class="n">ap</span> <span class="o">=</span> <span class="n">AeroProblem</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;crm&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">mach</span><span class="o">=</span><span class="mf">0.85</span><span class="p">,</span> <span class="n">reynolds</span><span class="o">=</span><span class="mf">5e6</span><span class="p">,</span> <span class="n">reynoldsLength</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">298.15</span><span class="p">,</span>
+    <span class="n">areaRef</span><span class="o">=</span><span class="mf">3.407014</span><span class="p">,</span> <span class="n">chordRef</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">evalFuncs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;cl&quot;</span><span class="p">,</span> <span class="s2">&quot;cd&quot;</span><span class="p">,</span> <span class="s2">&quot;cmy&quot;</span><span class="p">],</span> <span class="n">xRef</span><span class="o">=</span><span class="mf">1.2077</span><span class="p">,</span> <span class="n">yRef</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">zRef</span><span class="o">=</span><span class="mf">0.007669</span>
+<span class="p">)</span>
+
+<span class="c1"># Options for blackbox</span>
+<span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;solver&quot;</span><span class="p">:</span> <span class="s2">&quot;dafoam&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;solverOptions&quot;</span><span class="p">:</span> <span class="n">solverOptions</span><span class="p">,</span>
+    <span class="s2">&quot;openfoamDir&quot;</span><span class="p">:</span> <span class="s2">&quot;.&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;gridFile&quot;</span><span class="p">:</span> <span class="s2">&quot;crm_volMesh.cgns&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ffdFile&quot;</span><span class="p">:</span> <span class="s2">&quot;crm_ffd.xyz&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;liftIndex&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="c1"># Very important</span>
+    <span class="s2">&quot;aeroProblem&quot;</span><span class="p">:</span> <span class="n">ap</span><span class="p">,</span>
+    <span class="s2">&quot;noOfProcessors&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="s2">&quot;writeDeformedFFD&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s2">&quot;getSurfaceForces&quot;</span><span class="p">:</span> <span class="kc">True</span>
+<span class="p">}</span>
+
+<span class="c1"># Initialize the class</span>
+<span class="n">wing</span> <span class="o">=</span> <span class="n">WingFFD</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Firstly, required packages and modules are imported. Then, <code class="docutils literal notranslate"><span class="pre">solverOptions</span></code> dictionary is created, refer DAFoam documentation
+for more details. Then, <a class="reference external" href="https://mdolab-baseclasses.readthedocs-hosted.com/en/latest/pyAero_problem.html">AeroProblem</a>
+object is created which contains details about the flow conditions and the desired output variables are
+defined using <code class="docutils literal notranslate"><span class="pre">evalFuncs</span></code> argument. Then, <code class="docutils literal notranslate"><span class="pre">options</span></code> dictionary is created, refer <a class="reference internal" href="options_wing.html#options"><span class="std std-ref">options</span></a>
+section for more details.</p>
+<blockquote>
+<div><div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In solver options dictionary for DAFoam, no need to mention arguments such as <code class="docutils literal notranslate"><span class="pre">primalBC</span></code>, <code class="docutils literal notranslate"><span class="pre">function</span></code>,
+<code class="docutils literal notranslate"><span class="pre">normalizeStates</span></code>, <code class="docutils literal notranslate"><span class="pre">inputInfo</span></code>. These options are internally set before each analysis.</p>
+</div>
+</div></blockquote>
+</section>
+<section id="adding-design-variables">
+<h2>Adding design variables<a class="headerlink" href="#adding-design-variables" title="Permalink to this heading">¶</a></h2>
+<p>Next step is to add design variables based on which samples will be generated. The <code class="docutils literal notranslate"><span class="pre">addDV</span></code> method needs three arguments:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span> <span class="pre">(str)</span></code>: name of the design variable to add. The available design variables are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">shape</span></code>: FFD control points which parameterize the airfoil shape</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">twist</span></code>: Twist of the airfoil sections along the wing span, number of sections will be one less than the sections defined in the FFD file since root is fixed</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">alpha</span></code>: Angle of attack for the analysis</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mach</span></code>: Mach number for the analysis</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">altitude</span></code>: Altitude for the analysis</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lowerBound</span> <span class="pre">(numpy</span> <span class="pre">array</span> <span class="pre">or</span> <span class="pre">float)</span></code>: lower bound for the variable</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">upperBound</span> <span class="pre">(numpy</span> <span class="pre">array</span> <span class="pre">or</span> <span class="pre">float)</span></code>: upper bound for the variable</p>
+<blockquote>
+<div><div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When <code class="docutils literal notranslate"><span class="pre">shape</span></code> variable is to be added, the lower and upper bound should be a 1D numpy array of the same size
+as the number of FFD points. The number of FFD points can be accessed via <code class="docutils literal notranslate"><span class="pre">nffd</span></code> attribute of the class.</p>
+<p>When <code class="docutils literal notranslate"><span class="pre">twist</span></code> variable is to be added, the lower and upper bound should be a 1D numpy array of the same size
+as the number of section defined in the FFD file minus one. The twist is defined in degrees. The number of twist
+sections can be accessed via <code class="docutils literal notranslate"><span class="pre">nTwist</span></code> attribute of the class.</p>
+<p>For other cases, lower and upper bound should be float.</p>
+</div>
+</div></blockquote>
+</li>
+</ul>
+<p>Following code snippet adds <code class="docutils literal notranslate"><span class="pre">alpha</span></code> and <code class="docutils literal notranslate"><span class="pre">mach</span></code> as design variables:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Add alpha as a design variable</span>
+<span class="n">wing</span><span class="o">.</span><span class="n">addDV</span><span class="p">(</span><span class="s2">&quot;alpha&quot;</span><span class="p">,</span> <span class="n">lowerBound</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">upperBound</span><span class="o">=</span><span class="mf">3.5</span><span class="p">)</span>
+
+<span class="c1"># Add mach as a design variable</span>
+<span class="n">wing</span><span class="o">.</span><span class="n">addDV</span><span class="p">(</span><span class="s2">&quot;mach&quot;</span><span class="p">,</span> <span class="n">lowerBound</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">upperBound</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="generating-samples-and-accessing-data">
+<h2>Generating samples and accessing data<a class="headerlink" href="#generating-samples-and-accessing-data" title="Permalink to this heading">¶</a></h2>
+<p>After adding design variables, generating samples is very easy. You just need to use <code class="docutils literal notranslate"><span class="pre">generateSamples</span></code>
+method from the initialized object. This method has two arguments:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">numSamples</span> <span class="pre">(int)</span></code>: number of samples to generate</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">doe</span> <span class="pre">(numpy</span> <span class="pre">array)</span></code>: 2D numpy array in which each row represents a specific sample</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can either provide <code class="docutils literal notranslate"><span class="pre">numSamples</span></code> or <code class="docutils literal notranslate"><span class="pre">doe</span></code> i.e. both of them are mutually exclusive.
+If both are provided, then an error will be raised.</p>
+</div>
+<p>Typically, <code class="docutils literal notranslate"><span class="pre">numSamples</span> <span class="pre">(int)</span></code> should be used for generating samples. This option will internally generate doe based on the
+options provided while initializating the module. In some cases, you might want to generate samples based on your own doe. In that
+case, you use <code class="docutils literal notranslate"><span class="pre">doe</span> <span class="pre">(numpy</span> <span class="pre">array)</span></code> argument. Following snippet of the code will generate 5 samples using internally generated doe:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wing</span><span class="o">.</span><span class="n">generateSamples</span><span class="p">(</span><span class="n">numSamples</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can see the following output upon successful completion of sample generation process:</p>
+<ul>
+<li><p>A folder with the name specificed in the <code class="docutils literal notranslate"><span class="pre">directory</span></code> option (or the default name - <em>output</em>) is created. This folder contains all the generated
+files/folders.</p></li>
+<li><p>Within the main output folder, there will be subfolders equal to the number of samples you requested. Each of the folder corresponds to the specific
+analysis performed. It will contain log.txt which contains the output from mesh generation and solver. There will be other files depending on the
+options provided to solver and blackbox.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data.mat</span></code> file which contains:</p>
+<ul>
+<li><p><strong>Input variable</strong>: a 2D numpy array <code class="docutils literal notranslate"><span class="pre">x</span></code> in which each row represents a specific sample based on which analysis is performed. The number
+of rows will be usually equal to the number of samples argument in the <code class="docutils literal notranslate"><span class="pre">generateSamples</span></code> method. But, many times few of the analysis
+fail. It depends a lot on the solver options, so set those options after some tuning.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The order of values in each row is based on how you add design variables. In this tutorial, first <code class="docutils literal notranslate"><span class="pre">alpha</span></code> is added as
+design variable and then shape coefficients are added. Thus, first value in each row will be alpha, next <code class="docutils literal notranslate"><span class="pre">nffd</span></code>
+values will be FFD coefficients, and then <code class="docutils literal notranslate"><span class="pre">nTwist</span></code> values will be twist values.</p>
+</div>
+</li>
+<li><p><strong>Outputs</strong>: There are two kinds of outputs - mandatory and user specificed. The <code class="docutils literal notranslate"><span class="pre">evalFuncs</span></code> argument in the aero problem
+decides the user desired outputs. Along with these outputs, <cite>volume</cite> of the wing is the mandatory output. Following snippet
+shows how to access the data.mat file. In this tutorial, <code class="docutils literal notranslate"><span class="pre">evalFuncs</span></code> argument contains <code class="docutils literal notranslate"><span class="pre">cl</span></code>, <code class="docutils literal notranslate"><span class="pre">cd</span></code>, <code class="docutils literal notranslate"><span class="pre">cmy</span></code>. So, data.mat
+will contain these variables, along with <code class="docutils literal notranslate"><span class="pre">volume</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scipy.io</span> <span class="kn">import</span> <span class="n">loadmat</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">loadmat</span><span class="p">(</span><span class="s2">&quot;data.mat&quot;</span><span class="p">)</span> <span class="c1"># mention the location of mat file</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
+<span class="n">cl</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;cl&quot;</span><span class="p">]</span>
+<span class="n">cd</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;cd&quot;</span><span class="p">]</span>
+<span class="n">cmy</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;cmy&quot;</span><span class="p">]</span>
+<span class="n">volume</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">description.txt</span></code>: contains various informations about the sample generation such as design variables, bounds, number of failed analysis, etc.</p></li>
+</ul>
+</section>
+<section id="extracting-surface-force-data">
+<h2>Extracting surface force data<a class="headerlink" href="#extracting-surface-force-data" title="Permalink to this heading">¶</a></h2>
+<p>To get forces at each surface mesh coordinate, set the option <code class="docutils literal notranslate"><span class="pre">getSurfaceForces</span></code> to True, refer <a class="reference internal" href="options_wing.html#options"><span class="std std-ref">options</span></a>
+section for more details. This creates a <code class="docutils literal notranslate"><span class="pre">surfaceForces.mat</span></code> file in each corresponding analysis folder. This mat file contains two
+variables: <code class="docutils literal notranslate"><span class="pre">forces</span></code> and <code class="docutils literal notranslate"><span class="pre">surfaceCoords</span></code>. The <code class="docutils literal notranslate"><span class="pre">forces</span></code> is a 2d numpy of size Ncoords x 3, where Ncoords is the number of surface
+mesh points and 3 corresponds to x, y, and z component of the force vector. The <code class="docutils literal notranslate"><span class="pre">surfaceCoords</span></code> is also a 2d numpy array of size
+Ncoords x 3, containing surface mesh coordinates. These forces and surface coordinates can be extracted as shown in previous section
+using <code class="docutils literal notranslate"><span class="pre">loadmat</span></code> function from scipy.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="adflow.html" class="btn btn-neutral float-left" title="Sample generation using ADflow" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="options_wing.html" class="btn btn-neutral float-right" title="Options" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, CODE Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
