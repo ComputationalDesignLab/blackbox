@@ -8,10 +8,8 @@ blackbox/base/__pycache__
 blackbox/utils/__pycache__
 docs/build
 examples/__pycache__
-examples/airfoil_cst/output
-examples/airfoil_cst_dafoam/output
-examples/airfoil_cst_multipoint/output
-examples/airfoil_ffd/output
+examples/airfoil_adflow/output
+examples/airfoil_dafoam/output
 examples/simple_wing_adflow/output
 examples/crm_adflow/output
 examples/crm_dafoam/output
