@@ -1,19 +1,16 @@
-from blackbox import AirfoilCST
+from blackbox import AirfoilCSTMultipoint
 from baseclasses import AeroProblem
 import numpy as np
 
 solverOptions = {
     # Common Parameters
-    "monitorvariables": ["cl", "cd", "cmz", "yplus"],
+    "monitorvariables": ["cl", "cd", "mach", "yplus"],
     "writeTecplotSurfaceSolution": True,
     "writeSurfaceSolution": False,
     "writeVolumeSolution": False,
     # Physics Parameters
-    "equationType": "RANS",
-    "smoother": "DADI",
-    "MGCycle": "sg",
     "nsubiterturb": 10,
-    "nCycles": 7000,
+    "nCycles": 5000,
     # ANK Solver Parameters
     "useANKSolver": True,
     "ANKSubspaceSize": 400,
@@ -47,23 +44,38 @@ meshingOptions = {
     # ---------------------------
     #        Grid Parameters
     # ---------------------------
-    "N": 129,
+    "N": 257,
     "s0": 1e-6,
     "marchDist": 100.0,
 }
 
+nCases = 3
+reynolds = 6.5e6
+mach = [0.724, 0.734, 0.744]
+evalFuncs = ["cl", "cd", "cmz"]
+aeroProblems = []
+
 # Creating aeroproblem for adflow
-ap = AeroProblem(
-    name="ap", alpha=2.0, mach=0.734, reynolds=6.5e6, reynoldsLength=1.0, T=288.15, 
-    areaRef=1.0, chordRef=1.0, evalFuncs=["cl", "cd", "cmz"], xRef = 0.25, yRef = 0.0, zRef = 0.0
-)
+for i in range(nCases):
+
+    # Aeroproblem for specific case
+    ap = AeroProblem(
+        name="ap{}".format(i), alpha=2.8, mach=mach[i], reynolds=reynolds, reynoldsLength=1.0, T=288.15, 
+        areaRef=1.0, chordRef=1.0, evalFuncs=evalFuncs, xRef = 0.25, yRef = 0.0, zRef = 0.0
+    )
+
+    # Alpha is a design variable at each point
+    ap.addDV("alpha", lower=1.5, upper=3.5, name="alpha{}".format(i))
+
+    # Append to aeroProblems
+    aeroProblems.append(ap)
 
 # Options for blackbox
 options = {
     "solverOptions": solverOptions,
     "noOfProcessors": 8,
-    "aeroProblem": ap,
-    "airfoilFile": "rae2822_orig.dat",
+    "aeroProblem": aeroProblems,
+    "airfoilFile": "rae2822.dat",
     "numCST": [6, 6],
     "meshingOptions": meshingOptions,
     "writeAirfoilCoordinates": True,
@@ -73,12 +85,9 @@ options = {
 }
 
 # Example for generating samples
-airfoil = AirfoilCST(options=options)
+airfoil = AirfoilCSTMultipoint(options=options)
 
-######### Multi Analysis
-
-# Adding design variable
-airfoil.addDV("alpha", 2.0, 3.0)
+######### Adding non-operating condition DVs #########
 
 # Adding lower surface CST coeffs as DV
 coeff = airfoil.DVGeo.lowerCST # get the fitted CST coeff
