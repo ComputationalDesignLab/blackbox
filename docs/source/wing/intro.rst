@@ -15,7 +15,7 @@ Unlike airfoil sample generation, whenever shape of the wing is modified using F
 refer :ref:`installation<installation>` details.
 
 There are other required files depending on the solver, refer below sections to know more about 
-how to use this module. All the files used in below sections can be found in ``examples`` directory on github.
+how to use this module. All the examples used in below sections can be found in ``examples`` directory on github.
 
 .. toctree::
     :maxdepth: 3
@@ -23,3 +23,4 @@ how to use this module. All the files used in below sections can be found in ``e
     
     adflow
     dafoam
+    options_wing

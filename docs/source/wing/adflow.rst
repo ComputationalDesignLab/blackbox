@@ -2,7 +2,7 @@
 Sample generation using ADflow
 *******************************
 
-This section explains how to use ``WingFFD`` module for generating samples. There are typically three
+This section explains how to use ``WingFFD`` module for generating samples using ADflow. There are typically three
 main steps involved in the process: setting up options and initializing the module, adding design variables 
 and generating samples. The ``WingFFD`` module is demonstrated using a CRM wing example. This script is
 available in ``examples`` directory of the repository on github.
@@ -153,19 +153,19 @@ You can see the following output upon successful completion of sample generation
 
 - ``data.mat`` file which contains:
 
-    - **Input variable**: a 2D numpy array ``x`` in which each row represents a specific sample based on which analysis is performed. The number
-      of rows will be usually equal to the number of samples argument in the ``generateSamples`` method. But, many times few of the analysis
-      fail. It depends a lot on the solver options, so set those options after some tuning.
+  - **Input variable**: a 2D numpy array ``x`` in which each row represents a specific sample based on which analysis is performed. The number
+    of rows will be usually equal to the number of samples argument in the ``generateSamples`` method. But, many times few of the analysis
+    fail. It depends a lot on the solver options, so set those options after some tuning.
 
-      .. note::
-          The order of values in each row is based on how you add design variables. In this tutorial, first ``alpha`` is added as
-          design variable and then shape coefficients are added. Thus, first value in each row will be alpha, next ``nffd``
-          values will be FFD coefficients, and then ``nTwist`` values will be twist values.
+    .. note::
+        The order of values in each row is based on how you add design variables. In this tutorial, first ``alpha`` is added as
+        design variable and then shape coefficients are added. Thus, first value in each row will be alpha, next ``nffd``
+        values will be FFD coefficients, and then ``nTwist`` values will be twist values.
 
-    - **Outputs**: There are two kinds of outputs - mandatory and user specificed. The ``evalFuncs`` argument in the aero problem
-      decides the user desired outputs. Along with these outputs, `volume` of the wing is the mandatory output. Following snippet 
-      shows how to access the data.mat file. In this tutorial, ``evalFuncs`` argument contains ``cl``, ``cd``, ``cmy``. So, data.mat 
-      will contain these variables, along with ``volume``::
+  - **Outputs**: There are two kinds of outputs - mandatory and user specificed. The ``evalFuncs`` argument in the aero problem
+    decides the user desired outputs. Along with these outputs, `volume` of the wing is the mandatory output. Following snippet 
+    shows how to access the data.mat file. In this tutorial, ``evalFuncs`` argument contains ``cl``, ``cd``, ``cmy``. So, data.mat 
+    will contain these variables, along with ``volume``::
 
         from scipy.io import loadmat
         data = loadmat("data.mat") # mention the location of mat file
