@@ -18,8 +18,8 @@ points to note regarding .dat file:
   or should be very close to it.
 
   .. note::
-    Whenever the trailing edge is blunt, only two points should be there. More than two points in trailing
-    edge will give an error. This requirement is only when using CST parametrization
+    It is highly recommended that the first and last point should be (0,0) in the .dat file. If the
+    airfoil has blunt trailing edge, then the number of points along the trailing edge should be odd.
 
 Explore below sections to know more about how these modules can be used. It is highly recommended to go through
 atleast one of the first two sections before moving on to other sections. All the files used in below sections
