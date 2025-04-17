@@ -98,8 +98,8 @@ class AirfoilCST(AirfoilBaseClass):
         if self.origCoords[0,1] != self.origCoords[-1,1]:
             self._error("The Y coordinate of airfoil doesn't start and end at same point.")
 
-        # if self.origCoords[0,0] != 1.0 or self.origCoords[0,1] != 0.0:
-        #     self._error("The coordinates of airfoil doesn't start at (0.0, 1.0)")
+        if self.origCoords[0,0] != 1.0 or self.origCoords[0,1] != 0.0:
+            self._error("The coordinates of airfoil doesn't start at (1.0, 0.0)")
 
         if np.min(self.origCoords[:,0]) < 0.0 or np.max(self.origCoords[:,0]) > 1.0:
             self._error("The X coordinates of airfoil are not in range [0,1]")
@@ -110,20 +110,6 @@ class AirfoilCST(AirfoilBaseClass):
         # Initializing the parametrization object
         self.DVGeo = CST(self.options["airfoilFile"], numCST=self.options["numCST"])
         self.parametrization = "CST"
-
-        # Initializing the parametrization object
-        # self.DVGeo = DVGeometryCST(self.options["airfoilFile"], numCST=self.options["numCST"], comm=comm)
-        # self.parametrization = "CST"
-
-        # Adding pointset to the parametrization
-        # self.origCoords = np.hstack(( self.origCoords, np.zeros((self.origCoords.shape[0], 1)) ))
-        # self.DVGeo.addPointSet(self.origCoords, "airfoil")
-
-        # Checking the number of points at trailing edge for blunt TE
-        # Only two are allowed for CST. Otherwise, meshing will have problem.
-        # if not self.DVGeo.sharp:
-        #     if len(np.where(self.origCoords[1:-1,0] == self.origCoords[0,0])[0]) > 1:
-        #         self._error("There are more than two points in the trailing edge.")
 
         # Some initializations which will be used later
         self.DV = []
