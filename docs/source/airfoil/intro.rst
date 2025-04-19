@@ -16,10 +16,11 @@ points to note regarding .dat file:
   using with Blackbox.
 - The leading and trailing edge of the airfoil coordinates should lie on the x-axis (best case scenario)
   or should be very close to it.
+- All the x-coordinates should be in the range of [0,1].
 
   .. note::
-    It is highly recommended that the first and last point should be (0,0) in the .dat file. If the
-    airfoil has blunt trailing edge, then the number of points along the trailing edge should be odd.
+    It is highly recommended that the first and last point should be (1.0,0.0) in the .dat file. If the
+    airfoil has blunt trailing edge, then there should be odd number of points along the trailing edge.
 
 Explore below sections to know more about how these modules can be used. It is highly recommended to go through
 atleast one of the first two sections before moving on to other sections. All the files used in below sections

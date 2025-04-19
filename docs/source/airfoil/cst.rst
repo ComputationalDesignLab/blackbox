@@ -121,9 +121,15 @@ Next step is to add design variables based on which samples will be generated. T
         as the number of CST coefficients for that particular surface mentioned in the ``options`` dictionary. For other cases, lower
         and upper bound should be float.
 
-Following code adds ``alpha``, ``upper`` and ``lower`` as design variables::
+Following code adds ``alpha``, ``lower``, and ``upper`` as design variables::
 
     airfoil.addDV("alpha", 2.0, 3.0)
+
+    # Adding lower surface CST coeffs as DV
+    coeff = airfoil.DVGeo.defaultDV["lower"] # get the fitted CST coeff
+    lb = coeff - np.sign(coeff)*0.3*coeff
+    ub = coeff + np.sign(coeff)*0.3*coeff
+    airfoil.addDV("lower", lowerBound=lb, upperBound=ub)
 
     # Adding upper surface CST coeffs as DV
     coeff = airfoil.DVGeo.defaultDV["upper"] # get the fitted CST coeff
@@ -131,13 +137,6 @@ Following code adds ``alpha``, ``upper`` and ``lower`` as design variables::
     ub = coeff + np.sign(coeff)*0.3*coeff
 
     airfoil.addDV("upper", lowerBound=lb, upperBound=ub)
-
-    # Adding lower surface CST coeffs as DV
-    coeff = airfoil.DVGeo.defaultDV["lower"] # get the fitted CST coeff
-    lb = coeff - np.sign(coeff)*0.3*coeff
-    ub = coeff + np.sign(coeff)*0.3*coeff
-
-    airfoil.addDV("lower", lowerBound=lb, upperBound=ub)
 
 Here, the upper and lower bound for ``lower`` and ``upper`` variable are +30% and -30% of the fitted CST coefficients.
 You can also remove a design variable using ``removeDV`` method. It takes only one input which is the name of the variable.
