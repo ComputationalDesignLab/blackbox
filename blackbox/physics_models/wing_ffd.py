@@ -452,11 +452,28 @@ class WingFFD():
                     if not pid.is_running():
                         pid_list.remove(pid)
 
-            # Getting surface force output for dafoam
-            if self.options["solver"] == "dafoam":
-                if self.options["getSurfaceForces"]:
-                    pRef = float(self.options["aeroProblem"].P)
-                    os.system(f"python runscript_get_forces.py --pRef {pRef} >> log_forces.txt")
+            # Getting surface force output for dafoam - NOT AN ELEGANT METHOD
+            if self.options["solver"] == "dafoam" and self.options["getSurfaceForces"]:
+
+                # Spawning the runscript on desired number of processors
+                child_comm = MPI.COMM_SELF.Spawn(sys.executable, args=["runscript_get_forces.py"], maxprocs=1)
+
+                # Creating empty process id list
+                pid_list = []
+
+                # Getting each spawned process
+                for processor in range(1):
+                    pid = child_comm.recv(source=MPI.ANY_SOURCE, tag=processor)
+                    pid_list.append(psutil.Process(pid))
+
+                # Disconnecting from intercommunicator
+                child_comm.Disconnect()
+
+                # Waiting till all the child processors are finished
+                while len(pid_list) != 0:
+                    for pid in pid_list:
+                        if not pid.is_running():
+                            pid_list.remove(pid)
 
             # Reading the output file containing results
             filehandler = open("output.pickle", 'rb')
