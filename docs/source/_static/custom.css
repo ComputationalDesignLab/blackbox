@@ -1,0 +1,4 @@
+.wy-side-nav-search .logo, .wy-side-nav-search img {
+    max-height: 100px;  /* or whatever size you prefer */
+    width: auto;
+}

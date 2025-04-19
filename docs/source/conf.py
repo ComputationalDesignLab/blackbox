@@ -3,7 +3,7 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-import sphinx_rtd_theme
+import sphinx_rtd_theme, os
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -28,3 +28,7 @@ exclude_patterns = []
 # html_theme = 'alabaster'
 html_theme = 'sphinx_rtd_theme'
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+html_static_path = ['_static']
+html_css_files = ['custom.css']
+html_logo = os.path.join(os.path.dirname(__file__), "_static/codelab-logo.png")
+html_favicon = os.path.join(os.path.dirname(__file__), "_static/codelab-logo.png")
