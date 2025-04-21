@@ -64,6 +64,11 @@ section for more details.
     In solver options dictionary for DAFoam, no need to mention arguments such as ``primalBC``, ``function``, 
     ``normalizeStates``, ``inputInfo``. These options are internally set before each analysis.
 
+    .. note::
+    In the options dictionary, you can provide the location of ``0``, ``constant``, and ``system`` directories 
+    (required by openfoam) by using ``openfoamDir`` argument. This is the location where blackbox will look for these directories.
+    The default location is ``"."`` i.e. current working directory, refer :ref:`options<options>` section for more details.
+
 Adding design variables
 -----------------------
 
