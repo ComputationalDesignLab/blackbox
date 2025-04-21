@@ -148,6 +148,9 @@ section for more details.</p>
 <p class="admonition-title">Note</p>
 <p>In solver options dictionary for DAFoam, no need to mention arguments such as <code class="docutils literal notranslate"><span class="pre">primalBC</span></code>, <code class="docutils literal notranslate"><span class="pre">function</span></code>,
 <code class="docutils literal notranslate"><span class="pre">normalizeStates</span></code>, <code class="docutils literal notranslate"><span class="pre">inputInfo</span></code>. These options are internally set before each analysis.</p>
+<p>In the options dictionary, you can provide the location of <code class="docutils literal notranslate"><span class="pre">0</span></code>, <code class="docutils literal notranslate"><span class="pre">constant</span></code>, and <code class="docutils literal notranslate"><span class="pre">system</span></code> directories
+(required by openfoam) by using <code class="docutils literal notranslate"><span class="pre">openfoamDir</span></code> argument. This is the location where blackbox will look for these directories.
+The default location is <code class="docutils literal notranslate"><span class="pre">&quot;.&quot;</span></code> i.e. current working directory, refer <a class="reference internal" href="options_wing.html#options"><span class="std std-ref">options</span></a> section for more details.</p>
 </div>
 </div></blockquote>
 </section>
