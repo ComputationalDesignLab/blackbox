@@ -9,8 +9,10 @@
   <title>Airfoil sample generation &mdash; Blackbox  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=fc555ede" />
 
   
+    <link rel="shortcut icon" href="../_static/codelab-logo.png"/>
       <script src="../_static/documentation_options.js?v=5929fcd5"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
@@ -31,6 +33,7 @@
           
           <a href="../index.html" class="icon icon-home">
             Blackbox
+              <img src="../_static/codelab-logo.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -94,11 +97,12 @@ This ensures that surface created using those points is closed. The coordinates 
 the UIUC database usually doesn’t close the loop, so check the .dat file properly before
 using with Blackbox.</p></li>
 <li><p>The leading and trailing edge of the airfoil coordinates should lie on the x-axis (best case scenario)
-or should be very close to it.</p>
+or should be very close to it.</p></li>
+<li><p>All the x-coordinates should be in the range of [0,1].</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>It is highly recommended that the first and last point should be (0,0) in the .dat file. If the
-airfoil has blunt trailing edge, then the number of points along the trailing edge should be odd.</p>
+<p>It is highly recommended that the first and last point should be (1.0,0.0) in the .dat file. If the
+airfoil has blunt trailing edge, then there should be odd number of points along the trailing edge.</p>
 </div>
 </li>
 </ul>
