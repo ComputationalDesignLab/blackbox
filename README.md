@@ -1,5 +1,5 @@
 # Blackbox
-Blackbox provides a way to generate aerodynamic/aerostructural data which can then be used for building/testing a surrogate model or for any other purpose. Currently, airfoil data generation using CST and FFD parameterization, and wing data generation using FFD parameterization are ready to use, aerostructural module is under developement.
+Blackbox provides a simple way to generate high-fidelity aerodynamic/aerostructural data which can then be used for building/testing a surrogate model or for any other purpose. Currently, airfoil data generation using CST and FFD parameterization, and wing data generation using FFD parameterization are available for use, aerostructural module is under developement.
 
 ## Documentation
 Please see the [documentation](https://computationaldesignlab.github.io/blackbox/) for installation details and how to use Blackbox. The documentation is also available locally, open index.html file in docs folder.
@@ -8,4 +8,4 @@ Please see the [documentation](https://computationaldesignlab.github.io/blackbox
 Blackbox is licensed under Apache License, Version 2.0. See `LICENSE` file for more details. 
 
 ## Copyright
-Copyright 2023 CODE Lab.
+Copyright 2025 CODE Lab.
