@@ -225,9 +225,9 @@ finally:
     # close the file
     if comm.rank == 0:
 
-        os.system("rm -rf processor*")
-        os.system("rm -rf runscript_out")
-        os.system("rm volMesh.xyz")
+        # os.system("rm -rf processor*")
+        # os.system("rm -rf runscript_out")
+        # os.system("rm volMesh.xyz")
 
         # Redirecting to original stdout
         os.dup2(stdout, 1)
