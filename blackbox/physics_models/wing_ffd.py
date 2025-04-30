@@ -71,10 +71,12 @@ class WingFFD():
         # Updating/Appending the default option list with user provided options
         self._setOptions(options)
 
-        # Getting abs path for the storage directory
+        # Getting abs path for the directory/files
         self.options["directory"] = os.path.abspath(self.options["directory"])
+        self.options["gridFile"] = os.path.abspath(self.options["gridFile"])
+        self.options["ffdFile"] = os.path.abspath(self.options["ffdFile"])
 
-        # Getting absolute path for the openfoam folders
+        # Openfoam folders
         if self.options["solver"] == "dafoam":
             self.options["openfoamDir"] = os.path.abspath(self.options["openfoamDir"])
 
@@ -638,14 +640,10 @@ class WingFFD():
         ############ Validating ffdFile
         if not os.path.exists(os.path.abspath(options["ffdFile"])):
             self._error("Provided FFD file doesn't exists.")
-        else:
-            options["ffdFile"] = os.path.abspath(options["ffdFile"])
 
         ############ Validating gridFile
         if not os.path.exists(os.path.abspath(options["gridFile"])):
             self._error("Provided grid file file doesn't exists.")
-        else:
-            options["gridFile"] = os.path.abspath(options["gridFile"])
 
         ############ Validating liftIndex
         if not isinstance(options["liftIndex"], int):
