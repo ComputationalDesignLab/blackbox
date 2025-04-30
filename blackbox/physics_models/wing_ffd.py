@@ -74,6 +74,10 @@ class WingFFD():
         # Getting abs path for the storage directory
         self.options["directory"] = os.path.abspath(self.options["directory"])
 
+        # Getting absolute path for the openfoam folders
+        if self.options["solver"] == "dafoam":
+            self.options["openfoamDir"] = os.path.abspath(self.options["openfoamDir"])
+
         # Setting up the folder for saving the results
         directory = self.options["directory"]
 
@@ -452,8 +456,13 @@ class WingFFD():
                     if not pid.is_running():
                         pid_list.remove(pid)
 
+            # Reading the output file containing results
+            filehandler = open("output.pickle", 'rb')
+            output = pickle.load(filehandler)
+            filehandler.close()
+
             # Getting surface force output for dafoam - NOT AN ELEGANT METHOD
-            if self.options["solver"] == "dafoam" and self.options["getSurfaceForces"]:
+            if self.options["solver"] == "dafoam" and self.options["getSurfaceForces"] and output["fail"] == False:
 
                 # Spawning the runscript on desired number of processors
                 child_comm = MPI.COMM_SELF.Spawn(sys.executable, args=["runscript_get_forces.py"], maxprocs=1)
@@ -475,16 +484,10 @@ class WingFFD():
                         if not pid.is_running():
                             pid_list.remove(pid)
 
-            # Reading the output file containing results
-            filehandler = open("output.pickle", 'rb')
-
         except:
             raise Exception
 
         else:
-            # Read the output
-            output = pickle.load(filehandler)
-            filehandler.close()
 
             # Read the deformed volume grid
             grid = readGrid("volMesh.cgns")
@@ -511,9 +514,13 @@ class WingFFD():
                     os.system("rm {}".format(file))
 
             if self.options["solver"] == "dafoam":
-                os.system("rm -r 0")
-                os.system("rm -r constant")
-                os.system("rm -r system")
+                os.system("rm -rf 0")
+                os.system("rm -rf constant")
+                os.system("rm -rf system")
+
+                os.system("rm -rf processor*")
+                os.system("rm -rf runscript_out")
+                os.system("rm volMesh.xyz")
 
             # Changing the directory back to root
             os.chdir("../..")
@@ -667,7 +674,7 @@ class WingFFD():
 
                 else:
                     for fname in ["0", "constant", "system"]:
-                        if not os.path.isdir(os.path.join(os.path.abspath("."), f"{fname}")):
+                        if not os.path.isdir(os.path.join(os.path.abspath(self.options["openfoamDir"]), f"{fname}")):
                             self._error(f"The folder \"{fname}\" requried for openfoam simulation is not available at given location")
 
         ############ Validating noOfProcessors
