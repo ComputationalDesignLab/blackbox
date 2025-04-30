@@ -38,7 +38,7 @@ options = {
 wing = WingFFD(options=options)
 
 # Add alpha as a design variable
-wing.addDV("alpha", lowerBound=1.5, upperBound=3.5)
+wing.addDV("alpha", lowerBound=1.5, upperBound=2.5)
 
 # Add mach as a design variable
 wing.addDV("mach", lowerBound=0.7, upperBound=0.8)
