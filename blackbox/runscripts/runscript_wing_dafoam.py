@@ -79,6 +79,7 @@ try:
     rho0 = float(ap.rho)
     p0 = float(ap.P)
     T0 = float(ap.T)
+    mu0 = float(ap.mu)
     nuTilda0 = 4.5e-5
     A0 = ap.areaRef
     L0 = ap.chordRef
@@ -143,6 +144,7 @@ try:
         "T0": {"variable": "T", "patches": ["inout"], "value": [T0]},
         "nuTilda0": {"variable": "nuTilda", "patches": ["inout"], "value": [nuTilda0]},
         "useWallFunction": True,
+        "thermo:mu": mu0,
     }
 
     if "alpha" in input.keys():
