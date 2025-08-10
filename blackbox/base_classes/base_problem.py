@@ -11,7 +11,7 @@ class BaseFunction(ABC):
         
         pass
 
-    def checkInput(self, x):
+    def check_input(self, x):
         """
             Method to validate the input before evaluation
 
