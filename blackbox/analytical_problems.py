@@ -17,6 +17,44 @@ class AnalyticalProblem(BaseFunction):
         self.ub = ub
         self.dim = lb.shape[0]
 
+    def __call__(self, x):
+        """
+            Evalaute the function for given input x
+
+            Parameters
+            ----------
+            x: np.ndarray
+                1D/2D numpy array of shape (dim,) or (n_samples,dim)
+
+            Returns
+            -------
+            y: np.ndarray
+                1D/2D numpy array of shape (n_samples,1) or (1,) 
+                containing the function value for each input sample
+        """
+
+        self.check_input(x)
+
+        ndim = x.ndim
+
+        if ndim == 1:
+            x = x.reshape(1,-1)
+
+        # if self.input_norm:
+        #     x = self.lb + x * (self.ub - self.lb)
+
+        y = self.evaluate(x) 
+        
+        # if self.negate:
+        #     y = -y
+
+        y = y.reshape(-1,1)
+        
+        if ndim == 1:
+            y = y.reshape(-1,)
+        
+        return y
+
 
 class Ackley(AnalyticalProblem):
 
@@ -44,9 +82,9 @@ class Ackley(AnalyticalProblem):
         self.b = b
         self.c = c
 
-    def __call__(self, x):
+    def evaluate(self, x):
 
-        self.checkInput(x)
+        self.check_input(x)
 
         return -self.a * np.exp( -self.b * np.linalg.norm(x, axis=-1) / np.sqrt(self.dim) ) \
             - np.exp( np.mean(np.cos(self.c*x), axis=-1) ) + self.a + np.e
@@ -70,7 +108,7 @@ class Levy(AnalyticalProblem):
 
     def __call__(self, x):
 
-        self.checkInput(x)
+        self.check_input(x)
 
         w = 1.0 + (x - 1.0) / 4.0
 
@@ -101,7 +139,7 @@ class Rastrigin(AnalyticalProblem):
 
     def __call__(self, x):
 
-        self.checkInput(x)
+        self.check_input(x)
 
         return 10.0*self.dim + np.sum(x**2 - 10.0*np.cos(2.0*np.pi*x), axis=-1)
 
@@ -160,7 +198,7 @@ class Hartmann(AnalyticalProblem):
 
     def __call__(self, x):
 
-        self.checkInput(x)
+        self.check_input(x)
 
         innersum = np.sum(self.A * (np.expand_dims(x,-2) - 1e-4*self.P)**2, axis=-1)
 
