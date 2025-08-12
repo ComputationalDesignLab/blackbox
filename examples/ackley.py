@@ -1,6 +1,7 @@
 from blackbox.analytical_problems import Ackley
 from blackbox.doe import generate_lhs_samples
 import numpy as np
+from scipy.io import savemat
 
 dim = 10
 lb = -32.768 * np.ones(dim)
@@ -15,3 +16,10 @@ print(x)
 y = problem(x)
 
 print(y)
+
+data = {
+    'x': x,
+    'y': y
+}
+
+savemat('ackley_values.mat', data)
