@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import numpy as np
 from .base_classes import BaseFunction
 
@@ -55,6 +56,10 @@ class AnalyticalProblem(BaseFunction):
         
         return y
 
+    @abstractmethod
+    def evaluate(self):
+        pass
+
 
 class Ackley(AnalyticalProblem):
 
@@ -92,7 +97,7 @@ class Ackley(AnalyticalProblem):
 
 class Levy(AnalyticalProblem):
 
-    def __init__(self, lb, ub, a=20.0, b=0.2, c=2.0*np.pi):
+    def __init__(self, lb, ub):
         """
             Class for defining the levy function
 
@@ -106,7 +111,7 @@ class Levy(AnalyticalProblem):
 
         super().__init__(lb,ub)
 
-    def __call__(self, x):
+    def evaluate(self, x):
 
         self.check_input(x)
 
@@ -137,11 +142,12 @@ class Rastrigin(AnalyticalProblem):
 
         super().__init__(lb,ub)
 
-    def __call__(self, x):
+    def evaluate(self, x):
 
         self.check_input(x)
 
         return 10.0*self.dim + np.sum(x**2 - 10.0*np.cos(2.0*np.pi*x), axis=-1)
+
 
 class Hartmann(AnalyticalProblem):
 
@@ -196,7 +202,7 @@ class Hartmann(AnalyticalProblem):
 
         self.alpha = np.array([[1], [1.2], [3.0], [3.2]])
 
-    def __call__(self, x):
+    def evaluate(self, x):
 
         self.check_input(x)
 
@@ -208,4 +214,3 @@ class Hartmann(AnalyticalProblem):
             y = (1.1 + y)/0.839
 
         return y
-
