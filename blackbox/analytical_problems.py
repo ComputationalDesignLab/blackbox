@@ -4,7 +4,7 @@ from .base_classes import BaseFunction
 
 class AnalyticalProblem(BaseFunction):
 
-    def __init__(self, lb, ub):
+    def __init__(self, lb, ub, negate):
         """
             Base class for all analytical problems
         """
@@ -13,10 +13,12 @@ class AnalyticalProblem(BaseFunction):
         assert lb.ndim == 1 and ub.ndim == 1, "Lower and upper bounds must be one-dimensional numpy arrays"
         assert lb.shape == ub.shape, "Lower and upper bounds must have the same shape"
         assert np.all(lb < ub), "Lower bounds must be less than upper bounds"
+        assert isinstance(negate, bool), "negate must be a boolean variable"
 
         self.lb = lb
         self.ub = ub
         self.dim = lb.shape[0]
+        self.negate = negate
 
     def __call__(self, x):
         """
@@ -46,8 +48,8 @@ class AnalyticalProblem(BaseFunction):
 
         y = self.evaluate(x) 
         
-        # if self.negate:
-        #     y = -y
+        if self.negate:
+            y = -y
 
         y = y.reshape(-1,1)
         
@@ -63,9 +65,11 @@ class AnalyticalProblem(BaseFunction):
 
 class Ackley(AnalyticalProblem):
 
-    def __init__(self, lb, ub, a=20.0, b=0.2, c=2.0*np.pi):
+    def __init__(self, lb, ub, negate=False, a=20.0, b=0.2, c=2.0*np.pi):
         """
             Class for defining the ackley function
+
+            Default range of bounds for the design variable is [-32.768,32.768]^10
 
             Parameters
             ----------
@@ -73,6 +77,8 @@ class Ackley(AnalyticalProblem):
                 Lower bounds of the function
             ub: np.ndarray
                 Upper bounds of the function
+            negate: bool
+                negate the values before returning
             a: float, optional
                 Parameter a of the ackley function, default is 20.0
             b: float, optional
@@ -81,7 +87,7 @@ class Ackley(AnalyticalProblem):
                 Parameter c of the ackley function, default is 2.0 * pi
         """
 
-        super().__init__(lb,ub)
+        super().__init__(lb,ub,negate)
 
         self.a = a
         self.b = b
@@ -97,7 +103,7 @@ class Ackley(AnalyticalProblem):
 
 class Levy(AnalyticalProblem):
 
-    def __init__(self, lb, ub):
+    def __init__(self, lb, ub, negate=False):
         """
             Class for defining the levy function
 
@@ -107,9 +113,11 @@ class Levy(AnalyticalProblem):
                 Lower bounds of the function
             ub: np.ndarray
                 Upper bounds of the function
+            negate: bool
+                negate the values before returning
         """
 
-        super().__init__(lb,ub)
+        super().__init__(lb,ub,negate)
 
     def evaluate(self, x):
 
@@ -128,7 +136,7 @@ class Levy(AnalyticalProblem):
 
 class Rastrigin(AnalyticalProblem):
 
-    def __init__(self, lb, ub):
+    def __init__(self, lb, ub, negate=False):
         """
             Class for defining the rastrigin function
 
@@ -138,9 +146,11 @@ class Rastrigin(AnalyticalProblem):
                 Lower bounds of the function
             ub: np.ndarray
                 Upper bounds of the function
+            negate: bool
+                negate the values before returning
         """
 
-        super().__init__(lb,ub)
+        super().__init__(lb,ub,negate)
 
     def evaluate(self, x):
 
@@ -151,7 +161,7 @@ class Rastrigin(AnalyticalProblem):
 
 class Hartmann(AnalyticalProblem):
 
-    def __init__(self, lb, ub):
+    def __init__(self, lb, ub, negate=False):
         """
             Class for defining the hartmann function
 
@@ -161,9 +171,11 @@ class Hartmann(AnalyticalProblem):
                 Lower bounds of the function
             ub: np.ndarray
                 Upper bounds of the function
+            negate: bool
+                negate the values before returning
         """
 
-        super().__init__(lb,ub)
+        super().__init__(lb,ub,negate)
 
         assert self.dim in [3,4,6], "Hartmann function is only defined for 3, 4 or 6 dimensions"
 
