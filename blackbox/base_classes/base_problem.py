@@ -1,9 +1,9 @@
 from abc import abstractmethod, ABC
 import numpy as np
 
-class BaseFunction(ABC):
+class BaseProblem(ABC):
     """
-        An abstract base function class which is inherited by all other function classes.
+        An abstract base problem class which is inherited by all other problem classes.
     """
 
     @abstractmethod
