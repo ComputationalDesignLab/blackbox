@@ -9,11 +9,15 @@ class AnalyticalProblem(BaseProblem):
             Base class for all analytical problems
         """
 
-        assert isinstance(lb, np.ndarray) and isinstance(ub, np.ndarray), "Lower and upper bounds must be numpy arrays"
-        assert lb.ndim == 1 and ub.ndim == 1, "Lower and upper bounds must be one-dimensional numpy arrays"
-        assert lb.shape == ub.shape, "Lower and upper bounds must have the same shape"
-        assert np.all(lb < ub), "Lower bounds must be less than upper bounds"
-        assert isinstance(negate, bool), "negate must be a boolean variable"
+        try:
+            assert isinstance(lb, np.ndarray) and isinstance(ub, np.ndarray), "Lower and upper bounds must be numpy arrays"
+            assert lb.ndim == 1 and ub.ndim == 1, "Lower and upper bounds must be one-dimensional numpy arrays"
+            assert lb.shape == ub.shape, "Lower and upper bounds must have the same shape"
+            assert np.all(lb < ub), "Lower bounds must be less than upper bounds"
+            assert isinstance(negate, bool), "negate must be a boolean variable"
+        
+        except AssertionError as e:
+            self._error(str(e))
 
         self.lb = lb
         self.ub = ub
