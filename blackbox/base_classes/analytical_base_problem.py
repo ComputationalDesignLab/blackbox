@@ -47,7 +47,7 @@ class AnalyticalProblem(BaseProblem):
         if ndim == 1:
             x = x.reshape(1,-1)
 
-        y = self.evaluate(x) 
+        y = self._evaluate(x) 
         
         if self.negate:
             y = -y
@@ -60,5 +60,5 @@ class AnalyticalProblem(BaseProblem):
         return y
 
     @abstractmethod
-    def evaluate(self):
+    def _evaluate(self):
         pass

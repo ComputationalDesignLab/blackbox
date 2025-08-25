@@ -1,5 +1,5 @@
 import numpy as np
-from .base_classes import AnalyticalProblem
+from .base_classes.analytical_base_problem import AnalyticalProblem
 
 class Ackley(AnalyticalProblem):
 
@@ -31,7 +31,7 @@ class Ackley(AnalyticalProblem):
         self.b = b
         self.c = c
 
-    def evaluate(self, x):
+    def _evaluate(self, x):
 
         self.check_input(x)
 
@@ -57,7 +57,7 @@ class Levy(AnalyticalProblem):
 
         super().__init__(lb,ub,negate)
 
-    def evaluate(self, x):
+    def _evaluate(self, x):
 
         self.check_input(x)
 
@@ -90,7 +90,7 @@ class Rastrigin(AnalyticalProblem):
 
         super().__init__(lb,ub,negate)
 
-    def evaluate(self, x):
+    def _evaluate(self, x):
 
         self.check_input(x)
 
@@ -115,7 +115,11 @@ class Hartmann(AnalyticalProblem):
 
         super().__init__(lb,ub,negate)
 
-        assert self.dim in [3,4,6], "Hartmann function is only defined for 3, 4 or 6 dimensions"
+        try:
+            assert self.dim in [3,4,6], "Hartmann function is only defined for 3, 4 or 6 dimensions"
+        
+        except AssertionError as e:
+            self._error(str(e))
 
         if self.dim == 3:
 
@@ -152,7 +156,7 @@ class Hartmann(AnalyticalProblem):
 
         self.alpha = np.array([[1], [1.2], [3.0], [3.2]])
 
-    def evaluate(self, x):
+    def _evaluate(self, x):
 
         self.check_input(x)
 
