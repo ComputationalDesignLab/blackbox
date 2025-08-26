@@ -17,9 +17,37 @@ class AirfoilOptions:
     meshing_options: dict = {}
     aero_problem: Optional[AeroProblem] = None
     open_foam_directory: str = "."
+    refine: int = 0
 
     # Other options
+    airfoil_file: str = "airfoil.dat"
     directory: str = "output"
+    num_processors: int = 4
+
+    # Writing and plotting options
+    write_slice_file: bool = False
+    write_airfoil_coordinates: bool = False
+    write_deformed_ffd: bool = False
+    plot_airfoil: bool = False
+
+    # Implicit alpha options
+    alpha: str = "explicit"
+    target_CL: float = 0.824
+    target_CL_tol: float = 1e-4
+    starting_alpha: float = 2.5
+
+    # FFD options
+    fitted: bool = False
+    xmargin: bool = 0.001
+    ymarginu: bool = 0.02
+    ymarginl: bool = 0.02
+    fix_LETE: bool = True
+
+    # Smoothing options
+    smoothing: bool = False
+    smoothing_theta: float = 0.75
+    smoothing_max_iter: int = 100
+    smoothing_tolerance: float = 5e-4
 
 
 class AirfoilBaseProblem(BaseProblem):
