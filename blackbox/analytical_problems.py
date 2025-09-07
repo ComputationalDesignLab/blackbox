@@ -1,5 +1,6 @@
 import numpy as np
 from .base_classes.analytical_base_problem import AnalyticalProblem
+from .msg import print_msg
 
 class Ackley(AnalyticalProblem):
 
@@ -119,7 +120,7 @@ class Hartmann(AnalyticalProblem):
             assert self.dim in [3,4,6], "Hartmann function is only defined for 3, 4 or 6 dimensions"
         
         except AssertionError as e:
-            self._error(str(e))
+            print_msg(str(e))
 
         if self.dim == 3:
 

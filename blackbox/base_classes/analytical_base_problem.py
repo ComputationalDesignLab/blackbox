@@ -1,6 +1,7 @@
 from abc import abstractmethod
 import numpy as np
 from .base_problem import BaseProblem
+from ..msg import print_msg
 
 class AnalyticalProblem(BaseProblem):
 
@@ -17,7 +18,7 @@ class AnalyticalProblem(BaseProblem):
             assert isinstance(negate, bool), "negate must be a boolean variable"
         
         except AssertionError as e:
-            self._error(str(e))
+            print_msg(str(e))
 
         self.lb = lb
         self.ub = ub
