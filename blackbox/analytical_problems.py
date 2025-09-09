@@ -28,6 +28,7 @@ class Ackley(AnalyticalProblem):
 
         super().__init__(lb,ub,negate)
 
+        self.out_dim = 1
         self.a = a
         self.b = b
         self.c = c
@@ -36,7 +37,7 @@ class Ackley(AnalyticalProblem):
 
         self.check_input(x)
 
-        return -self.a * np.exp( -self.b * np.linalg.norm(x, axis=-1) / np.sqrt(self.dim) ) \
+        return -self.a * np.exp( -self.b * np.linalg.norm(x, axis=-1) / np.sqrt(self.in_dim) ) \
             - np.exp( np.mean(np.cos(self.c*x), axis=-1) ) + self.a + np.e
 
 
@@ -57,6 +58,8 @@ class Levy(AnalyticalProblem):
         """
 
         super().__init__(lb,ub,negate)
+
+        self.out_dim = 1
 
     def _evaluate(self, x):
 
@@ -91,11 +94,13 @@ class Rastrigin(AnalyticalProblem):
 
         super().__init__(lb,ub,negate)
 
+        self.out_dim = 1
+
     def _evaluate(self, x):
 
         self.check_input(x)
 
-        return 10.0*self.dim + np.sum(x**2 - 10.0*np.cos(2.0*np.pi*x), axis=-1)
+        return 10.0*self.in_dim + np.sum(x**2 - 10.0*np.cos(2.0*np.pi*x), axis=-1)
 
 
 class Hartmann(AnalyticalProblem):
@@ -116,13 +121,15 @@ class Hartmann(AnalyticalProblem):
 
         super().__init__(lb,ub,negate)
 
+        self.out_dim = 1
+
         try:
-            assert self.dim in [3,4,6], "Hartmann function is only defined for 3, 4 or 6 dimensions"
+            assert self.in_dim in [3,4,6], "Hartmann function is only defined for 3, 4 or 6 dimensions"
         
         except AssertionError as e:
             print_msg(str(e))
 
-        if self.dim == 3:
+        if self.in_dim == 3:
 
             self.A = np.array([[3.0, 10, 30], [0.1, 10, 35], [3.0, 10, 30], [0.1, 10, 35]])
 
@@ -131,7 +138,7 @@ class Hartmann(AnalyticalProblem):
                                [1091, 8732, 5547],
                                [381, 5743, 8828.0]])
 
-        elif self.dim == 4:
+        elif self.in_dim == 4:
 
             self.A = np.array([[10, 3, 17, 3.5],
                                [0.05, 10, 17, 0.1],
@@ -143,7 +150,7 @@ class Hartmann(AnalyticalProblem):
                                [2348, 1451, 3522, 2883],
                                [4047, 8828, 8732, 5743]])
 
-        elif self.dim == 6:
+        elif self.in_dim == 6:
 
             self.A = np.array([[10, 3, 17, 3.5, 1.7, 8],
                                [0.05, 10, 17, 0.1, 8, 14],
@@ -165,7 +172,7 @@ class Hartmann(AnalyticalProblem):
 
         y = -np.matmul(np.exp(-innersum), self.alpha)
 
-        if self.dim == 4:
+        if self.in_dim == 4:
             y = (1.1 + y)/0.839
 
         return y

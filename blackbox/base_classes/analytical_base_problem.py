@@ -22,7 +22,7 @@ class AnalyticalProblem(BaseProblem):
 
         self.lb = lb
         self.ub = ub
-        self.dim = lb.shape[0]
+        self.in_dim = lb.shape[0]
         self.negate = negate
 
     def __call__(self, x):
@@ -38,7 +38,7 @@ class AnalyticalProblem(BaseProblem):
             -------
             y: np.ndarray
                 1D/2D numpy array of shape (n_samples,1) or (1,) 
-                containing the function value for each input sample
+                containing the required output value for each input sample
         """
 
         self.check_input(x)
@@ -48,14 +48,14 @@ class AnalyticalProblem(BaseProblem):
         if ndim == 1:
             x = x.reshape(1,-1)
 
-        y = self._evaluate(x) 
+        y = self._evaluate(x) # evaluate the function
         
-        if self.negate:
-            y = -y
+        y = y.reshape(-1,self.out_dim) # ensure output is 2D
 
-        y = y.reshape(-1,1)
+        if self.negate:
+            y[:,0] = -y[:,0]
         
-        if ndim == 1:
+        if ndim == 1: # convert to 1D array if only one sample is evaluated
             y = y.reshape(-1,)
         
         return y

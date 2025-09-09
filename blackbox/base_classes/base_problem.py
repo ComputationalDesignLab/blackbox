@@ -25,7 +25,7 @@ class BaseProblem(ABC):
         x = np.atleast_2d(x)
 
         try:
-            assert x.shape[1] == self.dim, "Input dimension must match the problem dimension"
+            assert x.shape[1] == self.in_dim, "Input dimension must match the problem dimension"
             assert np.all(x >= self.lb) and np.all(x <= self.ub), "Input values must be within the bounds defined by lb and ub"
             
         except AssertionError as e:

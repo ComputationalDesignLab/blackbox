@@ -5,7 +5,7 @@ from scipy.stats.qmc import Sobol, Halton
 
 def generate_lhs_samples(problem, n_samples, criterion="cm", iterations=100, random_state=None):
 
-    samples = lhs(problem.dim, n_samples, criterion, iterations, random_state)
+    samples = lhs(problem.in_dim, n_samples, criterion, iterations, random_state)
 
     samples = problem.lb + (problem.ub - problem.lb) * samples
 
