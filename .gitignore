@@ -11,6 +11,7 @@ examples/__pycache__
 examples/airfoil_adflow/output
 examples/airfoil_dafoam/output
 examples/simple_wing_adflow/output
+examples/simple_wing_aerostruct_adflow/output
 examples/crm_adflow/output
 examples/crm_dafoam/output
 examples/sampling_plan/output
