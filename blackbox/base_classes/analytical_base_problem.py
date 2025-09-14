@@ -43,19 +43,14 @@ class AnalyticalProblem(BaseProblem):
 
         self.check_input(x)
 
-        ndim = x.ndim
-
-        if ndim == 1:
-            x = x.reshape(1,-1)
-
-        y = self._evaluate(x) # evaluate the function
+        y = self._evaluate(np.atleast_2d(x)) # evaluate the function
         
         y = y.reshape(-1,self.out_dim) # ensure output is 2D
 
         if self.negate:
             y[:,0] = -y[:,0]
-        
-        if ndim == 1: # convert to 1D array if only one sample is evaluated
+
+        if x.ndim == 1:
             y = y.reshape(-1,)
         
         return y
