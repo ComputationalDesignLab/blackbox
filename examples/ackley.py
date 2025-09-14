@@ -17,9 +17,13 @@ y = problem(x)
 
 print(y)
 
-data = {
-    'x': x,
-    'y': y
-}
+print(x[0,:])
 
-savemat('ackley_values.mat', data)
+print(problem(x[0,:]))
+
+# data = {
+#     'x': x,
+#     'y': y
+# }
+
+# savemat('ackley_values.mat', data)
