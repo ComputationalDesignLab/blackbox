@@ -176,3 +176,29 @@ class Hartmann(AnalyticalProblem):
             y = (1.1 + y)/0.839
 
         return y
+
+class ConstrainedAckley(AnalyticalProblem):
+
+    def __init__(self):
+        """
+            Class for defining the constrained ackley function
+
+            Default range of bounds for the design variable is [-32.768,32.768]^10
+
+            Parameters
+            ----------
+            lb: np.ndarray
+                Lower bounds of the function
+            ub: np.ndarray
+                Upper bounds of the function
+            negate: bool
+                negate the values before returning
+            a: float, optional
+                Parameter a of the ackley function, default is 20.0
+            b: float, optional
+                Parameter b of the ackley function, default is 0.2
+            c: float, optional
+                Parameter c of the ackley function, default is 2.0 * pi
+        """
+
+        
