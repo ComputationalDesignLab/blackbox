@@ -91,7 +91,7 @@ class WingFFD():
             os.system("mkdir {}".format(directory))
 
         # Create mesh deformation object
-        self.mesh = USMesh(options={"gridFile": self.options["gridFile"]})
+        self.mesh = USMesh(comm=comm, options={"gridFile": self.options["gridFile"]})
 
         # Get the surface mesh coordinates
         surfMesh = self.mesh.getSurfaceCoordinates()
