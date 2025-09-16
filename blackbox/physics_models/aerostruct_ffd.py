@@ -1,7 +1,6 @@
 # Importing python packages
 import os, psutil, shutil, sys, pickle, time
 import numpy as np
-from pyDOE2 import lhs, fullfact
 from scipy.io import savemat
 from smt.sampling_methods import LHS
 from mpi4py import MPI
@@ -11,6 +10,9 @@ from pygeo.geo_utils.polygon import volumeTriangulatedMesh
 from pygeo.geo_utils.file_io import readPlot3DSurfFile
 from cgnsutilities.cgnsutilities import readGrid
 from idwarp import USMesh
+from tacs.pymeshloader import pyMeshLoader
+
+comm = MPI.COMM_WORLD
 
 class DefaultOptions():
     """
@@ -60,7 +62,7 @@ class AeroStructFFD():
         self._getDefaultOptions()
 
         # Setting up the required options list
-        requiredOptions = ["solverOptions", "gridFile", "structMeshFile", "ffdFile", "liftIndex", "aeroProblem", "tacsProblemSetup", "tacsElementCallback"]
+        requiredOptions = ["aeroSolverOptions", "gridFile", "structSolverConfigFile", "structMeshFile", "ffdFile", "liftIndex", "aeroProblem"]
 
         # Validating user provided options
         self._checkOptions(options, requiredOptions)
@@ -73,6 +75,7 @@ class AeroStructFFD():
         self.options["gridFile"] = os.path.abspath(self.options["gridFile"])
         self.options["ffdFile"] = os.path.abspath(self.options["ffdFile"])
         self.options["structMeshFile"] = os.path.abspath(self.options["structMeshFile"])
+        self.options["structSolverConfigFile"] = os.path.abspath(self.options["structSolverConfigFile"])
         if self.options["aeroSolver"] == "dafoam":
             self.options["openfoamDir"] = os.path.abspath(self.options["openfoamDir"])
 
@@ -87,10 +90,25 @@ class AeroStructFFD():
             os.system("mkdir {}".format(directory))
 
         # Create mesh deformation object
-        self.mesh = USMesh(options={"gridFile": self.options["gridFile"]})
+        self.mesh = USMesh(comm=comm, options={"gridFile": self.options["gridFile"]})
 
         # Get the surface mesh coordinates
         surfMesh = self.mesh.getSurfaceCoordinates()
+
+        # Initialize the bdf mesh reader and read the bdf file
+        self.structMesh = pyMeshLoader(comm, False)
+        self.structMesh.scanBdfFile(self.options["structMeshFile"])
+
+        # Get nastran object
+        nastran_obj = self.structMesh.getBDFInfo()
+
+        # Collect structural nodes from BDF to create a 3D point cloud
+        node_ids = []
+        structMeshCoords = np.zeros((0,3))
+
+        for nid, node in nastran_obj.nodes.items():
+            node_ids.append(nid)
+            structMeshCoords = np.vstack((structMeshCoords, node.get_position()))
 
         # Creating DVGeometry object
         self.DVGeo = DVGeometry(self.options["ffdFile"])
@@ -98,8 +116,9 @@ class AeroStructFFD():
         # Number of FFD points
         self.nffd = self.DVGeo.getLocalIndex(0).flatten().shape[0]
 
-        # Adding surface mesh co-ordinates as a pointset
+        # Adding aerodynamic surface mesh co-ordinates and struct mesh coordinates as a pointset
         self.DVGeo.addPointSet(surfMesh, "wing_surface_mesh")
+        self.DVGeo.addPointSet(structMeshCoords, "struct_mesh")
 
         if self.options["liftIndex"] == 2: # y
             self.spanIndex = "k" # If y is lift index, then span is along z (k)
@@ -120,14 +139,14 @@ class AeroStructFFD():
 
         # Overiding/setting some adflow solver options
         if self.options["aeroSolver"] == "adflow":
-            self.options["solverOptions"]["printAllOptions"] = False
-            self.options["solverOptions"]["printIntro"] = False
-            self.options["solverOptions"]["outputDirectory"] = "."
-            self.options["solverOptions"]["numberSolutions"] = False
-            self.options["solverOptions"]["printTiming"] = False
-            self.options["solverOptions"]["gridFile"] = self.options["gridFile"]
-            self.options["solverOptions"]["liftIndex"] = self.options["liftIndex"]
-            self.options["solverOptions"]["forcesAsTractions"] = False # bcoz of meld
+            self.options["aeroSolverOptions"]["printAllOptions"] = False
+            self.options["aeroSolverOptions"]["printIntro"] = False
+            self.options["aeroSolverOptions"]["outputDirectory"] = "."
+            self.options["aeroSolverOptions"]["numberSolutions"] = False
+            self.options["aeroSolverOptions"]["printTiming"] = False
+            self.options["aeroSolverOptions"]["gridFile"] = self.options["gridFile"]
+            self.options["aeroSolverOptions"]["liftIndex"] = self.options["liftIndex"]
+            self.options["aeroSolverOptions"]["forcesAsTractions"] = False # bcoz of meld
 
     # ----------------------------------------------------------------------------
     #                       Design Variable related methods
@@ -225,8 +244,8 @@ class AeroStructFFD():
             self._error("Provide either number of samples (int) or doe (2D numpy array)")
 
         # Checking if the appropriate options are set for analysis
-        if self.options["solverOptions"] == {} or self.options["aeroProblem"] == None:
-            self._error("You need to set solverOptions and aeroProblem in the options dictionary for running the analysis.")
+        if self.options["aeroSolverOptions"] == {} or self.options["aeroProblem"] == None:
+            self._error("You need to set aeroSolverOptions and aeroProblem in the options dictionary for running the analysis.")
 
         # Performing checks
         if len(self.DV) == 0:
@@ -369,11 +388,14 @@ class AeroStructFFD():
         pkgdir = sys.modules["blackbox"].__path__[0]
 
         # Setting filepath based on the solver
-        if self.options["solver"] == "adflow":
+        if self.options["aeroSolver"] == "adflow":
             filepath = os.path.join(pkgdir, "runscripts/runscript_aerostruct_adflow.py")
 
         # Copy the runscript to analysis directory
-        shutil.copy(filepath, "{}/{}/runscript.py".format(directory, self.genSamples+1))
+        shutil.copy(filepath, f"{directory}/{self.genSamples+1}/runscript.py")
+
+        # Copy the tacs setup file
+        shutil.copy(self.options["structSolverConfigFile"], f"{directory}/{self.genSamples+1}/struct_setup_file.py")
 
         # Creating the new design variable dict
         # If there are no shape DV, then DVGeo
@@ -383,9 +405,9 @@ class AeroStructFFD():
             loc = self.locator == dv
             loc = loc.reshape(-1,)
             newDV[dv] = x[loc]
-
-        # Creating the new design variable dict
         self.DVGeo.setDesignVars(newDV)
+
+        # Get updated aerodynamic surface mesh coordinates using FFD deformations
         newSurfMesh = self.DVGeo.update("wing_surface_mesh")
 
         # Update the surface mesh in IdWarp
@@ -393,6 +415,15 @@ class AeroStructFFD():
 
         # Deform the volume mesh
         self.mesh.warpMesh()
+
+        # Get updated struct mesh coordinates using FFD deformations
+        newStructMesh = self.DVGeo.update("struct_mesh")
+
+        # Update the node location in the nastran object
+        nastran_obj = self.structMesh.getBDFInfo()
+
+        for (nid, node), xyz in zip(nastran_obj.nodes.items(), newStructMesh):
+            node.set_position(nastran_obj, xyz)
 
         # Changing the directory to analysis folder
         os.chdir("{}/{}".format(directory, self.genSamples+1))
@@ -404,12 +435,67 @@ class AeroStructFFD():
         # Write the new grid file
         self.mesh.writeGrid('volMesh.cgns')
 
+        # Write the new wingbox file
+        nastran_obj.write_bdf("wingbox.bdf")
+
         # Create input file
         self._createInputFile(x)
 
+        try:
 
+            # Spawning the runscript on desired number of processors
+            child_comm = MPI.COMM_SELF.Spawn(sys.executable, args=["runscript.py"], maxprocs=self.options["noOfProcessors"])
 
+            # Creating empty process id list
+            pid_list = []
 
+            # Getting each spawned process
+            for processor in range(self.options["noOfProcessors"]):
+                pid = child_comm.recv(source=MPI.ANY_SOURCE, tag=processor)
+                pid_list.append(psutil.Process(pid))
+
+            # Disconnecting from intercommunicator
+            child_comm.Disconnect()
+
+            # Waiting till all the child processors are finished
+            while len(pid_list) != 0:
+                for pid in pid_list:
+                    if not pid.is_running():
+                        pid_list.remove(pid)
+
+            # Reading the output file containing results
+            filehandler = open("output.pickle", 'rb')
+            output = pickle.load(filehandler)
+            filehandler.close()
+
+        except:
+            raise Exception
+        
+        else:
+
+            # Read the deformed volume grid
+            grid = readGrid("volMesh.cgns")
+
+            # Write out deformed surface mesh
+            grid.extractSurface("surfMesh.xyz")
+
+            # Getting the vertex coordinates of the triangulated surface mesh
+            p0, v1, v2 = readPlot3DSurfFile("surfMesh.xyz")
+            p1 = p0 + v1 # Second vertex
+            p2 = p0 + v2 # Third vertex
+
+            # Calculating the volume of the triangulated surface mesh
+            output["volume"] = volumeTriangulatedMesh(p0, p1, p2)
+
+            return output
+
+        finally:
+
+            # Changing the directory back to root
+            os.chdir("../..")
+
+            # Increase the number of generated samples
+            self.genSamples += 1
 
     # ----------------------------------------------------------------------------
     #          Other required methods
@@ -443,13 +529,17 @@ class AeroStructFFD():
             self._error("Option dictionary doesn't contain following attribute(s): {}"\
                         .format(set(requiredOptions) - set(userProvidedOptions)))
 
-        ############ Validating solverOptions
-        if not isinstance(options["solverOptions"], dict):
-            self._error("\"solverOptions\" attribute is not a dictionary.")
+        ############ Validating aeroSolverOptions
+        if not isinstance(options["aeroSolverOptions"], dict):
+            self._error("\"aeroSolverOptions\" attribute is not a dictionary.")
 
         ############ Validating gridFile
         if not os.path.exists(os.path.abspath(options["gridFile"])):
             self._error("Provided grid file doesn't exists.")
+
+        ############ Validating structSolverConfigFile
+        if not os.path.exists(os.path.abspath(options["structSolverConfigFile"])):
+            self._error("Provided structural solver config file doesn't exists.")
 
         ############ Validating structMeshFile
         if not os.path.exists(os.path.abspath(options["structMeshFile"])):
@@ -469,14 +559,6 @@ class AeroStructFFD():
         ############ Validating aeroProblem
         if not isinstance(options["aeroProblem"], AeroProblem):
             self._error("\"aeroProblem\" attribute is not an aeroproblem.")
-
-        ############ Validating tacs problem setup
-        if not callable(options["tacsProblemSetup"]):
-            self._error("\"tacsProblemSetup\" attribute is not a callable.")
-
-        ############ Validating tacs element callback
-        if not callable(options["tacsElementCallback"]):
-            self._error("\"tacsElementCallback\" attribute is not a callable.")
 
         ############ Validating aerosolver
         if "aeroSolver" in userProvidedOptions:
@@ -632,7 +714,7 @@ class AeroStructFFD():
             else:
                 self.options[key] = options[key]
 
-    def _creatInputFile(self, x:np.ndarray) -> None:
+    def _createInputFile(self, x:np.ndarray) -> None:
         """
             Method to create an input file for analysis.
 
@@ -644,14 +726,11 @@ class AeroStructFFD():
 
         # Creating input dict
         input = {
-            "aeroSolver": self.options["aeroSolver"],
             "aeroSolverOptions": self.options["aeroSolverOptions"],
             "aeroProblem": self.options["aeroProblem"],
-            "tacsProblemSetup": self.options["tacsProblemSetup"],
-            "tacsElementCallback": self.options["tacsElementCallback"],
             "sliceLocation": self.options["sliceLocation"],
             "storeFieldData": self.options["storeFieldData"],
-            "spanIndex": self.spanIndex # used as axis for symmetry plane
+            "spanIndex": self.spanIndex # axis for symmetry plane
         }
 
         # Adding non-shape DVs
