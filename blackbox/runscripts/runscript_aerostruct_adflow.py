@@ -5,12 +5,9 @@ from  mphys.scenario_aerostructural import ScenarioAeroStructural
 from tacs.mphys import TacsBuilder
 from funtofem.mphys import MeldBuilder
 from adflow.mphys import ADflowBuilder
-
-# Importing other python packages
-from baseclasses import AeroProblem
 from mpi4py import MPI
-import numpy as np
 import pickle, os
+from struct_setup_file import *
 
 # Getting MPI comm
 comm = MPI.COMM_WORLD
@@ -36,8 +33,6 @@ try:
     # Getting aero problem from input file
     ap = input["aeroProblem"]
     aeroSolverOptions = input["aeroSolverOptions"]
-    tacsProblemSetup = input["tacsProblemSetup"]
-    tacsElementCallback = input["tacsElementCallback"]
     storeFieldData = input["storeFieldData"]
     spanIndex = input["spanIndex"]
 
@@ -64,9 +59,10 @@ try:
 
             # struct builder
             struct_builder = TacsBuilder(mesh_file="wingbox.bdf",
-                element_callback=tacsElementCallback,
-                problem_setup=tacsProblemSetup
+                element_callback=element_callback,
+                problem_setup=problem_setup
             )
+            struct_builder.initialize(self.comm)
             self.add_subsystem("mesh_struct", struct_builder.get_mesh_coordinate_subsystem())
 
             # transfer builder
@@ -79,8 +75,8 @@ try:
             ldxfer_builder.initialize(self.comm)
 
             # coupled aerostructural scenario
-            nonlinear_solver = om.NonlinearBlockGS(maxiter=25, iprint=2, use_aitken=True, rtol=1e-12, atol=1e-12)
-            linear_solver = om.LinearBlockGS(maxiter=25, iprint=2, use_aitken=True, rtol=1e-12, atol=1e-12)
+            nonlinear_solver = om.NonlinearBlockGS(maxiter=25, iprint=2, use_aitken=True, rtol=1e-12, atol=1e-12, err_on_non_converge=True)
+            linear_solver = om.LinearBlockGS(maxiter=25, iprint=2, use_aitken=True, rtol=1e-12, atol=1e-12, err_on_non_converge=True)
             self.mphys_add_scenario(
                 "scenario",
                 ScenarioAeroStructural(
@@ -92,40 +88,29 @@ try:
                 linear_solver,
             )
 
-        # def configure(self):
-            
-        #     # Adds linear and nonlinear solver defined in setup
-        #     super().configure()
+            for discipline in ["aero", "struct"]:
+                self.mphys_connect_scenario_coordinate_source(f"mesh_{discipline}", "scenario", discipline)
 
-        #     # You need to add name while adding dv. It is the same name used for output/input.
-        #     if "aoa" in input.keys():
-        #         ap.addDV("alpha", name="aoa", units="deg")
-        #     if "mach" in input.keys():
-        #         ap.addDV("mach", name="mach")
-        #     if "altitude" in input.keys():
-        #         ap.addDV("altitude", name="altitude", units="m")
+        def configure(self):
 
-        #     self.scenario.coupling.aero.mphys_set_ap(ap)
-        #     self.scenario.aero_post.mphys_set_ap(ap)
+            super().configure()
 
-        #     if "aoa" in input.keys():
-        #         self.connect("aoa", ["scenario.coupling.aero.aoa", "scenario.aero_post.aoa"])
-
-        #     if "mach" in input.keys():
-        #         self.connect("mach", ["scenario.coupling.aero.mach", "scenario.aero_post.mach"])
-
-        #     if "altitude" in input.keys():
-        #         self.connect("altitude", ["scenario.coupling.aero.altitude", "scenario.aero_post.altitude"])
-
+            self.scenario.coupling.aero.mphys_set_ap(ap)
+            self.scenario.aero_post.mphys_set_ap(ap)
 
     # OpenMDAO setup
     prob = om.Problem(comm=comm)
     prob.model = Top()
     prob.setup(mode="rev")
     om.n2(prob, show_browser=False, outfile="mphys.html")
-    
-    ############## Run CFD
-    prob.run_model()
+
+    ############## Run the model
+    try:
+        prob.run_model()
+    except om.AnalysisError:
+        fail = True
+    else:
+        fail = False
 
     # printing the result
     if comm.rank == 0:
@@ -137,31 +122,18 @@ try:
         print("")
 
         output = {}
-    
-        for value in prob.model.list_outputs(val=False, out_stream=None):
-            if value[0] == "scenario.struct_post.eval_funcs.ks_vmfailure":
-                prob.model.objectives.append("failure")
-            if value[0] == "scenario.struct_post.mass_funcs.mass":
-                prob.model.objectives.append("mass")
 
-        print(prob.get_val("mesh_struct.fea_mesh.x_struct0", get_remote=False))
+        for obj in ap.evalFuncs :
+            print(f"{obj} = ", prob[f"scenario.aero_post.{obj}"].item())
+            output[f"{obj}"] = prob[f"scenario.aero_post.{obj}"].item()
 
-        for value in prob.model.objectives:
-            if "cl" == value:
-                print("cl = ", prob["scenario.aero_post.cl"])
-                output["cl"] = prob["scenario.aero_post.cl"]
-            if "cd" == value:
-                print("cd = ", prob["scenario.aero_post.cd"])
-                output["cd"] = prob["scenario.aero_post.cd"]
-            if "failure" == value:
-                print("failure = ", prob["scenario.struct_post.eval_funcs.ks_vmfailure"])
-                output["failure"] = prob["scenario.struct_post.eval_funcs.ks_vmfailure"]
-            if "mass" == value:
-                print("mass = ", prob["scenario.struct_post.mass_funcs.mass"])
-                output["mass"] = prob["scenario.struct_post.mass_funcs.mass"]
+        for name in prob.model.scenario.struct_post.system_iter():
+            for abs_name, meta in name.list_outputs(out_stream=None, prom_name=True):
+                print(f"{abs_name} = ", meta["val"].item())
+                output[f"{abs_name}"] = meta["val"].item()
 
-        
-        
+        output["fail"] = fail
+
         filehandler = open("output.pickle", "xb")
         pickle.dump(output, filehandler)
         filehandler.close()
