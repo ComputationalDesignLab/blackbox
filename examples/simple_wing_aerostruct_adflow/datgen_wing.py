@@ -1,7 +1,6 @@
 from blackbox import AeroStructFFD
 from baseclasses import AeroProblem
 import numpy as np
-from tacs import constitutive, elements, functions
 
 solverOptions = {
     # Common Parameters
@@ -36,55 +35,13 @@ solverOptions = {
     "L2Convergence": 1e-14
 }
 
-# Callback function used to setup TACS element objects and DVs
-def element_callback(dvNum, compID, compDescript, elemDescripts, specialDVs, **kwargs):
-
-    # Material properties
-    rho = 2500.0  # density kg/m^3
-    E = 70.0e9  # Young's modulus (Pa)
-    nu = 0.30  # Poisson's ratio
-    ys = 350e6  # yield stress
-    t = 0.01  # shell thickness, m
-
-    # Setup (isotropic) property and constitutive objects
-    prop = constitutive.MaterialProperties(rho=rho, E=E, nu=nu, ys=ys)
-    # Set one thickness dv for every component
-    con = constitutive.IsoShellConstitutive(prop, t=t, tNum=dvNum)
-
-    # For each element type in this component, pass back the appropriate tacs element object
-    transform = None
-    elem = elements.Quad4Shell(transform, con)
-
-    return elem
-
-def problem_setup(scenario_name, fea_assembler, problem):
-    """
-    Helper function to add fixed forces and eval functions
-    to structural problems used in tacs builder
-    """
-
-    # Add TACS Functions
-    if scenario_name == "cruise":
-        problem.addFunction("mass", functions.StructuralMass)
-    problem.addFunction(
-        "ks_vmfailure", functions.KSFailure, safetyFactor=1.0, ksWeight=100.0
-    )
-
-    # Add gravity load
-    g = np.array([0.0, 0.0, -9.81])  # m/s^2
-    if scenario_name == "maneuver":
-        problem.addInertialLoad(2.5 * g)
-    else:  # cruise
-        problem.addInertialLoad(g)
-
 # Flow details
-ap = AeroProblem(name="wing", alpha=2.5, mach=0.85, altitude=10000, areaRef=45.5, chordRef=3.56, evalFuncs=["cl", "cd"])
+ap = AeroProblem(name="wing", alpha=2.5, mach=0.85, altitude=10000, areaRef=45.5, chordRef=3.56, evalFuncs=["cl", "cd", "cmz"])
 
 options = {
     "aeroSolver": "adflow",
-    "solverOptions": solverOptions,
-    "tacsElementCallback": element_callback,
-    "tacsProblemSetup": problem_setup,
+    "aeroSolverOptions": solverOptions,
+    "structSolverConfigFile": "tacs_setup.py",
     "gridFile": "wing_volMesh.cgns",
     "ffdFile": "wing_ffd.xyz",
     "structMeshFile": "wingbox.bdf",
@@ -100,15 +57,19 @@ options = {
 wing = AeroStructFFD(options=options)
 
 # Add alpha as a design variable
+wing.addDV("mach", lowerBound=0.7, upperBound=0.9)
+
+# Add alpha as a design variable
 wing.addDV("alpha", lowerBound=1.5, upperBound=4.5)
 
 # Add the wing shape as a design variable
-lowerBound = np.array([-0.03]*wing.nffd)
-upperBound = np.array([0.03]*wing.nffd)
+lowerBound = np.array([-0.05]*wing.nffd)
+upperBound = np.array([0.05]*wing.nffd)
 wing.addDV("shape", lowerBound=lowerBound, upperBound=upperBound)
 
 # Add the wing twist as a design variable
-lowerBound = np.array([-2.0]*wing.nTwist)
-upperBound = np.array([2.0]*wing.nTwist)
+lowerBound = np.array([-5.0]*wing.nTwist)
+upperBound = np.array([5.0]*wing.nTwist)
 wing.addDV("twist", lowerBound=lowerBound, upperBound=upperBound)
 
+wing.generateSamples(5)
