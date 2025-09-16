@@ -370,7 +370,7 @@ class AeroStructFFD():
 
         # Setting filepath based on the solver
         if self.options["solver"] == "adflow":
-            filepath = os.path.join(pkgdir, "runscripts/runscript_aerostruct.py")
+            filepath = os.path.join(pkgdir, "runscripts/runscript_aerostruct_adflow.py")
 
         # Copy the runscript to analysis directory
         shutil.copy(filepath, "{}/{}/runscript.py".format(directory, self.genSamples+1))
@@ -632,52 +632,48 @@ class AeroStructFFD():
             else:
                 self.options[key] = options[key]
 
-    def _createInputFile(self):
+    def _creatInputFile(self, x:np.ndarray) -> None:
         """
-            Method to create an input file for analysis
+            Method to create an input file for analysis.
+
+            Parameters
+            ----------
+            x: np.ndarray
+                design variable for which the analysis is to be run
         """
 
-        directory = self.options["directory"]
+        # Creating input dict
+        input = {
+            "aeroSolver": self.options["aeroSolver"],
+            "aeroSolverOptions": self.options["aeroSolverOptions"],
+            "aeroProblem": self.options["aeroProblem"],
+            "tacsProblemSetup": self.options["tacsProblemSetup"],
+            "tacsElementCallback": self.options["tacsElementCallback"],
+            "sliceLocation": self.options["sliceLocation"],
+            "storeFieldData": self.options["storeFieldData"],
+            "spanIndex": self.spanIndex # used as axis for symmetry plane
+        }
 
-        input = {}
-        sample = {}
-        parameters = self.options["fixedParameters"]
-        objectives = self.options["objectives"]
+        # Adding non-shape DVs
+        if "alpha" in self.DV:
+            loc = self.locator == "alpha"
+            loc = loc.reshape(-1,)
+            input["alpha"] = x[loc]
 
-        if self.options["type"] == "multi":
-            for sampleNo in range(self.options["numberOfSamples"]):
-                os.chdir("{}/{}".format(directory,sampleNo))
+        if "mach" in self.DV:
+            loc = self.locator == "mach"
+            loc = loc.reshape(-1,)
+            input["mach"] = x[loc]
 
-                for key in self.samples:
-                    sample[key] = self.samples[key][sampleNo]
+        if "altitude" in self.DV:
+            loc = self.locator == "altitude"
+            loc = loc.reshape(-1,)
+            input["altitude"] = x[loc]
 
-                input = {
-                    "aeroSolverOptions" : self.options["aeroSolverOptions"],
-                    "sample" : sample,
-                    "parameters" : parameters,
-                    "objectives" : objectives
-                }
-
-                filehandler = open("input.pickle", "xb")
-                pickle.dump(input, filehandler)
-                filehandler.close()
-                os.chdir("../..")
-
-        elif self.options["type"] == "single":
-            os.chdir("{}/{}".format(directory, self.sampleNo))
-
-            input = {
-                "aeroSolverOptions" : self.options["aeroSolverOptions"],
-                "sample" : self.samples,
-                "parameters" : parameters,
-                "objectives" : objectives
-            }
-
-            filehandler = open("input.pickle", "xb")
-            pickle.dump(input, filehandler)
-            filehandler.close()
-
-            os.chdir("../..")
+        # Saving the input file
+        filehandler = open("input.pickle", "xb")
+        pickle.dump(input, filehandler)
+        filehandler.close()
 
     def _error(self, message: str) -> None:
         """
