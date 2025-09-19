@@ -144,7 +144,7 @@ class AeroStructFFD():
             self.options["aeroSolverOptions"]["outputDirectory"] = "."
             self.options["aeroSolverOptions"]["numberSolutions"] = False
             self.options["aeroSolverOptions"]["printTiming"] = False
-            self.options["aeroSolverOptions"]["gridFile"] = self.options["gridFile"]
+            self.options["aeroSolverOptions"]["gridFile"] = "volMesh.cgns" # IMP - internal name for volume mesh file
             self.options["aeroSolverOptions"]["liftIndex"] = self.options["liftIndex"]
             self.options["aeroSolverOptions"]["forcesAsTractions"] = False # bcoz of meld
 
@@ -490,6 +490,14 @@ class AeroStructFFD():
             return output
 
         finally:
+
+            # Cleaning the directory
+            files = ["input.pickle", "runscript.py", "struct_setup_file.py", "volMesh.cgns", 
+                     "surfMesh.xyz", "wingobx.bdf", "output.pickle", "mphys.html", "wingbox.bdf"]
+            
+            for file in files:
+                if os.path.exists(file):
+                    os.system("rm {}".format(file))
 
             # Changing the directory back to root
             os.chdir("../..")
