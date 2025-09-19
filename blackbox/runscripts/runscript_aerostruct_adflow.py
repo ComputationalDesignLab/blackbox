@@ -7,7 +7,9 @@ from funtofem.mphys import MeldBuilder
 from adflow.mphys import ADflowBuilder
 from mpi4py import MPI
 import pickle, os
-from struct_setup_file import *
+from struct_setup_file import * # importing from structural definitions
+
+os.environ['OPENMDAO_REPORTS'] = "0" # disable report generation
 
 # Getting MPI comm
 comm = MPI.COMM_WORLD
@@ -33,6 +35,7 @@ try:
     # Getting aero problem from input file
     ap = input["aeroProblem"]
     aeroSolverOptions = input["aeroSolverOptions"]
+    sliceLocation = input["sliceLocation"]
     storeFieldData = input["storeFieldData"]
     spanIndex = input["spanIndex"]
 
@@ -46,6 +49,13 @@ try:
     if "altitude" in input.keys():
         ap.altitude = input["altitude"][0]
 
+    structSolverOptions = {
+        "numberSolutions": False,
+        "outputDir": ".",
+        "printTiming": False,
+        "printLevel": 1
+    }
+
     ############## Setting up the openmdao model
 
     class Top(Multipoint):
@@ -53,14 +63,17 @@ try:
         def setup(self):
 
             # aero builder
-            aero_builder = ADflowBuilder(aeroSolverOptions, scenario="Aerostructural")
+            aero_builder = ADflowBuilder(aeroSolverOptions, scenario="Aerostructural", write_solution=False)
             aero_builder.initialize(comm)
             self.add_subsystem("mesh_aero", aero_builder.get_mesh_coordinate_subsystem())
 
             # struct builder
-            struct_builder = TacsBuilder(mesh_file="wingbox.bdf",
+            struct_builder = TacsBuilder(
+                mesh_file="wingbox.bdf",
                 element_callback=element_callback,
-                problem_setup=problem_setup
+                problem_setup=problem_setup,
+                write_solution=False,
+                pytacs_options=structSolverOptions
             )
             struct_builder.initialize(self.comm)
             self.add_subsystem("mesh_struct", struct_builder.get_mesh_coordinate_subsystem())
@@ -75,8 +88,8 @@ try:
             ldxfer_builder.initialize(self.comm)
 
             # coupled aerostructural scenario
-            nonlinear_solver = om.NonlinearBlockGS(maxiter=25, iprint=2, use_aitken=True, rtol=1e-12, atol=1e-12, err_on_non_converge=True)
-            linear_solver = om.LinearBlockGS(maxiter=25, iprint=2, use_aitken=True, rtol=1e-12, atol=1e-12, err_on_non_converge=True)
+            nonlinear_solver = om.NonlinearBlockGS(maxiter=25, iprint=2, use_aitken=True, rtol=1e-4, atol=1e-4, err_on_non_converge=True)
+            linear_solver = om.LinearBlockGS(maxiter=25, iprint=2, use_aitken=True, rtol=1e-4, atol=1e-4, err_on_non_converge=True)
             self.mphys_add_scenario(
                 "scenario",
                 ScenarioAeroStructural(
@@ -104,6 +117,15 @@ try:
     prob.setup(mode="rev")
     om.n2(prob, show_browser=False, outfile="mphys.html")
 
+    # Adding pressure distribution output
+    if spanIndex == "j":
+        sliceDirection = "y" # y-axis
+    elif spanIndex == "k":
+        sliceDirection = "z" # z-axis
+
+    for loc in sliceLocation: 
+        prob.model.scenario.coupling.aero.solver.solver.addSlices(sliceDirection, loc, sliceType="absolute")
+
     ############## Run the model
     try:
         prob.run_model()
@@ -111,6 +133,20 @@ try:
         fail = True
     else:
         fail = False
+
+        # Write aero solution files
+        prob.model.scenario.coupling.aero.solver.solver.writeSolution(baseName="aero_output")
+
+        # Important to wait for all processors to finish before calling disconnect
+        # Otherwise, program will enter deadlock
+        comm.barrier()
+
+        # Write struct solution files
+        prob.model.scenario.coupling.struct.sp.writeSolution(baseName="struct_output")
+    
+    # Important to wait for all processors to finish before calling disconnect
+    # Otherwise, program will enter deadlock
+    comm.barrier()
 
     # printing the result
     if comm.rank == 0:
