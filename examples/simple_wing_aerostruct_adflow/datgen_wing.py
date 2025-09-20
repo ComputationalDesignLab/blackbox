@@ -36,7 +36,7 @@ solverOptions = {
 }
 
 # Flow details
-ap = AeroProblem(name="wing", alpha=2.5, mach=0.85, altitude=10000, areaRef=45.5, chordRef=3.56, evalFuncs=["cl", "cd", "cmz"])
+ap = AeroProblem(name="aerostruct", alpha=2.5, mach=0.85, altitude=10000, areaRef=45.5, chordRef=3.56, evalFuncs=["cl", "cd", "cmz"])
 
 options = {
     "aeroSolver": "adflow",
@@ -63,8 +63,8 @@ wing.addDV("mach", lowerBound=0.7, upperBound=0.9)
 wing.addDV("alpha", lowerBound=1.5, upperBound=4.5)
 
 # Add the wing shape as a design variable
-lowerBound = np.array([-0.05]*wing.nffd)
-upperBound = np.array([0.05]*wing.nffd)
+lowerBound = np.array([-0.1]*wing.nffd)
+upperBound = np.array([0.1]*wing.nffd)
 wing.addDV("shape", lowerBound=lowerBound, upperBound=upperBound)
 
 # Add the wing twist as a design variable
