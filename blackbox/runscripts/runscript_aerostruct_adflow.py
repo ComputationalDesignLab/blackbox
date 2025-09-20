@@ -1,6 +1,6 @@
 # Importing classes requried for openmdao and mphys
 import openmdao.api as om
-from mphys.multipoint import Multipoint
+from mphys import Multipoint
 from  mphys.scenario_aerostructural import ScenarioAeroStructural
 from tacs.mphys import TacsBuilder
 from funtofem.mphys import MeldBuilder
@@ -49,13 +49,6 @@ try:
     if "altitude" in input.keys():
         ap.altitude = input["altitude"][0]
 
-    structSolverOptions = {
-        "numberSolutions": False,
-        "outputDir": ".",
-        "printTiming": False,
-        "printLevel": 1
-    }
-
     ############## Setting up the openmdao model
 
     class Top(Multipoint):
@@ -72,8 +65,7 @@ try:
                 mesh_file="wingbox.bdf",
                 element_callback=element_callback,
                 problem_setup=problem_setup,
-                write_solution=False,
-                pytacs_options=structSolverOptions
+                write_solution=False
             )
             struct_builder.initialize(self.comm)
             self.add_subsystem("mesh_struct", struct_builder.get_mesh_coordinate_subsystem())
@@ -88,8 +80,8 @@ try:
             ldxfer_builder.initialize(self.comm)
 
             # coupled aerostructural scenario
-            nonlinear_solver = om.NonlinearBlockGS(maxiter=25, iprint=2, use_aitken=True, rtol=1e-4, atol=1e-4, err_on_non_converge=True)
-            linear_solver = om.LinearBlockGS(maxiter=25, iprint=2, use_aitken=True, rtol=1e-4, atol=1e-4, err_on_non_converge=True)
+            nonlinear_solver = om.NonlinearBlockGS(maxiter=25, iprint=2, use_aitken=True, rtol=1e-12, atol=1e-12, err_on_non_converge=True)
+            linear_solver = om.LinearBlockGS(maxiter=25, iprint=2, use_aitken=True, rtol=1e-12, atol=1e-12, err_on_non_converge=True)
             self.mphys_add_scenario(
                 "scenario",
                 ScenarioAeroStructural(
@@ -129,24 +121,19 @@ try:
     ############## Run the model
     try:
         prob.run_model()
-    except om.AnalysisError:
+
+    except:
         fail = True
+        
     else:
         fail = False
 
         # Write aero solution files
         prob.model.scenario.coupling.aero.solver.solver.writeSolution(baseName="aero_output")
 
-        # Important to wait for all processors to finish before calling disconnect
-        # Otherwise, program will enter deadlock
-        comm.barrier()
-
         # Write struct solution files
+        prob.model.scenario.coupling.struct.sp.setOption("numbersolutions", False)
         prob.model.scenario.coupling.struct.sp.writeSolution(baseName="struct_output")
-    
-    # Important to wait for all processors to finish before calling disconnect
-    # Otherwise, program will enter deadlock
-    comm.barrier()
 
     # printing the result
     if comm.rank == 0:
