@@ -32,8 +32,8 @@ class DefaultOptions():
         self.noOfProcessors = 4
         self.sliceLocation = [] # defines slice location
         self.writeDeformedFFD = False
-        self.storeFieldData = False
-        self.storeMDAHistory = False
+        self.writeForceField = False
+        self.writeDisplacementField = False
 
         # Sampling options
         self.samplingCriterion = "cm"
@@ -609,15 +609,15 @@ class AeroStructFFD():
             if not isinstance(options["writeDeformedFFD"], bool):
                 self._error("\"writeDeformedFFD\" attribute is not a boolean value.")
 
-        ############ Validating storeFieldData
-        if "storeFieldData" in userProvidedOptions:
-            if not isinstance(options["storeFieldData"], bool):
-                self._error("\"storeFieldData\" attribute is not a boolean value.")
+        ############ Validating writeForceField
+        if "writeForceField" in userProvidedOptions:
+            if not isinstance(options["writeForceField"], bool):
+                self._error("\"writeForceField\" attribute is not a boolean value.")
 
-        ############ Validating storeMDAHistory
-        if "storeMDAHistory" in userProvidedOptions:
-            if not isinstance(options["storeMDAHistory"], bool):
-                self._error("\"storeMDAHistory\" attribute is not a boolean value.")
+        ############ Validating writeDisplacementField
+        if "writeDisplacementField" in userProvidedOptions:
+            if not isinstance(options["writeDisplacementField"], bool):
+                self._error("\"writeDisplacementField\" attribute is not a boolean value.")
 
         ############ Validating directory attribute
         if "directory" in userProvidedOptions:
@@ -737,7 +737,8 @@ class AeroStructFFD():
             "aeroSolverOptions": self.options["aeroSolverOptions"],
             "aeroProblem": self.options["aeroProblem"],
             "sliceLocation": self.options["sliceLocation"],
-            "storeFieldData": self.options["storeFieldData"],
+            "writeForceField": self.options["writeForceField"],
+            "writeDisplacementField": self.options["writeDisplacementField"],
             "spanIndex": self.spanIndex # axis for symmetry plane
         }
 
