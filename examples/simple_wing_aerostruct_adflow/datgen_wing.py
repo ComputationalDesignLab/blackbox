@@ -47,9 +47,11 @@ options = {
     "structMeshFile": "wingbox.bdf",
     "liftIndex": 2, # Very important
     "aeroProblem": ap,
-    "noOfProcessors": 8,
+    "noOfProcessors": 4,
     "sliceLocation": [0.14, 3.22, 6.3, 9.38, 12.46, 13.86],
     "writeDeformedFFD": True,
+    "writeForceField": True,
+    "writeDisplacementField": True,
     "samplingCriterion": "ese"
 }
 
