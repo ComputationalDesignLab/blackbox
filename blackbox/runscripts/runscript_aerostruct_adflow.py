@@ -1,4 +1,5 @@
 # Importing classes requried for openmdao and mphys
+import pickle, os
 import openmdao.api as om
 from mphys import Multipoint
 from  mphys.scenario_aerostructural import ScenarioAeroStructural
@@ -6,7 +7,7 @@ from tacs.mphys import TacsBuilder
 from funtofem.mphys import MeldBuilder
 from adflow.mphys import ADflowBuilder
 from mpi4py import MPI
-import pickle, os
+from scipy.io import savemat
 from struct_setup_file import * # importing from structural definitions
 
 os.environ['OPENMDAO_REPORTS'] = "0" # disable report generation
@@ -36,7 +37,8 @@ try:
     ap = input["aeroProblem"]
     aeroSolverOptions = input["aeroSolverOptions"]
     sliceLocation = input["sliceLocation"]
-    storeFieldData = input["storeFieldData"]
+    writeForceField = input["writeForceField"],
+    writeDisplacementField = input["writeDisplacementField"],
     spanIndex = input["spanIndex"]
 
     # Assigning non-shape DVs
@@ -134,6 +136,23 @@ try:
         # Write struct solution files
         prob.model.scenario.coupling.struct.sp.setOption("numbersolutions", False)
         prob.model.scenario.coupling.struct.sp.writeSolution(baseName="struct_output")
+
+        # Write force field
+        if writeForceField:
+            force = prob.get_val("scenario.coupling.aero.force.f_aero", get_remote=True)
+            if comm.rank == 0:
+                data = {
+                    "force": force.reshape(-1,3)
+                }
+                savemat("force_field.mat", data)
+
+        if writeDisplacementField:
+            displacement = prob.get_val("scenario.coupling.struct.masker.u_struct_masked", get_remote=True)
+            if comm.rank == 0:
+                data = {
+                    "displacement": displacement.reshape(-1,6)
+                }
+                savemat("displacement_field.mat", data)
 
     # printing the result
     if comm.rank == 0:
