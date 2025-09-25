@@ -29,6 +29,7 @@ class DefaultOptions():
 
         # Other options
         self.directory = "output"
+        self.ffdFile = None
         self.noOfProcessors = 4
         self.sliceLocation = [] # defines slice location
         self.writeDeformedFFD = False
@@ -62,7 +63,7 @@ class AeroStructFFD():
         self._getDefaultOptions()
 
         # Setting up the required options list
-        requiredOptions = ["aeroSolverOptions", "gridFile", "structSolverConfigFile", "structMeshFile", "ffdFile", "liftIndex", "aeroProblem"]
+        requiredOptions = ["aeroSolverOptions", "gridFile", "structSolverConfigFile", "structMeshFile", "liftIndex", "aeroProblem"]
 
         # Validating user provided options
         self._checkOptions(options, requiredOptions)
@@ -73,7 +74,7 @@ class AeroStructFFD():
         # Getting abs path for the directory/files
         self.options["directory"] = os.path.abspath(self.options["directory"])
         self.options["gridFile"] = os.path.abspath(self.options["gridFile"])
-        self.options["ffdFile"] = os.path.abspath(self.options["ffdFile"])
+        self.options["ffdFile"] = os.path.abspath(self.options["ffdFile"]) if self.options["ffdFile"] is not None else None
         self.options["structMeshFile"] = os.path.abspath(self.options["structMeshFile"])
         self.options["structSolverConfigFile"] = os.path.abspath(self.options["structSolverConfigFile"])
         if self.options["aeroSolver"] == "dafoam":
@@ -89,37 +90,6 @@ class AeroStructFFD():
             os.system("rm -r {}".format(directory))
             os.system("mkdir {}".format(directory))
 
-        # Create mesh deformation object
-        self.mesh = USMesh(comm=comm, options={"gridFile": self.options["gridFile"]})
-
-        # Get the surface mesh coordinates
-        surfMesh = self.mesh.getSurfaceCoordinates()
-
-        # Initialize the bdf mesh reader and read the bdf file
-        self.structMesh = pyMeshLoader(comm, False)
-        self.structMesh.scanBdfFile(self.options["structMeshFile"])
-
-        # Get nastran object
-        nastran_obj = self.structMesh.getBDFInfo()
-
-        # Collect structural nodes from BDF to create a 3D point cloud
-        node_ids = []
-        structMeshCoords = np.zeros((0,3))
-
-        for nid, node in nastran_obj.nodes.items():
-            node_ids.append(nid)
-            structMeshCoords = np.vstack((structMeshCoords, node.get_position()))
-
-        # Creating DVGeometry object
-        self.DVGeo = DVGeometry(self.options["ffdFile"])
-
-        # Number of FFD points
-        self.nffd = self.DVGeo.getLocalIndex(0).flatten().shape[0]
-
-        # Adding aerodynamic surface mesh co-ordinates and struct mesh coordinates as a pointset
-        self.DVGeo.addPointSet(surfMesh, "wing_surface_mesh")
-        self.DVGeo.addPointSet(structMeshCoords, "struct_mesh")
-
         if self.options["liftIndex"] == 2: # y
             self.spanIndex = "k" # If y is lift index, then span is along z (k)
             self.liftIndex = "y"
@@ -127,11 +97,44 @@ class AeroStructFFD():
             self.spanIndex = "j" # If z is lift index, then span is along y (j)
             self.liftIndex = "z"
 
-        # Create reference axis
-        self.nRefAxPts = self.DVGeo.addRefAxis("wingAxis", xFraction=0.25, alignIndex=self.spanIndex)
+        if self.options["ffdFile"] is not None:
 
-        # Number of twist locations
-        self.nTwist = self.nRefAxPts - 1 # Root is fixed
+            # Create mesh deformation object
+            self.mesh = USMesh(comm=comm, options={"gridFile": self.options["gridFile"]})
+
+            # Get the surface mesh coordinates
+            surfMesh = self.mesh.getSurfaceCoordinates()
+
+            # Initialize the bdf mesh reader and read the bdf file
+            self.structMesh = pyMeshLoader(comm, False)
+            self.structMesh.scanBdfFile(self.options["structMeshFile"])
+
+            # Get nastran object
+            nastran_obj = self.structMesh.getBDFInfo()
+
+            # Collect structural nodes from BDF to create a 3D point cloud
+            node_ids = []
+            structMeshCoords = np.zeros((0,3))
+
+            for nid, node in nastran_obj.nodes.items():
+                node_ids.append(nid)
+                structMeshCoords = np.vstack((structMeshCoords, node.get_position()))
+
+            # Creating DVGeometry object
+            self.DVGeo = DVGeometry(self.options["ffdFile"])
+
+            # Number of FFD points
+            self.nffd = self.DVGeo.getLocalIndex(0).flatten().shape[0]
+
+            # Adding aerodynamic surface mesh co-ordinates and struct mesh coordinates as a pointset
+            self.DVGeo.addPointSet(surfMesh, "wing_surface_mesh")
+            self.DVGeo.addPointSet(structMeshCoords, "struct_mesh")
+
+            # Create reference axis
+            self.nRefAxPts = self.DVGeo.addRefAxis("wingAxis", xFraction=0.25, alignIndex=self.spanIndex)
+
+            # Number of twist locations
+            self.nTwist = self.nRefAxPts - 1 # Root is fixed
 
         # Some initializations which will be used later
         self.DV = []
@@ -397,46 +400,56 @@ class AeroStructFFD():
         # Copy the tacs setup file
         shutil.copy(self.options["structSolverConfigFile"], f"{directory}/{self.genSamples+1}/struct_setup_file.py")
 
-        # Creating the new design variable dict
-        # If there are no shape DV, then DVGeo
-        # will not update the wing surface.
-        newDV = {}
-        for dv in self.DV:
-            loc = self.locator == dv
-            loc = loc.reshape(-1,)
-            newDV[dv] = x[loc]
-        self.DVGeo.setDesignVars(newDV)
+        if self.options["ffdFile"] is not None:
 
-        # Get updated aerodynamic surface mesh coordinates using FFD deformations
-        newSurfMesh = self.DVGeo.update("wing_surface_mesh")
+            # Creating the new design variable dict
+            # If there are no shape DV, then DVGeo
+            # will not update the wing surface.
+            newDV = {}
+            for dv in self.DV:
+                loc = self.locator == dv
+                loc = loc.reshape(-1,)
+                newDV[dv] = x[loc]
+            self.DVGeo.setDesignVars(newDV)
 
-        # Update the surface mesh in IdWarp
-        self.mesh.setSurfaceCoordinates(newSurfMesh)
+            # Get updated aerodynamic surface mesh coordinates using FFD deformations
+            newSurfMesh = self.DVGeo.update("wing_surface_mesh")
 
-        # Deform the volume mesh
-        self.mesh.warpMesh()
+            # Update the surface mesh in IdWarp
+            self.mesh.setSurfaceCoordinates(newSurfMesh)
 
-        # Get updated struct mesh coordinates using FFD deformations
-        newStructMesh = self.DVGeo.update("struct_mesh")
+            # Deform the volume mesh
+            self.mesh.warpMesh()
 
-        # Update the node location in the nastran object
-        nastran_obj = self.structMesh.getBDFInfo()
+            # Get updated struct mesh coordinates using FFD deformations
+            newStructMesh = self.DVGeo.update("struct_mesh")
 
-        for (nid, node), xyz in zip(nastran_obj.nodes.items(), newStructMesh):
-            node.set_position(nastran_obj, xyz)
+            # Update the node location in the nastran object
+            nastran_obj = self.structMesh.getBDFInfo()
 
-        # Changing the directory to analysis folder
-        os.chdir("{}/{}".format(directory, self.genSamples+1))
+            for (nid, node), xyz in zip(nastran_obj.nodes.items(), newStructMesh):
+                node.set_position(nastran_obj, xyz)
 
-        # Write deformed FFD file
-        if self.options["writeDeformedFFD"]:
-            self.DVGeo.writePlot3d("deformedFFD.xyz")
+            # Changing the directory to analysis folder
+            os.chdir("{}/{}".format(directory, self.genSamples+1))
 
-        # Write the new grid file
-        self.mesh.writeGrid('volMesh.cgns')
+            # Write deformed FFD file
+            if self.options["ffdFile"] is not None and self.options["writeDeformedFFD"]:
+                self.DVGeo.writePlot3d("deformedFFD.xyz")
 
-        # Write the new wingbox file
-        nastran_obj.write_bdf("wingbox.bdf")
+            # Write the new grid file
+            self.mesh.writeGrid('volMesh.cgns')
+
+            # Write the new wingbox file
+            nastran_obj.write_bdf("wingbox.bdf")
+
+        else:
+
+            shutil.copy(self.options["structMeshFile"], f"{directory}/{self.genSamples+1}/wingbox.bdf")
+            shutil.copy(self.options["gridFile"], f"{directory}/{self.genSamples+1}/volMesh.cgns")
+
+            # Changing the directory to analysis folder
+            os.chdir("{}/{}".format(directory, self.genSamples+1))
 
         # Create input file
         self._createInputFile(x)
@@ -553,10 +566,6 @@ class AeroStructFFD():
         if not os.path.exists(os.path.abspath(options["structMeshFile"])):
             self._error("Provided struct mesh file doesn't exists.")
 
-        ############ Validating ffdFile
-        if not os.path.exists(os.path.abspath(options["ffdFile"])):
-            self._error("Provided FFD file doesn't exists.")
-
         ############ Validating liftIndex
         if not isinstance(options["liftIndex"], int):
             self._error("\"liftIndex\" attribute in options is not an integer.")
@@ -590,6 +599,14 @@ class AeroStructFFD():
                     for fname in ["0", "constant", "system"]:
                         if not os.path.isdir(os.path.join(os.path.abspath(self.options["openfoamDir"]), f"{fname}")):
                             self._error(f"The folder \"{fname}\" requried for openfoam simulation is not available at given location")
+
+        ############ Validating ffdFile
+        if "ffdFile" in userProvidedOptions:
+            if not isinstance(options["ffdFile"], str):
+                self._error("\"ffdFile\" attirbute is not str")
+
+            if not os.path.exists(os.path.abspath(options["ffdFile"])):
+                self._error("Provided FFD file doesn't exists.")
 
         ############ Validating noOfProcessors
         if "noOfProcessors" in userProvidedOptions:
@@ -662,6 +679,10 @@ class AeroStructFFD():
 
         # Validating the bounds for "shape" variable
         if name == "shape" or name == "twist":
+
+            if self.options["ffdFile"] is None:
+                self._error("\"ffdFile\" attribute not set while initializing the class, cannot set shape or twist as variable")
+
             if not isinstance(lb, np.ndarray) or lb.ndim != 1:
                 self._error("Lower bound for \"shape\" variable should be a 1D numpy array.")
 
