@@ -505,12 +505,12 @@ class AeroStructFFD():
         finally:
 
             # Cleaning the directory
-            files = ["input.pickle", "runscript.py", "struct_setup_file.py", "volMesh.cgns", 
+            files = ["input.pickle", "runscript.py", "struct_setup_file.py", "volMesh.cgns", "__pycache__",
                      "surfMesh.xyz", "wingobx.bdf", "output.pickle", "mphys.html", "wingbox.bdf"]
             
             for file in files:
                 if os.path.exists(file):
-                    os.system("rm {}".format(file))
+                    os.system("rm -r {}".format(file))
 
             # Changing the directory back to root
             os.chdir("../..")
