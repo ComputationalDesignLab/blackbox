@@ -52,7 +52,10 @@ options = {
     "writeDeformedFFD": True,
     "writeForceField": True,
     "writeDisplacementField": True,
-    "samplingCriterion": "ese"
+    "samplingCriterion": "ese",
+    "computeVolume": True,
+    "leList": [[0.01, 0, 0.001], [7.51, 0, 13.99]],
+    "teList": [[4.99, 0, 0.001], [8.99, 0, 13.99]]
 }
 
 # Create the wing object

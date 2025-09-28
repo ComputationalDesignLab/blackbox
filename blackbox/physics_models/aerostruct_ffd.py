@@ -5,8 +5,7 @@ from scipy.io import savemat
 from smt.sampling_methods import LHS
 from mpi4py import MPI
 from baseclasses import AeroProblem
-from pygeo import DVGeometry
-from pygeo.geo_utils.polygon import volumeTriangulatedMesh
+from pygeo import DVGeometry, DVConstraints
 from pygeo.geo_utils.file_io import readPlot3DSurfFile
 from cgnsutilities.cgnsutilities import readGrid
 from idwarp import USMesh
@@ -35,6 +34,9 @@ class DefaultOptions():
         self.writeDeformedFFD = False
         self.writeForceField = False
         self.writeDisplacementField = False
+        self.computeVolume = False
+        self.leList = None
+        self.teList = None
 
         # Sampling options
         self.samplingCriterion = "cm"
@@ -135,6 +137,31 @@ class AeroStructFFD():
 
             # Number of twist locations
             self.nTwist = self.nRefAxPts - 1 # Root is fixed
+
+            ##### get triangulated surface mesh
+
+            # Read the deformed volume grid
+            grid = readGrid(self.options["gridFile"])
+
+            # Write out deformed surface mesh
+            grid.extractSurface("surfMesh.xyz")
+
+            # Getting the vertex coordinates of the triangulated surface mesh
+            p0, v1, v2 = readPlot3DSurfFile("surfMesh.xyz")
+
+            # Delete plot3d surface mesh
+            os.system("rm -r surfMesh.xyz")
+
+            ##### DVConstraints
+
+            self.DVCon = DVConstraints()
+
+            self.DVCon.setSurface([p0, v1, v2])
+
+            self.DVCon.setDVGeo(self.DVGeo)
+
+            if self.options["computeVolume"]:
+                self.DVCon.addVolumeConstraint(self.options["leList"], self.options["teList"], 2, 100, lower=1, scaled=True, name="volume")
 
         # Some initializations which will be used later
         self.DV = []
@@ -443,6 +470,10 @@ class AeroStructFFD():
             # Write the new wingbox file
             nastran_obj.write_bdf("wingbox.bdf")
 
+            if self.options["computeVolume"]:
+                funcs = {}
+                self.DVCon.evalFunctions(funcs)
+
         else:
 
             shutil.copy(self.options["structMeshFile"], f"{directory}/{self.genSamples+1}/wingbox.bdf")
@@ -486,27 +517,16 @@ class AeroStructFFD():
         
         else:
 
-            # Read the deformed volume grid
-            grid = readGrid("volMesh.cgns")
-
-            # Write out deformed surface mesh
-            grid.extractSurface("surfMesh.xyz")
-
-            # Getting the vertex coordinates of the triangulated surface mesh
-            p0, v1, v2 = readPlot3DSurfFile("surfMesh.xyz")
-            p1 = p0 + v1 # Second vertex
-            p2 = p0 + v2 # Third vertex
-
-            # Calculating the volume of the triangulated surface mesh
-            output["volume"] = volumeTriangulatedMesh(p0, p1, p2)
+            if self.options["computeVolume"]:
+                output["volume"] = funcs["volume"]
 
             return output
 
         finally:
 
             # Cleaning the directory
-            files = ["input.pickle", "runscript.py", "struct_setup_file.py", "volMesh.cgns", "__pycache__",
-                     "surfMesh.xyz", "wingobx.bdf", "output.pickle", "mphys.html", "wingbox.bdf"]
+            files = ["input.pickle", "runscript.py", "struct_setup_file.py", "volMesh.cgns", 
+                     "__pycache__", "wingobx.bdf", "output.pickle", "mphys.html", "wingbox.bdf"]
             
             for file in files:
                 if os.path.exists(file):
@@ -625,6 +645,32 @@ class AeroStructFFD():
         if "writeDeformedFFD" in userProvidedOptions:
             if not isinstance(options["writeDeformedFFD"], bool):
                 self._error("\"writeDeformedFFD\" attribute is not a boolean value.")
+
+        ############ Validating computeVolume
+        if "computeVolume" in userProvidedOptions:
+            if not isinstance(options["computeVolume"], bool):
+                self._error("\"computeVolume\" attribute is not a boolean value.")
+
+            if options["computeVolume"]:
+
+                if "ffdFile" not in userProvidedOptions:
+                    self._error("\"ffdFile\" attribute is not provided, so volume cannot be computed")
+
+                if "leList" not in userProvidedOptions:
+                    self._error("\"leList\" attribute is not provided, so volume cannot be computed")
+
+                if "teList" not in userProvidedOptions:
+                    self._error("\"teList\" attribute is not provided, so volume cannot be computed")
+
+        ############ Validating leList
+        if "leList" in userProvidedOptions:
+            if not isinstance(options["leList"], list):
+                self._error("\"leList\" attribute is not a list")
+
+        ############ Validating teList
+        if "teList" in userProvidedOptions:
+            if not isinstance(options["teList"], list):
+                self._error("\"teList\" attribute is not a list")
 
         ############ Validating writeForceField
         if "writeForceField" in userProvidedOptions:
