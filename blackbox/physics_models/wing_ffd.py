@@ -5,7 +5,7 @@ from scipy.io import savemat
 from smt.sampling_methods import LHS
 from mpi4py import MPI
 from baseclasses import AeroProblem
-from pygeo import DVGeometry
+from pygeo import DVGeometry, DVConstraints
 from pygeo.geo_utils.polygon import volumeTriangulatedMesh
 from pygeo.geo_utils.file_io import readPlot3DSurfFile
 from cgnsutilities.cgnsutilities import readGrid
@@ -32,6 +32,11 @@ class DefaultOptions():
         self.sliceLocation = [] # defines slice location
         self.writeDeformedFFD = False
         self.getSurfaceForces = False
+
+        # Volume computation options
+        self.computeVolume = False
+        self.leList = None
+        self.teList = None
 
         # Alpha implicit related options
         self.alpha = "explicit"
@@ -118,6 +123,31 @@ class WingFFD():
 
             # Number of twist locations
             self.nTwist = self.nRefAxPts - 1 # Root is fixed
+
+            ##### get triangulated surface mesh
+
+            # Read the deformed volume grid
+            grid = readGrid(self.options["gridFile"])
+
+            # Write out deformed surface mesh
+            grid.extractSurface("surfMesh.xyz")
+
+            # Getting the vertex coordinates of the triangulated surface mesh
+            p0, v1, v2 = readPlot3DSurfFile("surfMesh.xyz")
+
+            # Delete plot3d surface mesh
+            os.system("rm -r surfMesh.xyz")
+
+            ##### DVConstraints
+
+            self.DVCon = DVConstraints()
+
+            self.DVCon.setSurface([p0, v1, v2])
+
+            self.DVCon.setDVGeo(self.DVGeo)
+
+            if self.options["computeVolume"]:
+                self.DVCon.addVolumeConstraint(self.options["leList"], self.options["teList"], 10, 10, lower=1, scaled=True, name="volume")
 
         # Some initializations which will be used later
         self.DV = []
@@ -434,6 +464,10 @@ class WingFFD():
             # Write the new grid file
             self.mesh.writeGrid('volMesh.cgns')
 
+            if self.options["computeVolume"]:
+                funcs = {}
+                self.DVCon.evalFunctions(funcs)
+
         else:
 
             shutil.copy(self.options["gridFile"], f"{directory}/{self.genSamples+1}/volMesh.cgns")
@@ -499,26 +533,15 @@ class WingFFD():
 
         else:
 
-            # Read the deformed volume grid
-            grid = readGrid("volMesh.cgns")
-
-            # Write out deformed surface mesh
-            grid.extractSurface("surfMesh.xyz")
-
-            # Getting the vertex coordinates of the triangulated surface mesh
-            p0, v1, v2 = readPlot3DSurfFile("surfMesh.xyz")
-            p1 = p0 + v1 # Second vertex
-            p2 = p0 + v2 # Third vertex
-
-            # Calculating the volume of the triangulated surface mesh
-            output["volume"] = volumeTriangulatedMesh(p0, p1, p2)
+            if self.options["computeVolume"]:
+                output["volume"] = funcs["volume"]
 
             return output
 
         finally:
             # Cleaning the directory
-            files = ["surfMesh.xyz", "volMesh.cgns", "input.pickle", "runscript.py",
-                    "output.pickle", "fort.6", "opt.hst", "runscript_get_forces.py", "log_forces.txt"]
+            files = ["volMesh.cgns", "input.pickle", "runscript.py", "output.pickle", "fort.6", 
+                     "opt.hst", "runscript_get_forces.py", "log_forces.txt"]
             for file in files:
                 if os.path.exists(file):
                     os.system("rm {}".format(file))
@@ -540,8 +563,9 @@ class WingFFD():
 
     def calculateVolume(self, x: np.ndarray) -> float:
         """
-            Method for calculating volume of the wing based 
-            on the given design variables.
+            Method for calculating volume of the wing based on the given design variables.
+            
+            Note: shape should be a design variable to use this use
 
             Parameters
             ----------
@@ -550,6 +574,9 @@ class WingFFD():
         """
 
         # Performing checks
+        if not self.options["computeVolume"]:
+            self._error("\"computeVolume\" attribute is set to False, so cannot calculate volume")
+
         if len(self.DV) == 0:
             self._error("Add design variables before running the analysis.")
 
@@ -563,7 +590,7 @@ class WingFFD():
             self._error("Input sample is not of correct size.")
 
         if "shape" not in self.DV:
-            self._error("\"shape\" is not a design variable.")
+            self._error("\"shape\" is not a design variable, hence volume will be same as original wing.")
 
         # Creating dictionary from x
         newDV = {}
@@ -575,35 +602,13 @@ class WingFFD():
         # Updating the airfoil pointset based on new DV
         self.DVGeo.setDesignVars(newDV)
 
-        newSurfMesh = self.DVGeo.update("wing_surface_mesh")
+        self.DVGeo.update("wing_surface_mesh")
 
-        # Update the surface mesh in IdWarp
-        self.mesh.setSurfaceCoordinates(newSurfMesh)
+        funcs = {}
 
-        # Deform the volume mesh
-        self.mesh.warpMesh()
+        self.DVCon.evalFunctions(funcs)
 
-        # Write the new grid file.
-        self.mesh.writeGrid('volMesh.cgns')
-
-        # Read the volume grid
-        grid = readGrid("volMesh.cgns")
-
-        # Extract the surface mesh
-        grid.extractSurface("surfMesh.xyz")
-
-        # Getting the vertex coordinates of the triangulated surface mesh
-        p0, v1, v2 = readPlot3DSurfFile("surfMesh.xyz")
-        p1 = p0 + v1 # Second vertex
-        p2 = p0 + v2 # Third vertex
-
-        # Deleting the temporary files
-        os.system("rm surfMesh.xyz volMesh.cgns")
-
-        # Calculating the volume
-        vol = volumeTriangulatedMesh(p0, p1, p2)
-
-        return vol
+        return funcs["volume"]
 
     # ----------------------------------------------------------------------------
     #                       Methods related to validation
@@ -704,6 +709,32 @@ class WingFFD():
         if "writeDeformedFFD" in userProvidedOptions:
             if not isinstance(options["writeDeformedFFD"], bool):
                 self._error("\"writeDeformedFFD\" attribute is not a boolean value.")
+
+        ############ Validating computeVolume
+        if "computeVolume" in userProvidedOptions:
+            if not isinstance(options["computeVolume"], bool):
+                self._error("\"computeVolume\" attribute is not a boolean value.")
+
+            if options["computeVolume"]:
+
+                if "ffdFile" not in userProvidedOptions:
+                    self._error("\"ffdFile\" attribute is not provided, so \"computeVolume\" attribute cannot be set to True")
+
+                if "leList" not in userProvidedOptions:
+                    self._error("\"leList\" attribute is not provided, so \"computeVolume\" attribute cannot be set to True")
+
+                if "teList" not in userProvidedOptions:
+                    self._error("\"teList\" attribute is not provided, so \"computeVolume\" attribute cannot be set to True")
+
+        ############ Validating leList - to do: more validation is requried
+        if "leList" in userProvidedOptions:
+            if not isinstance(options["leList"], list):
+                self._error("\"leList\" attribute is not a list")
+
+        ############ Validating teList - to do: more validation is requried
+        if "teList" in userProvidedOptions:
+            if not isinstance(options["teList"], list):
+                self._error("\"teList\" attribute is not a list")
 
         ############ Validating getSurfaceForces
         if "getSurfaceForces" in userProvidedOptions:
