@@ -27,6 +27,7 @@ class DefaultOptions():
 
         # Other options
         self.directory = "output"
+        self.ffdFile = None
         self.noOfProcessors = 4
         self.sliceLocation = [] # defines slice location
         self.writeDeformedFFD = False
@@ -63,7 +64,7 @@ class WingFFD():
         self._getDefaultOptions()
 
         # Setting up the required options list
-        requiredOptions = ["solverOptions", "gridFile", "ffdFile", "liftIndex", "aeroProblem"]
+        requiredOptions = ["solverOptions", "gridFile", "liftIndex", "aeroProblem"]
 
         # Validating user provided options
         self._checkOptions(options, requiredOptions)
@@ -74,9 +75,7 @@ class WingFFD():
         # Getting abs path for the directory/files
         self.options["directory"] = os.path.abspath(self.options["directory"])
         self.options["gridFile"] = os.path.abspath(self.options["gridFile"])
-        self.options["ffdFile"] = os.path.abspath(self.options["ffdFile"])
-
-        # Openfoam folders
+        self.options["ffdFile"] = os.path.abspath(self.options["ffdFile"]) if self.options["ffdFile"] is not None else None
         if self.options["solver"] == "dafoam":
             self.options["openfoamDir"] = os.path.abspath(self.options["openfoamDir"])
 
@@ -90,21 +89,6 @@ class WingFFD():
             os.system("rm -r {}".format(directory))
             os.system("mkdir {}".format(directory))
 
-        # Create mesh deformation object
-        self.mesh = USMesh(comm=comm, options={"gridFile": self.options["gridFile"]})
-
-        # Get the surface mesh coordinates
-        surfMesh = self.mesh.getSurfaceCoordinates()
-
-        # Creating DVGeometry object
-        self.DVGeo = DVGeometry(self.options["ffdFile"])
-
-        # Number of FFD points
-        self.nffd = self.DVGeo.getLocalIndex(0).flatten().shape[0]
-
-        # Adding surface mesh co-ordinates as a pointset
-        self.DVGeo.addPointSet(surfMesh, "wing_surface_mesh")
-
         if self.options["liftIndex"] == 2: # y
             self.spanIndex = "k" # If y is lift index, then span is along z (k)
             self.liftIndex = "y"
@@ -112,11 +96,28 @@ class WingFFD():
             self.spanIndex = "j" # If z is lift index, then span is along y (j)
             self.liftIndex = "z"
 
-        # Create reference axis
-        self.nRefAxPts = self.DVGeo.addRefAxis("wingAxis", xFraction=0.25, alignIndex=self.spanIndex)
+        if self.options["ffdFile"] is not None:
 
-        # Number of twist locations
-        self.nTwist = self.nRefAxPts - 1 # Root is fixed
+            # Create mesh deformation object
+            self.mesh = USMesh(comm=comm, options={"gridFile": self.options["gridFile"]})
+
+            # Get the surface mesh coordinates
+            surfMesh = self.mesh.getSurfaceCoordinates()
+
+            # Creating DVGeometry object
+            self.DVGeo = DVGeometry(self.options["ffdFile"])
+
+            # Number of FFD points
+            self.nffd = self.DVGeo.getLocalIndex(0).flatten().shape[0]
+
+            # Adding surface mesh co-ordinates as a pointset
+            self.DVGeo.addPointSet(surfMesh, "wing_surface_mesh")
+
+            # Create reference axis
+            self.nRefAxPts = self.DVGeo.addRefAxis("wingAxis", xFraction=0.25, alignIndex=self.spanIndex)
+
+            # Number of twist locations
+            self.nTwist = self.nRefAxPts - 1 # Root is fixed
 
         # Some initializations which will be used later
         self.DV = []
@@ -129,7 +130,6 @@ class WingFFD():
             self.options["solverOptions"]["outputDirectory"] = "."
             self.options["solverOptions"]["numberSolutions"] = False
             self.options["solverOptions"]["printTiming"] = False
-            self.options["solverOptions"]["gridFile"] = self.options["gridFile"]
             self.options["solverOptions"]["liftIndex"] = self.options["liftIndex"]
 
     # ----------------------------------------------------------------------------
@@ -138,18 +138,18 @@ class WingFFD():
 
     def addDV(self, name: str, lowerBound: list, upperBound: list) -> None:
         """
-            Method for adding a DV for CST parameterization.
+            Method for adding a DV for FFD parameterization.
 
             Parameters
             ----------
 
             name: str
-                Name of the design variable.
+                Name of the design variable, possible names: "shape", "twist", "mach", "alpha", "altitude"
 
-            lowerBound: list
+            lowerBound: float or np.ndarray
                 Lower bound of the design variable.
 
-            upperBound: list
+            upperBound: float or np.ndarray
                 Upper bound of the design variable.
         """
 
@@ -404,34 +404,42 @@ class WingFFD():
                 filepath = os.path.join(pkgdir, "runscripts/runscript_dafoam_get_forces.py")
                 shutil.copy(filepath, "{}/{}/runscript_get_forces.py".format(directory, self.genSamples+1))
 
-        # Creating the new design variable dict
-        # If there are no shape DV, then DVGeo
-        # will not update the wing surface.
-        newDV = {}
-        for dv in self.DV:
-            loc = self.locator == dv
-            loc = loc.reshape(-1,)
-            newDV[dv] = x[loc]
+        if self.options["ffdFile"] is not None:
 
-        # Creating the new design variable dict
-        self.DVGeo.setDesignVars(newDV)
-        newSurfMesh = self.DVGeo.update("wing_surface_mesh")
+            # Creating the new design variable dict
+            # If there are no shape DV, then DVGeo
+            # will not update the wing surface.
+            newDV = {}
+            for dv in self.DV:
+                loc = self.locator == dv
+                loc = loc.reshape(-1,)
+                newDV[dv] = x[loc]
+            self.DVGeo.setDesignVars(newDV)
 
-        # Update the surface mesh in IdWarp
-        self.mesh.setSurfaceCoordinates(newSurfMesh)
+            newSurfMesh = self.DVGeo.update("wing_surface_mesh")
 
-        # Deform the volume mesh
-        self.mesh.warpMesh()
+            # Update the surface mesh in IdWarp
+            self.mesh.setSurfaceCoordinates(newSurfMesh)
 
-        # Changing the directory to analysis folder
-        os.chdir("{}/{}".format(directory, self.genSamples+1))
+            # Deform the volume mesh
+            self.mesh.warpMesh()
 
-        # Write deformed FFD file
-        if self.options["writeDeformedFFD"]:
-            self.DVGeo.writePlot3d("deformedFFD.xyz")
+            # Changing the directory to analysis folder
+            os.chdir("{}/{}".format(directory, self.genSamples+1))
 
-        # Write the new grid file
-        self.mesh.writeGrid('volMesh.cgns')
+            # Write deformed FFD file
+            if self.options["writeDeformedFFD"]:
+                self.DVGeo.writePlot3d("deformedFFD.xyz")
+
+            # Write the new grid file
+            self.mesh.writeGrid('volMesh.cgns')
+
+        else:
+
+            shutil.copy(self.options["gridFile"], f"{directory}/{self.genSamples+1}/volMesh.cgns")
+
+            # Changing the directory to analysis folder
+            os.chdir("{}/{}".format(directory, self.genSamples+1))
 
         # Create input file
         self._creatInputFile(x)
@@ -637,10 +645,6 @@ class WingFFD():
         if not isinstance(options["solverOptions"], dict):
             self._error("\"solverOptions\" attribute is not a dictionary.")
 
-        ############ Validating ffdFile
-        if not os.path.exists(os.path.abspath(options["ffdFile"])):
-            self._error("Provided FFD file doesn't exists.")
-
         ############ Validating gridFile
         if not os.path.exists(os.path.abspath(options["gridFile"])):
             self._error("Provided grid file file doesn't exists.")
@@ -674,6 +678,14 @@ class WingFFD():
                     for fname in ["0", "constant", "system"]:
                         if not os.path.isdir(os.path.join(os.path.abspath(self.options["openfoamDir"]), f"{fname}")):
                             self._error(f"The folder \"{fname}\" requried for openfoam simulation is not available at given location")
+
+        ############ Validating ffdFile
+        if "ffdFile" in userProvidedOptions:
+            if not isinstance(options["ffdFile"], str):
+                self._error("\"ffdFile\" attirbute is not str")
+
+            if not os.path.exists(os.path.abspath(options["ffdFile"])):
+                self._error("Provided FFD file doesn't exists.")
 
         ############ Validating noOfProcessors
         if "noOfProcessors" in userProvidedOptions:
@@ -767,6 +779,10 @@ class WingFFD():
 
         # Validating the bounds for "shape" variable
         if name == "shape" or name == "twist":
+
+            if self.options["ffdFile"] is None:
+                self._error("\"ffdFile\" attribute not set while initializing the class, cannot set shape or twist as variable")
+                
             if not isinstance(lb, np.ndarray) or lb.ndim != 1:
                 self._error("Lower bound for \"shape\" variable should be a 1D numpy array.")
 
