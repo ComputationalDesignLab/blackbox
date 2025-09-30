@@ -59,14 +59,17 @@ wing = WingFFD(options=options)
 # Add alpha as a design variable
 wing.addDV("alpha", lowerBound=1.5, upperBound=4.5)
 
+# Add alpha as a design variable
+wing.addDV("mach", lowerBound=0.7, upperBound=0.9)
+
 # Add the wing shape as a design variable
 lowerBound = np.array([-0.03]*wing.nffd)
 upperBound = np.array([0.03]*wing.nffd)
 wing.addDV("shape", lowerBound=lowerBound, upperBound=upperBound)
 
 # Add the wing twist as a design variable
-lowerBound = np.array([-2.0]*wing.nTwist)
-upperBound = np.array([2.0]*wing.nTwist)
+lowerBound = np.array([-5.0]*wing.nTwist)
+upperBound = np.array([5.0]*wing.nTwist)
 wing.addDV("twist", lowerBound=lowerBound, upperBound=upperBound)
 
 # Generate samples
