@@ -1,3 +1,4 @@
+# rst INIT start
 from blackbox import WingFFD
 from baseclasses import AeroProblem
 import numpy as np
@@ -47,10 +48,6 @@ options = {
     "noOfProcessors": 8,
     "sliceLocation": [0.14, 3.22, 6.3, 9.38, 12.46, 13.86],
     "writeDeformedFFD": True,
-    # "alpha": "implicit",
-    # "targetCLTol": 1e-4,
-    # "startingAlpha": 3.0,
-    # "samplingCriterion": "ese",
     "computeVolume": True,
     "leList": [[0.01, 0, 0.001], [7.51, 0, 13.99]],
     "teList": [[4.99, 0, 0.001], [8.99, 0, 13.99]]
@@ -58,7 +55,9 @@ options = {
 
 # Create the wing object
 wing = WingFFD(options=options)
+# rst INIT end
 
+# rst DV start
 # Add alpha as a design variable
 wing.addDV("alpha", lowerBound=1.5, upperBound=4.5)
 
@@ -74,6 +73,14 @@ wing.addDV("shape", lowerBound=lowerBound, upperBound=upperBound)
 lowerBound = np.array([-5.0]*wing.nTwist)
 upperBound = np.array([5.0]*wing.nTwist)
 wing.addDV("twist", lowerBound=lowerBound, upperBound=upperBound)
+# rst DV end
 
+# rst GEN start
 # Generate samples
-wing.generateSamples(5)
+wing.generateSamples(numSamples=5)
+# rst GEN end
+
+# "alpha": "implicit",
+# "targetCLTol": 1e-4,
+# "startingAlpha": 3.0,
+# "samplingCriterion": "ese",
