@@ -11,68 +11,12 @@ Setting up options
 ------------------
 
 First step involves creating options dictionary which is used for initializating the module. There are five
-mandatory options: ``solverOptions``, ``ffdFile``, ``gridFile``, ``liftIndex`` and ``aeroProblem``, rest all are optional,
-please refer :ref:`options<options>` section for more details. Following snippet of the code shows an example::
+mandatory options: ``solverOptions``, ``gridFile``, ``liftIndex`` and ``aeroProblem``, rest all are optional,
+please refer :ref:`options<options>` section for more details. Following snippet of the code shows an example:
 
-    from blackbox import WingFFD
-    from baseclasses import AeroProblem
-    import numpy as np
-
-    solverOptions = {
-        # Common Parameters
-        "monitorvariables": ["cl", "cd", "cmy", "yplus"],
-        "writeTecplotSurfaceSolution": True,
-        "writeSurfaceSolution": False,
-        "writeVolumeSolution": False,
-        # Physics Parameters
-        "equationType": "RANS",
-        "smoother": "DADI",
-        "MGCycle": "sg",
-        "nsubiterturb": 10,
-        "nCycles": 7000,
-        # ANK Solver Parameters
-        "useANKSolver": True,
-        "ANKSubspaceSize": 400,
-        "ANKASMOverlap": 3,
-        "ANKPCILUFill": 4,
-        "ANKJacobianLag": 5,
-        "ANKOuterPreconIts": 3,
-        "ANKInnerPreconIts": 3,
-        # NK Solver Parameters
-        "useNKSolver": True,
-        "NKSwitchTol": 1e-6,
-        "NKSubspaceSize": 400,
-        "NKASMOverlap": 3,
-        "NKPCILUFill": 4,
-        "NKJacobianLag": 5,
-        "NKOuterPreconIts": 3,
-        "NKInnerPreconIts": 3,
-        # Termination Criteria
-        "L2Convergence": 1e-14
-    }
-
-    # Creating aeroproblem for adflow
-    # Chord ref is 1.0 since all the dimensions are scaled according to it
-    ap = AeroProblem(
-        name="crm", alpha=2.0, mach=0.85, reynolds=5e6, reynoldsLength=1.0, T=298.15, 
-        areaRef=3.407014, chordRef=1.0, evalFuncs=["cl", "cd", "cmy"], xRef=1.2077, yRef=0.0, zRef=0.007669
-    )
-
-    # Options for blackbox
-    options = {
-        "solver": "adflow",
-        "solverOptions": solverOptions,
-        "gridFile": "crm_volMesh.cgns",
-        "ffdFile": "crm_ffd.xyz",
-        "liftIndex": 3, # Very important
-        "aeroProblem": ap,
-        "noOfProcessors": 8,
-        "sliceLocation": [0.883, 1.003, 2.093, 2.612, 3.112, 3.548],
-        "writeDeformedFFD": True
-    }
-
-    # Initialize the class
-    wing = WingFFD(options=options)
+    .. literalinclude:: ../../../examples/simple_wing_adflow/datgen_wing.py
+        :start-after: # rst INIT start
+        :end-before: # rst INIT end
 
 Firstly, required packages and modules are imported. Then, ``solverOptions`` dictionary is created, refer 
 `ADflow <https://mdolab-adflow.readthedocs-hosted.com/en/latest/options.html>`_. Then, `AeroProblem <https://mdolab-baseclasses.readthedocs-hosted.com/en/latest/pyAero_problem.html>`_
@@ -106,20 +50,11 @@ Next step is to add design variables based on which samples will be generated. T
 
         For other cases, lower and upper bound should be float.
 
-Following code snippet adds ``alpha``, ``shape``, and ``twist`` as design variables::
+Following code snippet adds ``alpha``, ``shape``, and ``twist`` as design variables:
 
-    # Add alpha as a design variable
-    wing.addDV("alpha", lowerBound=1.5, upperBound=3.5)
-
-    # Add the wing shape as a design variable
-    lowerBound = np.array([-0.01]*wing.nffd)
-    upperBound = np.array([0.01]*wing.nffd)
-    wing.addDV("shape", lowerBound=lowerBound, upperBound=upperBound)
-
-    # Add the wing twist as a design variable
-    lowerBound = np.array([-2.0]*wing.nTwist)
-    upperBound = np.array([2.0]*wing.nTwist)
-    wing.addDV("twist", lowerBound=lowerBound, upperBound=upperBound)
+    .. literalinclude:: ../../../examples/simple_wing_adflow/datgen_wing.py
+        :start-after: # rst DV start
+        :end-before: # rst DV end
 
 Here, the upper and lower bound for ``shape`` variable is set to 0.01 and -0.01, respectively.
 
@@ -138,9 +73,11 @@ method from the initialized object. This method has two arguments:
 
 Typically, ``numSamples (int)`` should be used for generating samples. This option will internally generate doe based on the 
 options provided while initializating the module. In some cases, you might want to generate samples based on your own doe. In that
-case, you use ``doe (numpy array)`` argument. Following snippet of the code will generate 5 samples using internally generated doe::
+case, you use ``doe (numpy array)`` argument. Following snippet of the code will generate 5 samples using internally generated doe:
 
-    wing.generateSamples(numSamples=5)
+    .. literalinclude:: ../../../examples/simple_wing_adflow/datgen_wing.py
+        :start-after: # rst GEN start
+        :end-before: # rst GEN end
 
 You can see the following output upon successful completion of sample generation process:
 

@@ -5,10 +5,7 @@ Wing sample generation
 Blackbox also provides a module for generating wing samples. The ``WingFFD`` module provides various
 methods for running analysis and generating wing data with FFD Parametrization. This module
 supports two types of solver: `ADflow <https://github.com/mdolab/adflow>`_ and `DAFoam <https://github.com/mdolab/dafoam>`_. 
-To use this module, two files are requried:
-
-- Volume mesh in cgns format which defines computational mesh for the analysis
-- FFD file in plot3d format which defines a FFD box around the wing
+To use this module, one has to provide the volume mesh in cgns format which defines computational mesh for the analysis.
 
 Unlike airfoil sample generation, whenever shape of the wing is modified using FFD, the volume mesh is deformed using
 `idwarp <https://github.com/mdolab/idwarp>`_. So, ensure that idwarp is installed before using this module,

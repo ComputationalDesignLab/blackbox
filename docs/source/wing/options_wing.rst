@@ -16,9 +16,6 @@ Mandatory arguments
   ``gridFile (str)``
     filename containing volume mesh of the wing in cgns format
 
-  ``ffdFile (str)``
-    filename containing coordinates of the ffd points in plot3d format
-
   ``liftIndex (int)``
     an int describing lift direction. Only two possible values: when the
     value is 2, lift direction is y. When the value is 3, lift direction is z
@@ -36,6 +33,9 @@ Optional arguments
     name of the directory containing supporting openfoam folders such as 0, constant, and system.
     The default value is the current directory
 
+  ``ffdFile (str, default=None)``
+    filename containing coordinates of the ffd points in plot3d format
+
   ``directory (str, default="output")``
     name of the directory where the results will saved
 
@@ -48,6 +48,19 @@ Optional arguments
   ``writeDeformedFFD (bool, default=False)``
     option to specify whether to write deformed FFD file or not
 
+  ``computeVolume (bool, default=False)``
+    option to specify whether to compute volume of the wing or not. Setting this option to
+    ``True`` without providing setting ``ffdFile`` option will raise an error. Note that the
+    volume computed will be scaled by the original value.
+
+  ``leList (list, default=None)``
+    list of points (x,y,z) close to the LE of the wing but within the wing surface. Refer `this image <https://mdolab-mach-aero.readthedocs-hosted.com/en/latest/_images/opt_thickness_and_vol_diagram.png>`_
+    to understand how the leList and teList options are used to compute volume. 
+
+  ``teList (list, default=None)``
+    list of points (x,y,z) close to the TE of the wing but within the wing surface. Refer `this image <https://mdolab-mach-aero.readthedocs-hosted.com/en/latest/_images/opt_thickness_and_vol_diagram.png>`_
+    to understand how the leList and teList options are used to compute volume. 
+    
   ``getSurfaceForces (bool, default=False)``
     option to specify whether to get force at each surface mesh coordinate or not
 
