@@ -321,12 +321,7 @@ class WingFFD():
 
             else:
                 # Check for analysis failure
-                if output["fail"] == True: # Check for analysis failure
-                    failed.append(sampleNo + 1)
-                    description.write("\nAnalysis failed.")
-
-                # Check for implicit alpha
-                elif self.options["alpha"] == "implicit" and abs(output["cl"] - self.options["targetCL"]) > self.options["targetCLTol"]: 
+                if output["fail"]: # Check for analysis failure
                     failed.append(sampleNo + 1)
                     description.write("\nAnalysis failed.")
 
