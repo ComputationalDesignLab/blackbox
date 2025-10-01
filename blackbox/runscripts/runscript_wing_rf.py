@@ -65,12 +65,7 @@ try:
         CFDSolver.addSlices(sliceDirection, loc, sliceType="absolute")
 
     ############## Solving for the CL
-    CFDSolver.solveCL(ap, CLStar=CL_target, alpha0=alpha0, delta=0.2, tol=tol, autoReset=False, maxIter=8)
-
-    ############# Post-processing
-
-    # Run CFD at obtained alpha - it will be quick
-    CFDSolver(ap)
+    solveCLResults = CFDSolver.solveCL(ap, CLStar=CL_target, alpha0=alpha0, delta=0.2, tol=tol, autoReset=False, maxIter=10, writeSolution=True)
 
     # Evaluating objectives
     funcs = {}
@@ -93,8 +88,8 @@ try:
             output["{}".format(obj)] = funcs["{}_{}".format(ap.name, obj)]
 
         # Other mandatory outputs
-        print("fail = ", funcs["fail"])
-        output["fail"] = funcs["fail"]
+        print("fail = ", not solveCLResults["converged"])
+        output["fail"] = not solveCLResults["converged"]
 
         # Storing the results in output file
         filehandler = open("output.pickle", "xb")
