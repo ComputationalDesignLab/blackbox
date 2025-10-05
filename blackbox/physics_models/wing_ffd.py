@@ -6,8 +6,8 @@ from smt.sampling_methods import LHS
 from mpi4py import MPI
 from baseclasses import AeroProblem
 from pygeo import DVGeometry, DVConstraints
-from pygeo.geo_utils.polygon import volumeTriangulatedMesh
 from pygeo.geo_utils.file_io import readPlot3DSurfFile
+from pygeo.geo_utils import PointSelect
 from cgnsutilities.cgnsutilities import readGrid
 from idwarp import USMesh
 
@@ -174,13 +174,13 @@ class WingFFD():
             ----------
 
             name: str
-                Name of the design variable, possible names: "shape", "twist", "mach", "alpha", "altitude"
+                Name of the design variable, possible names: "shape", "shape_LE", "shape_TE", "shape_local", "twist", "mach", "alpha", "altitude"
 
             lowerBound: float or np.ndarray
-                Lower bound of the design variable.
+                Lower bound of the design variable
 
             upperBound: float or np.ndarray
-                Upper bound of the design variable.
+                Upper bound of the design variable
         """
 
         # Checking
@@ -188,9 +188,59 @@ class WingFFD():
 
         # Adding the pyGeo related DVs
         if name == "shape":
-            self.DVGeo.addLocalDV("shape", lower=lowerBound, upper=upperBound, axis=self.liftIndex, scale=1.0)
+            self.DVGeo.addLocalDV("shape", axis=self.liftIndex)
 
-        elif name == "twist":
+        if name == "shape_LE":
+
+            lidx = self.DVGeo.getLocalIndex(0)
+            shapes_le = []
+
+            # Add LE control points as DV
+            if self.options["liftIndex"] == 2:
+                dir_up = np.array([0.0, 1.0, 0.0])
+                dir_down = np.array([0.0, -1.0, 0.0])
+                for k in range(self.nRefAxPts):
+                    shapes_le.append({lidx[0,1,k]: dir_up, lidx[0,0,k]: dir_down})
+
+            elif self.options["liftIndex"] == 3:
+                dir_up = np.array([0.0, 0.0, 1.0])
+                dir_down = np.array([0.0, 0.0, -1.0])
+                for j in range(self.nRefAxPts):
+                    shapes_le.append({lidx[0,j,1]: dir_up, lidx[0,j,0]: dir_down})
+
+            self.DVGeo.addShapeFunctionDV("shape_LE", shapes_le)
+
+        if name == "shape_TE":
+
+            lidx = self.DVGeo.getLocalIndex(0)
+            shapes_te = []
+
+            # Add TE control points as DV
+            if self.options["liftIndex"] == 2:
+                dir_up = np.array([0.0, 1.0, 0.0])
+                dir_down = np.array([0.0, -1.0, 0.0])
+                for k in range(self.nRefAxPts):
+                    shapes_te.append({lidx[-1,1,k]: dir_up, lidx[-1,0,k]: dir_down})
+
+            elif self.options["liftIndex"] == 3:
+                dir_up = np.array([0.0, 0.0, 1.0])
+                dir_down = np.array([0.0, 0.0, -1.0])
+                for j in range(self.nRefAxPts):
+                    shapes_te.append({lidx[-1,j,1]: dir_up, lidx[-1,j,0]: dir_down})
+
+            self.DVGeo.addShapeFunctionDV("shape_TE", shapes_te)
+
+        if name == "shape_local":
+            
+            lidx = self.DVGeo.getLocalIndex(0)
+
+            ijkBounds = {0: [[1,lidx.shape[0]-1], [0,lidx.shape[1]], [0,lidx.shape[2]]]}
+
+            PS = PointSelect('ijkBounds', ijkBounds=ijkBounds)
+
+            self.DVGeo.addLocalDV("shape_local", pointSelect=PS, axis=self.liftIndex)
+
+        if name == "twist":
             def twist_z(val, geo):
                 for i in range(1, self.nRefAxPts):
                     geo.rot_z["wingAxis"].coef[i] = -val[i - 1]
@@ -779,7 +829,7 @@ class WingFFD():
         """
 
         # List of possible DVs
-        possibleDVs = ["shape", "twist", "alpha", "mach", "altitude"]
+        possibleDVs = ["shape", "shape_LE", "shape_TE", "shape_local", "twist", "alpha", "mach", "altitude"]
 
         # Validating name of the DV
         if not isinstance(name, str):
@@ -803,17 +853,36 @@ class WingFFD():
             if self.options["alpha"] != "explicit":
                 self._error("Alpha cannot be a design variable when \"alpha\" attribute in option is \"implicit\".")
 
-        # Validating the bounds for "shape" variable
-        if name == "shape" or name == "twist":
+        if name in ["shape_LE", "shape_TE", "shape_local"]:
+            if "shape" in self.DV:
+                self._error(f"Cannot add \"{name}\" since shape is already added as a design variable")
+        
+        if name == "shape":
+            if "shape_LE" in self.DV or "shape_TE" in self.DV or "shape_local" in self.DV:
+                self._error(f"Cannot add \"{name}\" since other shape variable(s) is/are already added as design variable")
+
+        # Validating the bounds for non-shape variables
+        if name in ["alpha", "mach", "altitude"]:
+            if not isinstance(lb, float):
+                self._error("Lower Bound argument is not a float.")
+
+            if not isinstance(ub, float):
+                self._error("Upper Bound argument is not a float.")
+
+            if lb >= ub:
+                self._error("Lower bound is greater than or equal to upper bound.")
+
+        # Validating the bounds for shape variables
+        else:
 
             if self.options["ffdFile"] is None:
                 self._error("\"ffdFile\" attribute not set while initializing the class, cannot set shape or twist as variable")
                 
-            if not isinstance(lb, np.ndarray) or lb.ndim != 1:
-                self._error("Lower bound for \"shape\" variable should be a 1D numpy array.")
+            if not isinstance(lb, np.ndarray):
+                self._error(f"Lower bound for \"{name}\" variable should be a 1D numpy array.")
 
-            if not isinstance(ub, np.ndarray) or ub.ndim != 1:
-                self._error("Upper bound for \"shape\" variable should be a 1D numpy array.")
+            if not isinstance(ub, np.ndarray):
+                self._error(f"Upper bound for \"{name}\" variable should be a 1D numpy array.")
             
             if name == "shape":
                 if len(lb) != self.nffd:
@@ -829,18 +898,23 @@ class WingFFD():
                 if len(ub) != self.nTwist:
                     self._error("Length of upper bound array is not equal to number of twist variables.")
 
+            elif name == "shape_LE" or name == "shape_TE":
+                if len(lb) != self.nRefAxPts:
+                    self._error("Length of lower bound array is not equal to number of FFD sections.")
+
+                if len(ub) != self.nRefAxPts:
+                    self._error("Length of upper bound array is not equal to number of FFD sections.")
+
+            elif name == "shape_local":
+                npts = self.nffd - 4*self.nRefAxPts
+                if len(lb) != npts:
+                    self._error("Length of lower bound array is not equal to number of FFD points minus LE and TE points")
+
+                if len(ub) != npts:
+                    self._error("Length of upper bound array is not equal to number of FFD points minus LE and TE points")
+
             if np.any(lb >= ub):
                 self._error("Lower bound is greater than or equal to upper bound for atleast one DV.")
-
-        else:
-            if not isinstance(lb, float):
-                self._error("Lower Bound argument is not a float.")
-
-            if not isinstance(ub, float):
-                self._error("Upper Bound argument is not a float.")
-
-            if lb >= ub:
-                self._error("Lower bound is greater than or equal to upper bound.")
 
     # ----------------------------------------------------------------------------
     #                               Other methods
