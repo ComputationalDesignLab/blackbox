@@ -31,6 +31,7 @@ class DefaultOptions():
         self.noOfProcessors = 4
         self.sliceLocation = [] # defines slice location
         self.writeDeformedFFD = False
+        self.writeLiftDistribution = False
         self.getSurfaceForces = False
 
         # Volume computation options
@@ -755,6 +756,11 @@ class WingFFD():
             if not isinstance(options["writeDeformedFFD"], bool):
                 self._error("\"writeDeformedFFD\" attribute is not a boolean value.")
 
+        ############ Validating writeLiftDistribution
+        if "writeLiftDistribution" in userProvidedOptions:
+            if not isinstance(options["writeLiftDistribution"], bool):
+                self._error("\"writeLiftDistribution\" attribute is not a boolean value.")
+
         ############ Validating computeVolume
         if "computeVolume" in userProvidedOptions:
             if not isinstance(options["computeVolume"], bool):
@@ -964,7 +970,8 @@ class WingFFD():
         input = {
             "solverOptions": self.options["solverOptions"],
             "aeroProblem": self.options["aeroProblem"],
-            "sliceLocation": self.options["sliceLocation"]
+            "sliceLocation": self.options["sliceLocation"],
+            "writeLiftDistribution": self.options["writeLiftDistribution"]
         }
 
         if self.options["solver"] == "dafoam":

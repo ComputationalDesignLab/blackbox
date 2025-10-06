@@ -28,6 +28,7 @@ try:
     # Getting aero problem from input file
     ap = input["aeroProblem"]
     slice = input["sliceLocation"]
+    writeLiftDistribution = input["writeLiftDistribution"]
 
     # Assigning non-shape DVs
     if "alpha" in input.keys():
@@ -63,6 +64,9 @@ try:
 
     for loc in slice: 
         CFDSolver.addSlices(sliceDirection, loc, sliceType="absolute")
+
+    if writeLiftDistribution:
+        CFDSolver.addLiftDistribution(nSegments=200, direction=sliceDirection)
 
     ############## Run CFD
     CFDSolver(ap)

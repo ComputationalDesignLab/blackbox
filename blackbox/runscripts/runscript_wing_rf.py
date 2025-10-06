@@ -28,6 +28,7 @@ try:
     # Getting aero problem from input file
     ap = input["aeroProblem"]
     slice = input["sliceLocation"]
+    writeLiftDistribution = input["writeLiftDistribution"]
     CL_target = input["targetCL"]
     tol = input["targetCLTol"]
     alpha0 = input["startingAlpha"]
@@ -63,6 +64,9 @@ try:
 
     for loc in slice: 
         CFDSolver.addSlices(sliceDirection, loc, sliceType="absolute")
+
+    if writeLiftDistribution:
+        CFDSolver.addLiftDistribution(nSegments=200, direction=sliceDirection)
 
     ############## Solving for the CL
     solveCLResults = CFDSolver.solveCL(ap, CLStar=CL_target, alpha0=alpha0, delta=0.2, tol=tol, autoReset=False, maxIter=10, writeSolution=True)
