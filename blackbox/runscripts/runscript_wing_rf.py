@@ -69,7 +69,7 @@ try:
         CFDSolver.addLiftDistribution(nSegments=200, direction=sliceDirection)
 
     ############## Solving for the CL
-    solveCLResults = CFDSolver.solveCL(ap, CLStar=CL_target, alpha0=alpha0, delta=0.2, tol=tol, autoReset=False, maxIter=10, writeSolution=True)
+    solveCLResults = CFDSolver.solveCL(ap, CLStar=CL_target, alpha0=alpha0, tol=tol, autoReset=False, maxIter=10, writeSolution=True)
 
     # Evaluating objectives
     funcs = {}
