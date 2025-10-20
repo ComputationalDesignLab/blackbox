@@ -140,17 +140,21 @@ try:
         # Write force field
         if writeForceField:
             force = prob.get_val("scenario.coupling.aero.force.f_aero", get_remote=True)
+            aero_coords = prob.get_val("mesh_aero.x_aero0", get_remote=True)
             if comm.rank == 0:
                 data = {
-                    "force": force.reshape(-1,3)
+                    "force": force.reshape(-1,3),
+                    "aero_coords": aero_coords.reshape(-1,3)
                 }
                 savemat("force_field.mat", data)
 
         if writeDisplacementField:
             displacement = prob.get_val("scenario.coupling.struct.masker.u_struct_masked", get_remote=True)
+            struct_coords = prob.get_val("mesh_struct.fea_mesh.x_struct0", get_remote=True)
             if comm.rank == 0:
                 data = {
-                    "displacement": displacement.reshape(-1,6)
+                    "displacement": displacement.reshape(-1,6),
+                    "struct_coords": struct_coords.reshape(-1,3)
                 }
                 savemat("displacement_field.mat", data)
 
