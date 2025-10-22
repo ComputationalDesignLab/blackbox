@@ -420,12 +420,21 @@ class AeroStructFFD():
         # Setting filepath based on the solver
         if self.options["aeroSolver"] == "adflow":
             filepath = os.path.join(pkgdir, "runscripts/runscript_aerostruct_adflow.py")
+        elif self.options["solver"] == "dafoam":
+            filepath = os.path.join(pkgdir, "runscripts/runscript_aerostruct_dafoam.py")
 
         # Copy the runscript to analysis directory
         shutil.copy(filepath, f"{directory}/{self.genSamples+1}/runscript.py")
 
         # Copy the tacs setup file
         shutil.copy(self.options["structSolverConfigFile"], f"{directory}/{self.genSamples+1}/struct_setup_file.py")
+
+        # Copying openfoam standard folders
+        if self.options["solver"] == "dafoam":
+            ofdir = self.options["openfoamDir"]
+            os.system(f"cp -r {ofdir}/0 {directory}/{self.genSamples+1}")
+            os.system(f"cp -r {ofdir}/constant {directory}/{self.genSamples+1}")
+            os.system(f"cp -r {ofdir}/system {directory}/{self.genSamples+1}")
 
         if self.options["ffdFile"] is not None:
 
@@ -531,6 +540,15 @@ class AeroStructFFD():
             for file in files:
                 if os.path.exists(file):
                     os.system("rm -r {}".format(file))
+
+            if self.options["solver"] == "dafoam":
+                os.system("rm -rf 0")
+                os.system("rm -rf constant")
+                os.system("rm -rf system")
+
+                os.system("rm -rf processor*")
+                os.system("rm -rf runscript_out")
+                os.system("rm volMesh.xyz")
 
             # Changing the directory back to root
             os.chdir("../..")
@@ -806,7 +824,8 @@ class AeroStructFFD():
             "sliceLocation": self.options["sliceLocation"],
             "writeForceField": self.options["writeForceField"],
             "writeDisplacementField": self.options["writeDisplacementField"],
-            "spanIndex": self.spanIndex # axis for symmetry plane
+            "spanIndex": self.spanIndex, # axis for symmetry plane
+            "liftIndex": self.liftIndex
         }
 
         # Adding non-shape DVs
