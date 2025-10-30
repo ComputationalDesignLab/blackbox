@@ -305,7 +305,7 @@ class AeroStructFFD():
         # Creating and writing a description file
         description = open("{}/description.txt".format(self.options["directory"]), "a", buffering=1)
         description.write("---------------------------------------------------")
-        description.write("\Static Aerostructural data generation with FFD parametrization")
+        description.write("\nStatic Aerostructural data generation with FFD parametrization")
         description.write("\n--------------------------------------------------")
         description.write("\nDesign variables: {}".format(self.DV))
         description.write("\nNumber of DVs: {}".format(samples.shape[1]))
