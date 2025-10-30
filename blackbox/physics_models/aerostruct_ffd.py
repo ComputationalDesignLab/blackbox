@@ -541,15 +541,6 @@ class AeroStructFFD():
                 if os.path.exists(file):
                     os.system("rm -r {}".format(file))
 
-            if self.options["aeroSolver"] == "dafoam":
-                os.system("rm -rf 0")
-                os.system("rm -rf constant")
-                os.system("rm -rf system")
-
-                os.system("rm -rf processor*")
-                os.system("rm -rf runscript_out")
-                os.system("rm volMesh.xyz")
-
             # Changing the directory back to root
             os.chdir("../..")
 
@@ -694,6 +685,12 @@ class AeroStructFFD():
         if "writeForceField" in userProvidedOptions:
             if not isinstance(options["writeForceField"], bool):
                 self._error("\"writeForceField\" attribute is not a boolean value.")
+
+            if options["writeForceField"]:
+                try:
+                    import pyvista
+                except ImportError:
+                    self._error("pyVista is not installed")
 
         ############ Validating writeDisplacementField
         if "writeDisplacementField" in userProvidedOptions:
