@@ -136,7 +136,7 @@ try:
             aeroSolverOptions["function"]["CMY"]["center"] = [ap.xRef, ap.yRef, ap.zRef]
             aeroSolverOptions["function"]["CMY"]["scale"] = 1.0 / (0.5 * U0 * U0 * A0 * L0 * rho0)
 
-    aeroSolverOptions["normalizeStates"] = { # internal
+    aeroSolverOptions["normalizeStates"] = { # internal, only required for adjoint solver
         "U": U0,
         "p": p0,
         "T": T0,
@@ -253,21 +253,25 @@ try:
         fail = True
 
     else:
-        fail = False
 
-        # Write struct solution files
-        prob.model.scenario.coupling.struct.sp.setOption("numbersolutions", False)
-        prob.model.scenario.coupling.struct.sp.writeSolution(baseName="struct_output")
+        if prob.model.scenario.coupling.aero.solver.DASolver.primalFail:
+            fail = True
+        else:
+            fail = False
 
-        if writeDisplacementField:
-            displacement = prob.get_val("scenario.coupling.struct.masker.u_struct_masked", get_remote=True)
-            struct_coords = prob.get_val("mesh_struct.fea_mesh.x_struct0", get_remote=True)
-            if comm.rank == 0:
-                data = {
-                    "displacement": displacement.reshape(-1,6),
-                    "struct_coords": struct_coords.reshape(-1,3)
-                }
-                savemat("displacement_field.mat", data)
+            # Write struct solution files
+            prob.model.scenario.coupling.struct.sp.setOption("numbersolutions", False)
+            prob.model.scenario.coupling.struct.sp.writeSolution(baseName="struct_output")
+
+            if writeDisplacementField:
+                displacement = prob.get_val("scenario.coupling.struct.masker.u_struct_masked", get_remote=True)
+                struct_coords = prob.get_val("mesh_struct.fea_mesh.x_struct0", get_remote=True)
+                if comm.rank == 0:
+                    data = {
+                        "displacement": displacement.reshape(-1,6),
+                        "struct_coords": struct_coords.reshape(-1,3)
+                    }
+                    savemat("displacement_field.mat", data)
 
     # printing the result
     if comm.rank == 0:
@@ -296,12 +300,20 @@ try:
             boundaries = mesh['boundary'] # reading only surface data for now
 
             aero_coords = boundaries[aeroSolverOptions["designSurfaces"][0]].points # extract mesh points
-            force = boundaries[aeroSolverOptions["designSurfaces"][0]].point_data["volumeForceField"] # extract force field data
-            pressure = boundaries[aeroSolverOptions["designSurfaces"][0]].point_data["p"].reshape(-1,1) # extract pressure
+
+            force_point = boundaries[aeroSolverOptions["designSurfaces"][0]].point_data["volumeForceField"] # extract force field data
+            pressure_point = boundaries[aeroSolverOptions["designSurfaces"][0]].point_data["p"].reshape(-1,1) # extract pressure
+            cp_point = (pressure_point - p0) / 0.5 / rho0 / U0**2
+
+            force_cell = boundaries[aeroSolverOptions["designSurfaces"][0]].cell_data["volumeForceField"] # extract force field data
+            pressure_cell = boundaries[aeroSolverOptions["designSurfaces"][0]].cell_data["p"].reshape(-1,1) # extract pressure
+            cp_cell = (pressure_cell - p0) / 0.5 / rho0 / U0**2
 
             data = {
-                "force": force,
-                "pressure": pressure,
+                "force_point": force_point,
+                "cp_point": cp_point,
+                "force_cell": force_cell,
+                "cp_cell": cp_cell,
                 "aero_coords": aero_coords
             }
             savemat("aero_field_data.mat", data)
