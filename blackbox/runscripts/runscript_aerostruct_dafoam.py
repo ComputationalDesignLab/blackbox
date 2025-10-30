@@ -10,6 +10,7 @@ from dafoam.mphys import DAFoamBuilder
 from mpi4py import MPI
 from scipy.io import savemat
 from cgnsutilities.cgnsutilities import readGrid
+import pyvista as pv
 from struct_setup_file import * # importing from structural definitions
 
 os.environ['OPENMDAO_REPORTS'] = "0" # disable report generation
@@ -154,7 +155,7 @@ try:
 
     if "alpha" in input.keys():
 
-        aeroSolverOptions["inputInfo"] = { # internal
+        aeroSolverOptions["inputInfo"] = { # internal - used in mphys
             "aero_vol_coords": {"type": "volCoord", "components": ["solver", "function"]},
             "patchV": {
                 "type": "patchVelocity",
@@ -165,10 +166,10 @@ try:
             },
         }
 
-    aeroSolverOptions["outputInfo"] = { # internal
+    aeroSolverOptions["outputInfo"] = { # internal - used in  mphys
         "f_aero": {
             "type": "forceCouplingOutput",
-            "patches": ["wing"],
+            "patches": aeroSolverOptions["designSurfaces"],
             "components": ["forceCoupling"],
             "pRef": p0
         },
@@ -258,17 +259,6 @@ try:
         prob.model.scenario.coupling.struct.sp.setOption("numbersolutions", False)
         prob.model.scenario.coupling.struct.sp.writeSolution(baseName="struct_output")
 
-        # Write force field
-        if writeForceField:
-            force = prob.get_val("scenario.coupling.aero.force.f_aero", get_remote=True)
-            aero_coords = prob.get_val("mesh_aero.x_aero0", get_remote=True)
-            if comm.rank == 0:
-                data = {
-                    "force": force.reshape(-1,3),
-                    "aero_coords": aero_coords.reshape(-1,3)
-                }
-                savemat("force_field.mat", data)
-
         if writeDisplacementField:
             displacement = prob.get_val("scenario.coupling.struct.masker.u_struct_masked", get_remote=True)
             struct_coords = prob.get_val("mesh_struct.fea_mesh.x_struct0", get_remote=True)
@@ -284,6 +274,39 @@ try:
 
         # Reconstruct the field
         os.system("reconstructPar")
+
+        os.system("rm -rf 0")
+        # os.system("rm -rf constant")
+        os.system("rm -rf system")
+
+        os.system("rm -rf processor*")
+        os.system("rm volMesh.xyz")
+
+        # Write force field
+        if writeForceField and not fail:
+
+            os.system("touch case.foam") # create a dummy file so that pyvista knows this a openfoam  directory
+
+            reader = pv.OpenFOAMReader("case.foam") # read openfoam results
+            
+            reader.set_active_time_value(reader.time_values[-1]) # set the latest time
+
+            mesh = reader.read() # read results
+
+            boundaries = mesh['boundary'] # reading only surface data for now
+
+            aero_coords = boundaries[aeroSolverOptions["designSurfaces"][0]].points # extract mesh points
+            force = boundaries[aeroSolverOptions["designSurfaces"][0]].point_data["volumeForceField"] # extract force field data
+            pressure = boundaries[aeroSolverOptions["designSurfaces"][0]].point_data["p"].reshape(-1,1) # extract pressure
+
+            data = {
+                "force": force,
+                "pressure": pressure,
+                "aero_coords": aero_coords
+            }
+            savemat("aero_field_data.mat", data)
+
+            os.system("rm case.foam")
 
         print("")
         print("#" + "-"*129 + "#")
