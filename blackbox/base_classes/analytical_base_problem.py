@@ -25,7 +25,7 @@ class AnalyticalProblem(BaseProblem):
         self.in_dim = lb.shape[0]
         self.negate = negate
 
-    def __call__(self, x):
+    def __call__(self, x:np.ndarray) -> np.ndarray:
         """
             Evalaute the function for given input x
 
@@ -56,5 +56,10 @@ class AnalyticalProblem(BaseProblem):
         return y
 
     @abstractmethod
-    def _evaluate(self):
+    def _evaluate(self, x:np.ndarray) -> np.ndarray:
+        pass
+
+    @property
+    @abstractmethod
+    def out_dim(self) -> int:
         pass

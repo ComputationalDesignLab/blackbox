@@ -8,8 +8,7 @@ class BaseProblem(ABC):
     """
 
     @abstractmethod
-    def __call__(self):
-        
+    def __call__(self, x: np.ndarray) -> np.ndarray:
         pass
 
     def check_input(self, x: np.ndarray):
