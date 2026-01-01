@@ -1,6 +1,6 @@
 import numpy as np
-from .base_classes.analytical_base_problem import AnalyticalProblem
-from .msg import print_msg
+from ..base_classes.analytical_base_problem import AnalyticalProblem
+from ..msg import print_msg
 
 class Ackley(AnalyticalProblem):
 
@@ -28,18 +28,20 @@ class Ackley(AnalyticalProblem):
 
         super().__init__(lb,ub,negate)
 
-        self.out_dim = 1
         self.a = a
         self.b = b
         self.c = c
 
-    def _evaluate(self, x):
+    @property
+    def out_dim(self):
+        return 1
+
+    def _evaluate(self, x:np.ndarray) -> np.ndarray:
 
         self.check_input(x)
 
         return -self.a * np.exp( -self.b * np.linalg.norm(x, axis=-1) / np.sqrt(self.in_dim) ) \
             - np.exp( np.mean(np.cos(self.c*x), axis=-1) ) + self.a + np.e
-
 
 class Levy(AnalyticalProblem):
 
@@ -59,7 +61,9 @@ class Levy(AnalyticalProblem):
 
         super().__init__(lb,ub,negate)
 
-        self.out_dim = 1
+    @property
+    def out_dim(self):
+        return 1
 
     def _evaluate(self, x):
 
@@ -94,7 +98,9 @@ class Rastrigin(AnalyticalProblem):
 
         super().__init__(lb,ub,negate)
 
-        self.out_dim = 1
+    @property
+    def out_dim(self):
+        return 1
 
     def _evaluate(self, x):
 
@@ -120,8 +126,6 @@ class Hartmann(AnalyticalProblem):
         """
 
         super().__init__(lb,ub,negate)
-
-        self.out_dim = 1
 
         try:
             assert self.in_dim in [3,4,6], "Hartmann function is only defined for 3, 4 or 6 dimensions"
@@ -164,6 +168,10 @@ class Hartmann(AnalyticalProblem):
 
         self.alpha = np.array([[1], [1.2], [3.0], [3.2]])
 
+    @property
+    def out_dim(self):
+        return 1
+
     def _evaluate(self, x):
 
         self.check_input(x)
@@ -176,29 +184,3 @@ class Hartmann(AnalyticalProblem):
             y = (1.1 + y)/0.839
 
         return y
-
-class ConstrainedAckley(AnalyticalProblem):
-
-    def __init__(self):
-        """
-            Class for defining the constrained ackley function
-
-            Default range of bounds for the design variable is [-32.768,32.768]^10
-
-            Parameters
-            ----------
-            lb: np.ndarray
-                Lower bounds of the function
-            ub: np.ndarray
-                Upper bounds of the function
-            negate: bool
-                negate the values before returning
-            a: float, optional
-                Parameter a of the ackley function, default is 20.0
-            b: float, optional
-                Parameter b of the ackley function, default is 0.2
-            c: float, optional
-                Parameter c of the ackley function, default is 2.0 * pi
-        """
-
-        
