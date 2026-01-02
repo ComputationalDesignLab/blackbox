@@ -2,14 +2,15 @@ from blackbox.analytical_problems import Ackley
 from blackbox.doe import generate_lhs_samples
 import numpy as np
 from scipy.io import savemat
+from pyDOE3 import lhs
 
 dim = 10
-lb = -32.768 * np.ones(dim)
-ub = 32.768 * np.ones(dim)
 
-problem = Ackley(lb, ub)
+problem = Ackley(num_inputs=dim)
 
-x = generate_lhs_samples(problem, 10)
+x = lhs(dim, 10, criterion="cm")
+
+x = problem.lb + (problem.ub - problem.lb) * x
 
 print(x)
 

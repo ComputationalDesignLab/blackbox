@@ -1,14 +1,15 @@
 from blackbox.analytical_problems import Levy
 from blackbox.doe import generate_lhs_samples
 import numpy as np
+from pyDOE3 import lhs
 
 dim = 25
-lb = -10 * np.ones(dim)
-ub = 10 * np.ones(dim)
 
-problem = Levy(lb, ub, negate=True)
+problem = Levy(dim, negate=False)
 
-x = generate_lhs_samples(problem, 20)
+x = lhs(dim, 10, criterion="cm")
+
+x = problem.lb + (problem.ub - problem.lb) * x
 
 print(x)
 
