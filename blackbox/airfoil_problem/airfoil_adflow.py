@@ -4,9 +4,11 @@ from .cst import CST
 from .airfoil_options import AirfoilOptions
 from ..msg import print_msg
 
-class AirfoilCST(AirfoilBaseProblem):
+class AirfoilADflow(AirfoilBaseProblem):
     """
-        Class for generating airfoil data using CST parameterization
+        Class for performing airfoil analysis using ADflow solver
+        
+        Note: CST is used for parametrizing the airfoil in this problem
     """
 
     def __init__(self, options: AirfoilOptions):
