@@ -1,1 +1,1 @@
-from .single_output_problem import Ackley, Levy, Rastrigin, Hartmann, Branin
+from .single_output_problem import Ackley, Levy, Rastrigin, Hartmann, Branin, ModifiedBranin
