@@ -46,24 +46,24 @@ class SingleOutputAnalyticalProblem(BaseProblem):
         
         return y
     
-    def set_bounds(self, bounds: np.ndarray):
+    def set_bounds(self, bounds: tuple):
         """
-            Method to set the bounds or change the default bounds of the problem
+            Method to change the default bounds of the problem
 
             Parameter
             ---------
-            bounds: np.ndarray
-                2D numpy array of shape (2,num_inputs) containing the new lower and upper bounds.
-                First and second row correspond to lower and upper bounds, respectively
+            bounds: tuple
+                a tuple containing two 1D numpy array - first one is lower bound and second
+                entry is upper bound
         """
 
-        assert isinstance(bounds, np.ndarray), "bounds must be a numpy array"
-        assert bounds.ndim == 2, "bounds must be a 2D numpy array"
-        assert bounds.shape == (2,self.num_inputs), f"bounds must have shape (2,{self.num_inputs})"
-        assert np.all(bounds[0,:] < bounds[1,:]), "Lower bounds must be less than upper bounds"
+        assert isinstance(bounds, tuple) and len(bounds) == 2, "bounds must be a tuple with two entries"
+        for i, bound in enumerate(bounds):
+            assert isinstance(bound, np.ndarray) and bound.ndim == 1, f"entry {i+1} in bounds must be a 1D numpy array"
+            assert bound.shape[0] == self.num_inputs, f"size of entry {i+1} in bounds is not same as number of inputs"
+        assert np.all(bounds[0] < bounds[1]), "Lower bound must be less than upper bound for each input"
 
-        self.lb = bounds[0,:]
-        self.ub = bounds[1,:]
+        self.bounds = bounds
 
     def _check_input(self, x: np.ndarray):
         """
@@ -77,8 +77,8 @@ class SingleOutputAnalyticalProblem(BaseProblem):
 
         x = np.atleast_2d(x)
 
-        assert x.shape[1] == self.lb.shape[0], "Input dimension must match the problem dimension"
-        assert np.all(x >= self.lb) and np.all(x <= self.ub), "Input values must be within the bounds defined by lb and ub"
+        assert x.shape[1] == self.bounds[0].shape[0], "Input dimension must match the problem dimension"
+        assert np.all(x >= self.bounds[0]) and np.all(x <= self.bounds[1]), "Input values must be within the bounds"
     
     @abstractmethod
     def _evaluate(self, x: np.ndarray) -> np.ndarray:

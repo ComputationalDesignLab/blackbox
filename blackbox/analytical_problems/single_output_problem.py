@@ -19,8 +19,9 @@ class Ackley(SingleOutputAnalyticalProblem):
 
         super().__init__(num_inputs, negate)
 
-        self.lb = np.array([-32.768]*self.num_inputs)
-        self.ub = np.array([32.768]*self.num_inputs)
+        self.bounds = (np.array([-32.768]*self.num_inputs), np.array([32.768]*self.num_inputs))
+        self._x_opt = np.array([0.0]*self.num_inputs)
+        self._y_opt = 0.0
 
     def _evaluate(self, x:np.ndarray) -> np.ndarray:
 
@@ -48,8 +49,7 @@ class Levy(SingleOutputAnalyticalProblem):
 
         super().__init__(num_inputs, negate)
 
-        self.lb = np.array([-10]*num_inputs)
-        self.ub = np.array([10]*num_inputs)
+        self.bounds = (np.array([-10]*num_inputs), np.array([10]*num_inputs))
 
     def _evaluate(self, x:np.ndarray) -> np.ndarray:
 
@@ -80,8 +80,7 @@ class Rastrigin(SingleOutputAnalyticalProblem):
 
         super().__init__(num_inputs, negate)
 
-        self.lb = np.array([-5.12]*num_inputs)
-        self.ub = np.array([5.12]*num_inputs)
+        self.bounds = (np.array([-5.12]*num_inputs), np.array([5.12]*num_inputs))
 
     def _evaluate(self, x:np.ndarray) -> np.ndarray:
 
@@ -104,8 +103,7 @@ class Hartmann(SingleOutputAnalyticalProblem):
 
         super().__init__(num_inputs, negate)
 
-        self.lb = np.zeros(self.num_inputs)
-        self.ub = np.ones(self.num_inputs)
+        self.bounds = (np.zeros(self.num_inputs), np.ones(self.num_inputs))
 
         assert self.num_inputs in [3,4,6], "Hartmann function is only defined for 3, 4 or 6 dimensions"
 
@@ -170,8 +168,7 @@ class Branin(SingleOutputAnalyticalProblem):
 
         super().__init__(num_inputs=2, negate=negate)
 
-        self.lb = np.array([-5.0, 0.0])
-        self.ub = np.array([10.0, 15.0])
+        self.bounds = (np.array([-5.0, 0.0]), np.array([10.0, 15.0]))
     
     def _evaluate(self, x:np.ndarray) -> np.ndarray:
 
@@ -202,8 +199,7 @@ class ModifiedBranin(SingleOutputAnalyticalProblem):
 
         super().__init__(num_inputs=2, negate=negate)
 
-        self.lb = np.array([-5.0, 0.0])
-        self.ub = np.array([10.0, 15.0])
+        self.bounds = (np.array([-5.0, 0.0]), np.array([10.0, 15.0]))
     
     def _evaluate(self, x:np.ndarray) -> np.ndarray:
 
