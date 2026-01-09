@@ -29,3 +29,5 @@ Refer to example section for more details on these problems and how to use them 
     :maxdepth: 0
 
     install
+    basic_tutorials
+    api/API
