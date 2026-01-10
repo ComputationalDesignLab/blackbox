@@ -2,3 +2,7 @@
     max-height: 100px;  /* or whatever size you prefer */
     width: auto;
 }
+
+.wy-nav-content {
+    max-width: 62%;  /* try 1200–1600 */
+}
