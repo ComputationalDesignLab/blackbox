@@ -3,12 +3,12 @@ import numpy as np
 from .base_problem import BaseProblem
 
 class SingleOutputAnalyticalProblem(BaseProblem):
+    """
+        Base class for all single output analytical problems
+    """
 
     def __init__(self, num_inputs: int, negate: bool):
-        """
-            Base class for all single output analytical problems
-        """
-
+        
         assert isinstance(num_inputs, int) and num_inputs > 0, "num_inputs must be a positive integer"
         assert isinstance(negate, bool), "negate must be a boolean variable"
 
@@ -50,8 +50,8 @@ class SingleOutputAnalyticalProblem(BaseProblem):
         """
             Method to change the default bounds of the problem
 
-            Parameter
-            ---------
+            Parameters
+            ----------
             bounds: tuple
                 a tuple containing two 1D numpy array - first one is lower bound and second
                 entry is upper bound

@@ -2,22 +2,22 @@ import numpy as np
 from ..base_classes.analytical_base_problem import SingleOutputAnalyticalProblem
 
 class Ackley(SingleOutputAnalyticalProblem):
+    """
+        Class for defining the ackley function. More details about this
+        problem can be found here: https://www.sfu.ca/~ssurjano/ackley.html
+
+        Default range of bounds for the design variable is [-32.768,32.768]^10
+
+        Parameters
+        ----------
+        num_inputs: int
+            number of input dimensions, default = 10
+        negate: bool
+            negate the values before returning
+    """
 
     def __init__(self, num_inputs: int = 10, negate: bool = False):
-        """
-            Class for defining the ackley function. More details about this
-            problem can be found here: https://www.sfu.ca/~ssurjano/ackley.html
-
-            Default range of bounds for the design variable is [-32.768,32.768]^10
-
-            Parameters
-            ----------
-            num_inputs: int
-                number of input dimensions, default = 10
-            negate: bool
-                negate the values before returning
-        """
-
+        
         super().__init__(num_inputs, negate)
 
         self.bounds = (np.array([-32.768]*self.num_inputs), np.array([32.768]*self.num_inputs))
@@ -35,20 +35,20 @@ class Ackley(SingleOutputAnalyticalProblem):
 
 
 class Levy(SingleOutputAnalyticalProblem):
+    """
+        Class for defining the levy function. More details about this
+        problem can be found here: https://www.sfu.ca/~ssurjano/levy.html
+
+        Parameters
+        ----------
+        num_inputs: int
+            number of input dimensions, default = 10
+        negate: bool
+            negate the values before returning
+    """
 
     def __init__(self, num_inputs: int = 10, negate: bool = False):
-        """
-            Class for defining the levy function. More details about this
-            problem can be found here: https://www.sfu.ca/~ssurjano/levy.html
-
-            Parameters
-            ----------
-            num_inputs: int
-                number of input dimensions, default = 10
-            negate: bool
-                negate the values before returning
-        """
-
+        
         super().__init__(num_inputs, negate)
 
         self.bounds = (np.array([-10]*num_inputs), np.array([10]*num_inputs))
@@ -69,19 +69,19 @@ class Levy(SingleOutputAnalyticalProblem):
 
 
 class Rastrigin(SingleOutputAnalyticalProblem):
+    """
+        Class for defining the rastrigin function. More details about this
+        problem can be found here: https://www.sfu.ca/~ssurjano/rastrigin.html
+
+        Parameters
+        ----------
+        num_inputs: int
+            number of input dimensions, default = 10
+        negate: bool
+            negate the values before returning
+    """
 
     def __init__(self, num_inputs: int = 10, negate: bool = False):
-        """
-            Class for defining the rastrigin function. More details about this
-            problem can be found here: https://www.sfu.ca/~ssurjano/rastrigin.html
-
-            Parameters
-            ----------
-            num_inputs: int
-                number of input dimensions, default = 10
-            negate: bool
-                negate the values before returning
-        """
 
         super().__init__(num_inputs, negate)
 
@@ -95,23 +95,23 @@ class Rastrigin(SingleOutputAnalyticalProblem):
 
 
 class Hartmann(SingleOutputAnalyticalProblem):
+    """
+        Class for defining the hartmann function. More details about this
+        problem can be found here:
+        
+        Hartmann 3D - https://www.sfu.ca/~ssurjano/hart3.html\n
+        Hartmann 4D - https://www.sfu.ca/~ssurjano/hart4.html\n
+        Hartmann 6D - https://www.sfu.ca/~ssurjano/hart6.html
+
+        Parameters
+        ----------
+        num_inputs: int
+            number of input dimensions, default = 6
+        negate: bool
+            negate the values before returning
+    """
 
     def __init__(self, num_inputs: int = 6, negate: bool = False):
-        """
-            Class for defining the hartmann function. More details about this
-            problem can be found here:
-            
-            Hartmann 3D - https://www.sfu.ca/~ssurjano/hart3.html
-            Hartmann 4D - https://www.sfu.ca/~ssurjano/hart4.html
-            Hartmann 6D - https://www.sfu.ca/~ssurjano/hart6.html
-
-            Parameters
-            ----------
-            num_inputs: int
-                number of input dimensions, default = 6
-            negate: bool
-                negate the values before returning
-        """
 
         super().__init__(num_inputs, negate)
 
@@ -176,16 +176,16 @@ class Hartmann(SingleOutputAnalyticalProblem):
 
 
 class Branin(SingleOutputAnalyticalProblem):
+    """
+        Class for defining the branin function
+
+        Parameters
+        ----------
+        negate: bool
+            negate the values before returning
+    """
 
     def __init__(self, negate: bool = False):
-        """
-            Class for defining the branin function
-
-            Parameters
-            ----------
-            negate: bool
-                negate the values before returning
-        """
 
         super().__init__(num_inputs=2, negate=negate)
 
@@ -209,16 +209,16 @@ class Branin(SingleOutputAnalyticalProblem):
 
 
 class ModifiedBranin(SingleOutputAnalyticalProblem):
+    """
+        Class for defining the modified branin function
+
+        Parameters
+        ----------
+        negate: bool
+            negate the values before returning
+    """
 
     def __init__(self, negate: bool = False):
-        """
-            Class for defining the modified branin function
-
-            Parameters
-            ----------
-            negate: bool
-                negate the values before returning
-        """
 
         super().__init__(num_inputs=2, negate=negate)
 
