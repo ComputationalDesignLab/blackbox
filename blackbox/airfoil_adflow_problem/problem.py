@@ -1,6 +1,8 @@
 import os, sys, pickle, psutil
 import numpy as np
 from mpi4py import MPI
+from time import time
+from scipy.io import loadmat
 
 from .cst import CST
 from .utils import AirfoilADflowOptions
@@ -68,18 +70,81 @@ class AirfoilADflow(BaseProblem):
 
         self.variables.append(name.lower())
 
-    def evaluate_batch(self, x: np.ndarray):
+    def __call__(self, x: np.ndarray, return_results=False) -> None | dict:
         """
-            Method to run analysis for a given parameter
+            Method to evaluate given x
 
             Parameters
             ----------
+            x: np.ndarray
+                a numpy array representing values for added parameters
 
+            return_results: bool
+                flag to determine if the results should be returned or not.
+                This should be set to True only when you want this function to
+                return the results instead of saving it to the repo
         """
 
-        pass
+        assert len(self.variables) > 0, "add some parameters before running analysis"
+        assert isinstance(x, np.ndarray), "given sample 'x' should be a numpy array"
 
-    def __call__(self, x: np.ndarray) -> dict:
+        x = np.atleast_2d(x) 
+
+        assert x.shape[1] == self.lower_bound.shape[0], "size of given sample 'x' is not same as the number of parameters"
+
+        if self.options.get_flowfield_data:
+            self.options.solver_options["writeSurfaceSolution"] = True
+            self.options.solver_options["writeVolumeSolution"] = True
+
+        # Creating and writing a description file
+        description = open("{}/description.txt".format(self.options.directory), "a", buffering=1)
+        description.write("---------------------------------------------------")
+        description.write("\nAirfoil sample generation using ADflow")
+        description.write("\n--------------------------------------------------")
+        description.write("\nVariables: {}".format(self.variables))
+        description.write("\nLower bound for design variables:\n{}".format(self.lower_bound))
+        description.write("\nUpper bound for design variables:\n{}".format(self.upper_bound))
+        description.write("\n-----------------------------")
+        description.write("\nAnalysis specific description")
+        description.write("\n-----------------------------")
+
+        for i in range(x.shape[0]):
+
+            description.write("\nAnalysis {}: ".format(self.samples_generated+1))
+
+            t1 = time()
+
+            try:
+                results = self._run_analysis(x[i,:])
+
+            except:
+                description.write("\n -------- Analysis failed ----------".format(self.samples_generated+1))
+                print("Error occured during the analysis, check log file in the respective folder for more details.")
+
+            else:
+
+                if results["fail"]:
+                    description.write("\n -------- Analysis failed ----------".format(self.samples_generated+1))
+                    print("Error occured during the analysis, check log file in the respective folder for more details.")
+
+                else:
+                    
+                    if save_results:
+                        savemat("{}/data.mat".format(self.options.directory), results)
+
+                    else:
+                        return results
+
+            finally:
+
+                # Writing time taken to file
+                description.write("\nTime taken for analysis: {} min.".format((time()-t1)/60))
+
+                self.samples_generated += 1
+
+        description.close() # close the description file
+
+    def _run_analysis(self, x: np.ndarray) -> None:
         """
             Method to evaluate a given set of parameters
 
@@ -91,10 +156,7 @@ class AirfoilADflow(BaseProblem):
 
         assert len(self.variables) > 0, "add some parameters before running analysis"
         assert isinstance(x, np.ndarray) and x.ndim == 1, "given sample 'x' should be a 1D numpy array"
-        assert x.shape[0] == self.lower_bound.shape[0], "size of given sample 'x' is not same as the number of parameters"
-        
-        if self.options.get_flowfield_data:
-            self.options.solver_options["writeSurfaceSolution"] = True
+        assert x.shape[0] 
 
         print("Running analysis {}".format(self.samples_generated + 1))
 
