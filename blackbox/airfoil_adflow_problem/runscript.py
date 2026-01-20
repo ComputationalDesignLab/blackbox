@@ -1,6 +1,7 @@
 ############## Script file for running airfoil analysis.
+
 # Imports
-import pickle, os
+import pickle, os, h5py
 from mpi4py import MPI
 from adflow import ADFLOW
 from pyhyp import pyHyp
@@ -120,21 +121,21 @@ try:
         print("#" + "-"*129 + "#")
         print("")
 
-        output = {}
+        # Storing the results in output file
+        f = h5py.File('output.hdf5','w')
+
+        scalars = f.create_group("scalars")
+
+        scalars.attrs["fail"] = funcs["fail"]
 
         # Printing and storing results based on evalFuncs in aero problem
         for obj in ap.evalFuncs:
+            
             print("{} = ".format(obj), funcs["{}_{}".format(ap.name, obj)])
-            output["{}".format(obj)] = funcs["{}_{}".format(ap.name, obj)]
 
-        # Other mandatory outputs
-        print("fail = ", funcs["fail"])
-        output["fail"] = funcs["fail"]
+            scalars.attrs[f"{obj}"] = funcs["{}_{}".format(ap.name, obj)]
 
-        # Storing the results in output file
-        filehandler = open("output.pickle", "xb")
-        pickle.dump(output, filehandler)
-        filehandler.close()
+        f.close()
 
         # Redirecting to original stdout
         os.dup2(stdout, 1)
