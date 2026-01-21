@@ -48,7 +48,7 @@ class AirfoilADflow(BaseProblem):
         self.upper_bound = np.array([])
         self.samples_generated = 0
 
-    def add_variable(self, name: str, lower_bound: float | np.ndarray, upper_bound: float | np.ndarray):
+    def add_variable(self, name: str, lower_bound: float | np.ndarray, upper_bound: float | np.ndarray) -> None:
         """
             Method for adding a parameters for the airfoil problem
         """
@@ -215,43 +215,8 @@ class AirfoilADflow(BaseProblem):
                     if not pid.is_running():
                         pid_list.remove(pid)
 
-            # Reading the output file containing results
-            filehandler = open("output.pickle", 'rb')
-
-        except:
-            raise Exception
-
-        else:
-            # Read the output
-            output = pickle.load(filehandler)
-            filehandler.close()
-
-            output["area"] = self.calculate_area(x)
-
-            if self.options.get_flowfield_data:
-
-                # Reading the cgns file
-                filename = self.options.aero_problem.name + "_surf.cgns"
-                reader = self.pyvista.CGNSReader(filename)
-                reader.load_boundary_patch = False
-
-                # Reading the mesh
-                mesh = reader.read()
-
-                # Setting region for extraction
-                if self.options.region == "surface":
-                    mesh = mesh[0][0]
-                else:
-                    mesh = mesh[0][2]
-            
-                for var in mesh.array_names:
-                    # Skipping the first entry in the array
-                    if var != "Base/Zone":
-                        # set_active_scalars returns a tuple, and second
-                        # entry contains the pyvista numpy array.
-                        output[var] = np.asarray(mesh.set_active_scalars(var, "cell")[1])
-
-                return output
+        except Exception as e: 
+            print(e)
 
         finally:
 
@@ -260,7 +225,7 @@ class AirfoilADflow(BaseProblem):
             
             for file in files:
                 if os.path.exists(file):
-                    os.system("rm {}".format(file))
+                    os.system(f"rm {file}")
 
             # Changing the directory back to root
             os.chdir("../..")
