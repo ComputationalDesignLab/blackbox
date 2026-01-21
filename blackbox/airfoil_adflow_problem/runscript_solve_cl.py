@@ -1,10 +1,12 @@
 ############## Script file for running airfoil analysis.
 # Imports
-import pickle, os
+import pickle, os, h5py
 from mpi4py import MPI
 from adflow import ADFLOW
 from pyhyp import pyHyp
 from cgnsutilities.cgnsutilities import readGrid
+import numpy as np
+import pyvista
 
 # Getting MPI comm
 comm = MPI.COMM_WORLD
@@ -31,6 +33,7 @@ try:
     ap = input["aero_problem"]
     refine = input["refine"]
     slice = input["write_slice_file"]
+    get_flowfield_data = input["get_flowfield_data"]
     CL_target = input["target_CL"]
     target_CL_tol = input["target_CL_tol"]
     starting_alpha = input["starting_alpha"]
@@ -106,12 +109,11 @@ try:
         CFDSolver.addSlices("z", 0.5, sliceType="absolute")
 
     ############## Run CFD
-    CFDSolver.solveCL(ap, CLStar=CL_target, alpha0=starting_alpha, delta=0.2, tol=target_CL_tol, autoReset=False, maxIter=8, writeSolution=True)
+    itr_results = CFDSolver.solveCL(ap, CLStar=CL_target, alpha0=starting_alpha, delta=0.2, tol=target_CL_tol, autoReset=False, maxIter=8, writeSolution=True)
 
     ############## Evaluating objectives
     funcs = {}
     CFDSolver.evalFunctions(ap, funcs)
-    CFDSolver.checkSolutionFailure(ap, funcs)
 
     ############# Post-processing
 
@@ -123,21 +125,40 @@ try:
         print("#" + "-"*129 + "#")
         print("")
 
-        output = {}
+        # Storing the results in output file
+        f = h5py.File('output.hdf5','w')
+
+        scalars = f.create_group("scalars")
+
+        scalars.attrs["fail"] = not itr_results["converged"]
 
         # Printing and storing results based on evalFuncs in aero problem
         for obj in ap.evalFuncs:
+            
             print("{} = ".format(obj), funcs["{}_{}".format(ap.name, obj)])
-            output["{}".format(obj)] = funcs["{}_{}".format(ap.name, obj)]
 
-        # Other mandatory outputs
-        print("fail = ", funcs["fail"])
-        output["fail"] = funcs["fail"]
+            scalars.attrs[f"{obj}"] = funcs["{}_{}".format(ap.name, obj)]
+            
+        if get_flowfield_data:
 
-        # Storing the results in output file
-        filehandler = open("output.pickle", "xb")
-        pickle.dump(output, filehandler)
-        filehandler.close()
+            field_group = f.create_group("fields")
+
+            reader = pyvista.CGNSReader(f"{ap.name}_surf.cgns")
+            
+            reader.load_boundary_patch = False
+
+            ds = reader.read() # read the mesh
+
+            str_grid = ds[0][0] # get the base-block
+
+            for var_name in set(ds[0][0].array_names):
+                if var_name != "Base/Zone":
+                    field_group.create_dataset(var_name.lower(), data=np.asarray(ds[0][0][var_name]))
+
+            if solverOptions["writeSurfaceSolution"]:
+                os.system(f"rm {ap.name}_surf.cgns")
+
+        f.close()
 
         # Redirecting to original stdout
         os.dup2(stdout, 1)
