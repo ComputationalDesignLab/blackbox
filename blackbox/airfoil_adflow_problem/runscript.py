@@ -1,4 +1,4 @@
-############## Script file for running airfoil analysis.
+############# Script file for running airfoil analysis.
 
 # Imports
 import pickle, os, h5py
@@ -6,6 +6,8 @@ from mpi4py import MPI
 from adflow import ADFLOW
 from pyhyp import pyHyp
 from cgnsutilities.cgnsutilities import readGrid
+import pyvista
+import numpy as np
 
 # Getting MPI comm
 comm = MPI.COMM_WORLD
@@ -32,6 +34,7 @@ try:
     ap = input["aero_problem"]
     refine = input["refine"]
     slice = input["write_slice_file"]
+    get_flowfield_data = input["get_flowfield_data"]
 
     # Assigning non-shape DVs
     if "alpha" in input.keys():
@@ -134,6 +137,25 @@ try:
             print("{} = ".format(obj), funcs["{}_{}".format(ap.name, obj)])
 
             scalars.attrs[f"{obj}"] = funcs["{}_{}".format(ap.name, obj)]
+            
+        if get_flowfield_data:
+
+            field_group = f.create_group("fields")
+
+            reader = pyvista.CGNSReader(f"{ap.name}_surf.cgns")
+            
+            reader.load_boundary_patch = False
+
+            ds = reader.read() # read the mesh
+
+            str_grid = ds[0][0] # get the base-block
+
+            for var_name in set(ds[0][0].array_names):
+                if var_name != "Base/Zone":
+                    field_group.create_dataset(var_name.lower(), data=np.asarray(ds[0][0][var_name]))
+
+            if solverOptions["writeSurfaceSolution"]:
+                os.system(f"rm {ap.name}_surf.cgns")
 
         f.close()
 
