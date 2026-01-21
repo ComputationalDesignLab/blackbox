@@ -19,7 +19,6 @@ class AirfoilADflowOptions:
     directory: str = "output"
     num_processors: int = 4
     get_flowfield_data: bool = False
-    region: str = "surface"
 
     # Writing and plotting options
     write_slice_file: bool = False
@@ -47,7 +46,6 @@ class AirfoilADflowOptions:
         assert psutil.cpu_count(False) >= self.num_processors + 1, "requested number of processors is more than available processors"
 
         assert self.refine in [-2,-1,0,1,2], "meshing refine options should be from -2, -1, 0, 1, and 2"
-        assert self.region in ["surface", "field"], "region for field extraction should be either 'surface' or 'field'"
         assert self.alpha in ["explicit", "implicit"], "option 'alpha' should be 'explicit' or 'implicit'"
 
         if self.get_flowfield_data:
