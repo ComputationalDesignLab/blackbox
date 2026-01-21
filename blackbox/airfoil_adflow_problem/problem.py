@@ -1,8 +1,7 @@
-import os, sys, pickle, psutil
+import os, sys, pickle, psutil, h5py
 import numpy as np
 from mpi4py import MPI
 from time import time
-from scipy.io import loadmat
 
 from .cst import CST
 from .utils import AirfoilADflowOptions
@@ -70,9 +69,11 @@ class AirfoilADflow(BaseProblem):
 
         self.variables.append(name.lower())
 
-    def __call__(self, x: np.ndarray, return_results=False) -> None | dict:
+    def __call__(self, x: np.ndarray, return_results: bool = False) -> None | dict[int, dict[str, dict[str, ]]]:
         """
-            Method to evaluate given x
+            Method to evaluate given x. It can be a single or multiple samples of
+            size (d,) or (N,d) where N is the number of samples and d is the number of
+            parameters added
 
             Parameters
             ----------
@@ -82,67 +83,67 @@ class AirfoilADflow(BaseProblem):
             return_results: bool
                 flag to determine if the results should be returned or not.
                 This should be set to True only when you want this function to
-                return the results instead of saving it to the repo
+                return the results
         """
 
         assert len(self.variables) > 0, "add some parameters before running analysis"
         assert isinstance(x, np.ndarray), "given sample 'x' should be a numpy array"
 
-        x = np.atleast_2d(x) 
+        x = np.atleast_2d(x)
 
         assert x.shape[1] == self.lower_bound.shape[0], "size of given sample 'x' is not same as the number of parameters"
 
         if self.options.get_flowfield_data:
             self.options.solver_options["writeSurfaceSolution"] = True
-            self.options.solver_options["writeVolumeSolution"] = True
 
         # Creating and writing a description file
         description = open("{}/description.txt".format(self.options.directory), "a", buffering=1)
-        description.write("---------------------------------------------------")
-        description.write("\nAirfoil sample generation using ADflow")
-        description.write("\n--------------------------------------------------")
-        description.write("\nVariables: {}".format(self.variables))
-        description.write("\nLower bound for design variables:\n{}".format(self.lower_bound))
-        description.write("\nUpper bound for design variables:\n{}".format(self.upper_bound))
-        description.write("\n-----------------------------")
-        description.write("\nAnalysis specific description")
-        description.write("\n-----------------------------")
+
+        if self.samples_generated == 0:
+
+            description.write("---------------------------------------------------")
+            description.write("\nAirfoil sample generation using ADflow")
+            description.write("\n--------------------------------------------------")
+            description.write(f"\nVariables: {self.variables}")
+            description.write(f"\nLower bound for design variables:\n{self.lower_bound}")
+            description.write(f"\nUpper bound for design variables:\n{self.upper_bound}")
+            description.write("\n-----------------------------")
+            description.write("\nAnalysis specific description")
+            description.write("\n-----------------------------")
+
+        if return_results:
+            output = {}
 
         for i in range(x.shape[0]):
 
-            description.write("\nAnalysis {}: ".format(self.samples_generated+1))
+            description.write(f"\nAnalysis {self.samples_generated+1}:")
 
             t1 = time()
 
             try:
-                results = self._run_analysis(x[i,:])
+                self._run_analysis(x[i,:])
 
-            except:
-                description.write("\n -------- Analysis failed ----------".format(self.samples_generated+1))
-                print("Error occured during the analysis, check log file in the respective folder for more details.")
+                if return_results:
+                    output[self.samples_generated+1] = self.read_results(f'{self.options.directory}/{self.samples_generated+1}/output.hdf5')
 
-            else:
+            except Exception as e:
+                description.write(f"\n Error: {e}")
+                description.write(f"\n -------- Analysis failed ----------")
 
-                if results["fail"]:
-                    description.write("\n -------- Analysis failed ----------".format(self.samples_generated+1))
-                    print("Error occured during the analysis, check log file in the respective folder for more details.")
-
-                else:
-                    
-                    if save_results:
-                        savemat("{}/data.mat".format(self.options.directory), results)
-
-                    else:
-                        return results
-
+                if return_results:
+                    output[f"{i}"] = {}
+                    output[f"{i}"]["scalars"] = {"fail": True}
+                
             finally:
-
-                # Writing time taken to file
-                description.write("\nTime taken for analysis: {} min.".format((time()-t1)/60))
+                # Write time taken for analysis to desc file
+                description.write(f"\nTime taken for analysis: {(time()-t1)/60} min.")
 
                 self.samples_generated += 1
 
         description.close() # close the description file
+
+        if return_results:
+            return output
 
     def _run_analysis(self, x: np.ndarray) -> None:
         """
@@ -432,7 +433,8 @@ class AirfoilADflow(BaseProblem):
             "aero_problem": self.options.aero_problem,
             "meshing_options": self.options.meshing_options,
             "refine": self.options.refine,
-            "write_slice_file": self.options.write_slice_file
+            "write_slice_file": self.options.write_slice_file,
+            "get_flowfield_data": self.options.get_flowfield_data
         }
 
         # Adding non-shape DV
