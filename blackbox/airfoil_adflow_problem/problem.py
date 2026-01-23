@@ -42,14 +42,32 @@ class AirfoilADflow(BaseProblem):
         self.parametrization = CST(self.options.airfoil_file, num_cst=[self.options.num_cst_upper, self.options.num_cst_lower])
 
         # Some initializations which will be used later
-        self.variables = []
+        self.parameters = []
         self.mask = np.array([])
         self.bounds = (np.array([]), np.array([]))
         self.samples_generated = 0
 
-    def add_variable(self, name: str, lower_bound: float | np.ndarray, upper_bound: float | np.ndarray) -> None:
+    def add_parameter(self, name: str, lower_bound: float | np.ndarray, upper_bound: float | np.ndarray) -> None:
         """
-            Method for adding a parameters for the airfoil problem
+            Method for adding a parameter for the airfoil problem
+
+            Parameters
+            ----------
+            name: str
+                name of the parameter to be added. It can only be:
+                    * `lower`: lower surface cst coefficients
+                    * `upper`: upper surface cst coefficients
+                    * `alpha`: angle of attack of the flow
+                    * `mach`: mach number of the flow
+                    * `altitude`: altitude
+
+            lower_bound: float or np.ndarray
+                lower bound for the parameter. It should be a 1D numpy array
+                if the parameter is `lower` or `upper`, otherwise a float
+
+            upper_bound: float or np.ndarray
+                upper bound for the parameter. It should be a 1D numpy array
+                if the parameter is `lower` or `upper`, otherwise a float
         """
 
         self._check_variable(name, lower_bound, upper_bound)
@@ -66,7 +84,7 @@ class AirfoilADflow(BaseProblem):
             
         self.bounds = (lb, ub)
         self.mask = np.append(self.mask, mask)
-        self.variables.append(name.lower())
+        self.parameters.append(name.lower())
 
     def __call__(self, x: np.ndarray, return_results: bool = False) -> None | dict:
         """
@@ -85,7 +103,7 @@ class AirfoilADflow(BaseProblem):
                 return the results
         """
 
-        assert len(self.variables) > 0, "add some parameters before running analysis"
+        assert len(self.parameters) > 0, "add some parameters before running analysis"
         assert isinstance(x, np.ndarray), "given sample 'x' should be a numpy array"
 
         x = np.atleast_2d(x)
@@ -103,7 +121,7 @@ class AirfoilADflow(BaseProblem):
             description.write("---------------------------------------------------")
             description.write("\nAirfoil sample generation using ADflow")
             description.write("\n--------------------------------------------------")
-            description.write(f"\nVariables: {self.variables}")
+            description.write(f"\nVariables: {self.parameters}")
             description.write(f"\nLower bound for design variables:\n{self.bounds[0]}")
             description.write(f"\nUpper bound for design variables:\n{self.bounds[1]}")
             description.write("\n-----------------------------")
@@ -227,7 +245,7 @@ class AirfoilADflow(BaseProblem):
                 a 1D numpy array representing values for added parameters
         """
 
-        assert len(self.variables) > 0, "add some parameters before running analysis"
+        assert len(self.parameters) > 0, "add some parameters before running analysis"
         assert isinstance(x, np.ndarray) and x.ndim == 1, "given sample 'x' should be a 1D numpy array"
         assert x.shape[0] 
 
@@ -318,17 +336,17 @@ class AirfoilADflow(BaseProblem):
         """
 
         # if no cst variables, then return original coordinates
-        if "upper" not in self.variables and "lower" not in self.variables:
+        if "upper" not in self.parameters and "lower" not in self.parameters:
             return self.parametrization.orig_coords
         
         # upper surface cst coeff
-        if "upper" in self.variables:
+        if "upper" in self.parameters:
             upper_cst_coeff = x[self.mask == "upper"]
         else:
             upper_cst_coeff = self.parametrization.upper_cst
         
         # lower surface cst coeff
-        if "lower" in self.variables:
+        if "lower" in self.parameters:
             lower_cst_coeff = x[self.mask == "lower"]
         else:
             lower_cst_coeff = self.parametrization.lower_cst
@@ -360,20 +378,17 @@ class AirfoilADflow(BaseProblem):
 
         f.close()
 
-    def _plot_airfoil(self, orig_airfoil: np.ndarray, def_airfoil: np.ndarray):
+    def _plot_airfoil(self, orig_airfoil: np.ndarray, def_airfoil: np.ndarray) -> None:
         """
             Method for plotting the base airfoil and the deformed airfoil
 
             Parameters
             ----------
-            plt: matplotlib.pyplot
-                Matplotlib pyplot object.
-            
             orig_airfoil: 2D numpy array
-                Original airfoil coordinates.
+                original airfoil coordinates
 
             def_airfoil: 2D numpy array
-                Deformed airfoil coordinates.
+                deformed airfoil coordinates
         """
 
         import matplotlib.pyplot as plt
@@ -390,7 +405,7 @@ class AirfoilADflow(BaseProblem):
 
         plt.close()
 
-    def _write_surf_mesh(self, coords, filename):
+    def _write_surf_mesh(self, coords: np.ndarray, filename: str) -> None:
         """
             Method to write surface mesh in Plot 3D format (only one element in z direction)
 
@@ -423,14 +438,15 @@ class AirfoilADflow(BaseProblem):
 
         f.close()
 
-    def _create_input_file(self, x:np.ndarray):
+    def _create_input_file(self, x: np.ndarray) -> None:
         """
             Method to create an input file for a specific analysis
+            for a given parameter set
 
             Parameters
             ----------
             x: np.ndarray
-                
+                1D numpy array representing a single set of parameters
         """
 
         # Creating input dict
@@ -444,20 +460,20 @@ class AirfoilADflow(BaseProblem):
         }
 
         # Adding non-shape DV
-        if "alpha" in self.variables:
-            loc = self.mask == "alpha"
-            loc = loc.reshape(-1,)
-            input["alpha"] = x[loc]
+        if "alpha" in self.parameters:
+            mask = self.mask == "alpha"
+            mask = mask.reshape(-1,)
+            input["alpha"] = x[mask]
 
-        if "mach" in self.variables:
-            loc = self.mask == "mach"
-            loc = loc.reshape(-1,)
-            input["mach"] = x[loc]
+        if "mach" in self.parameters:
+            mask = self.mask == "mach"
+            mask = mask.reshape(-1,)
+            input["mach"] = x[mask]
 
-        if "altitude" in self.variables:
-            loc = self.mask == "altitude"
-            loc = loc.reshape(-1,)
-            input["altitude"] = x[loc]
+        if "altitude" in self.parameters:
+            mask = self.mask == "altitude"
+            mask = mask.reshape(-1,)
+            input["altitude"] = x[mask]
 
         # Adding target Cl if alpha is implicit
         if self.options.alpha == "implicit":
@@ -470,35 +486,35 @@ class AirfoilADflow(BaseProblem):
         pickle.dump(input, filehandler)
         filehandler.close()
 
-    def _check_variable(self, name, lower_bound, upper_bound):
+    def _check_variable(self, name: str, lower_bound: float | np.ndarray, upper_bound: float | np.ndarray):
         """
-            Method for validating a given variable before adding it.
+            Method for validating a given parameter before adding it.
 
             Parameters
             ----------
-            name: name of the variable. It can be "upper", "lower", 
+            name: name of the parameter. It can be "upper", "lower", 
                 "alpha", "mach" or "altitude"
 
-            lb: lower bound of the variable
+            lb: lower bound of the parameter
 
-            ub: upper bound of the variable
+            ub: upper bound of the parameter
         """
 
-        # List of possible DVs
-        valid_variables = ["upper", "lower", "alpha", "mach", "altitude"]
+        # List of possible parameters
+        valid_parameters = ["upper", "lower", "alpha", "mach", "altitude"]
 
-        # Validating name of the DV
+        # Validating name of the parameter
         assert isinstance(name, str), "'name' argument must be a string"
 
-        assert name.lower() in valid_variables, f"'{name}' is not a valid varaible"
+        assert name.lower() in valid_parameters, f"'{name}' is not a valid parameter"
 
-        assert name.lower() not in self.variables, f"'{name}' is already added as a variable"
+        assert name.lower() not in self.parameters, f"'{name}' is already added as a parameter"
 
         if name.lower() == "alpha":
-            assert self.options.alpha == "explicit", "'alpha' cannot be a design variable when \"alpha\" attribute in options is 'implicit'"
+            assert self.options.alpha == "explicit", "'alpha' cannot be a parameter when \"alpha\" attribute in options is 'implicit'"
 
         if name.lower() in ["mach", "altitude"]:
-            assert name.lower() in self.options.aero_problem.inputs.keys(), f"initialize '{name}' in the aero problem to set it as design variable"
+            assert name.lower() in self.options.aero_problem.inputs.keys(), f"initialize '{name}' in the aero problem to set it as parameter"
 
         # Validating bounds
         for bound in [lower_bound, upper_bound]:
