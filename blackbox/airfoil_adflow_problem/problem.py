@@ -44,8 +44,7 @@ class AirfoilADflow(BaseProblem):
         # Some initializations which will be used later
         self.variables = []
         self.mask = np.array([])
-        self.lower_bound = np.array([])
-        self.upper_bound = np.array([])
+        self.bounds = (np.array([]), np.array([]))
         self.samples_generated = 0
 
     def add_variable(self, name: str, lower_bound: float | np.ndarray, upper_bound: float | np.ndarray) -> None:
@@ -56,17 +55,17 @@ class AirfoilADflow(BaseProblem):
         self._check_variable(name, lower_bound, upper_bound)
 
         if name.lower() in ["upper", "lower"]:
-
-            self.upper_bound = np.append(self.upper_bound, upper_bound)
-            self.lower_bound = np.append(self.lower_bound, lower_bound)
-            self.mask = np.append(self.mask, np.array( [f"{name.lower()}"] * len(lower_bound) ))
+            mask = [f"{name.lower()}"] * len(lower_bound)
+            lb = np.append(self.bounds[0], lower_bound)
+            ub = np.append(self.bounds[1], upper_bound)
 
         else:
-
-            self.upper_bound = np.append(self.upper_bound, np.array([upper_bound]))
-            self.lower_bound = np.append(self.lower_bound, np.array([lower_bound]))
-            self.mask = np.append(self.mask, np.array([f"{name.lower()}"]))
-
+            mask = [f"{name.lower()}"]
+            lb = np.append(self.bounds[0], np.array([lower_bound]))
+            ub = np.append(self.bounds[1], np.array([upper_bound]))
+            
+        self.bounds = (lb, ub)
+        self.mask = np.append(self.mask, mask)
         self.variables.append(name.lower())
 
     def __call__(self, x: np.ndarray, return_results: bool = False) -> None | dict[int, dict[str, dict[str, ]]]:
@@ -91,7 +90,7 @@ class AirfoilADflow(BaseProblem):
 
         x = np.atleast_2d(x)
 
-        assert x.shape[1] == self.lower_bound.shape[0], "size of given sample 'x' is not same as the number of parameters"
+        assert x.shape[1] == self.bounds[0].shape[0], "size of given sample 'x' is not same as the number of parameters"
 
         if self.options.get_flowfield_data:
             self.options.solver_options["writeSurfaceSolution"] = True
@@ -105,8 +104,8 @@ class AirfoilADflow(BaseProblem):
             description.write("\nAirfoil sample generation using ADflow")
             description.write("\n--------------------------------------------------")
             description.write(f"\nVariables: {self.variables}")
-            description.write(f"\nLower bound for design variables:\n{self.lower_bound}")
-            description.write(f"\nUpper bound for design variables:\n{self.upper_bound}")
+            description.write(f"\nLower bound for design variables:\n{self.bounds[0]}")
+            description.write(f"\nUpper bound for design variables:\n{self.bounds[1]}")
             description.write("\n-----------------------------")
             description.write("\nAnalysis specific description")
             description.write("\n-----------------------------")
