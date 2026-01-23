@@ -55,8 +55,8 @@ class AirfoilADflow(BaseProblem):
             ----------
             name: str
                 name of the parameter to be added. It can only be:
-                    * `lower`: lower surface cst coefficients
-                    * `upper`: upper surface cst coefficients
+                    * `lower_cst`: lower surface cst coefficients
+                    * `upper_cst`: upper surface cst coefficients
                     * `alpha`: angle of attack of the flow
                     * `mach`: mach number of the flow
                     * `altitude`: altitude
@@ -72,7 +72,7 @@ class AirfoilADflow(BaseProblem):
 
         self._check_variable(name, lower_bound, upper_bound)
 
-        if name.lower() in ["upper", "lower"]:
+        if name.lower() in ["upper_cst", "lower_cst"]:
             mask = [f"{name.lower()}"] * len(lower_bound)
             lb = np.append(self.bounds[0], lower_bound)
             ub = np.append(self.bounds[1], upper_bound)
@@ -336,18 +336,18 @@ class AirfoilADflow(BaseProblem):
         """
 
         # if no cst variables, then return original coordinates
-        if "upper" not in self.parameters and "lower" not in self.parameters:
+        if "upper_cst" not in self.parameters and "lower_cst" not in self.parameters:
             return self.parametrization.orig_coords
         
         # upper surface cst coeff
-        if "upper" in self.parameters:
-            upper_cst_coeff = x[self.mask == "upper"]
+        if "upper_cst" in self.parameters:
+            upper_cst_coeff = x[self.mask == "upper_cst"]
         else:
             upper_cst_coeff = self.parametrization.upper_cst
         
         # lower surface cst coeff
-        if "lower" in self.parameters:
-            lower_cst_coeff = x[self.mask == "lower"]
+        if "lower_cst" in self.parameters:
+            lower_cst_coeff = x[self.mask == "lower_cst"]
         else:
             lower_cst_coeff = self.parametrization.lower_cst
 
@@ -492,7 +492,7 @@ class AirfoilADflow(BaseProblem):
 
             Parameters
             ----------
-            name: name of the parameter. It can be "upper", "lower", 
+            name: name of the parameter. It can be "upper_cst", "lower_cst", 
                 "alpha", "mach" or "altitude"
 
             lb: lower bound of the parameter
@@ -501,7 +501,7 @@ class AirfoilADflow(BaseProblem):
         """
 
         # List of possible parameters
-        valid_parameters = ["upper", "lower", "alpha", "mach", "altitude"]
+        valid_parameters = ["upper_cst", "lower_cst", "alpha", "mach", "altitude"]
 
         # Validating name of the parameter
         assert isinstance(name, str), "'name' argument must be a string"
@@ -518,16 +518,16 @@ class AirfoilADflow(BaseProblem):
 
         # Validating bounds
         for bound in [lower_bound, upper_bound]:
-            if name.lower() in ["upper", "lower"]:
-                assert isinstance(bound, np.ndarray) and bound.ndim == 1, f"lower and upper bound should be a 1D numpy array if name is 'lower' or 'upper"
-                assert np.all(upper_bound > lower_bound), "upper bound should be greater than lower bound"
+            if name.lower() in ["upper_cst", "lower_cst"]:
+                assert isinstance(bound, np.ndarray) and bound.ndim == 1, f"lower and upper bound should be a 1D numpy array if name is 'lower_cst' or 'upper_cst'"
             else:
                 assert isinstance(bound, float), f"lower and upper bound should be float if name is 'alpha', 'mach' or 'altitude'"
-                assert upper_bound > lower_bound, "upper bound should be greater than lower bound"
             
         # Validating shape of bounds
-        if name.lower() == "upper":
-            assert upper_bound.shape[0] == lower_bound.shape[0] == self.options.num_cst_upper, "length of upper and lower bound is not same as the number of CST coefficiet for upper surface"
+        if name.lower() == "upper_cst":
+            assert upper_bound.shape[0] == lower_bound.shape[0] == self.options.num_cst_upper, "length of upper and/or lower bound is not same as the number of CST coefficiets for upper surface"
 
-        if name.lower() == "lower":
-            assert upper_bound.shape[0] == lower_bound.shape[0] == self.options.num_cst_lower, "length of upper and lower bound is not same as the number of CST coefficiet for lower surface"
+        if name.lower() == "lower_cst":
+            assert upper_bound.shape[0] == lower_bound.shape[0] == self.options.num_cst_lower, "length of upper and/or lower bound is not same as the number of CST coefficiets for lower surface"
+
+        assert np.all(upper_bound > lower_bound), "upper bound should be greater than lower bound"
