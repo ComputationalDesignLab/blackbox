@@ -258,11 +258,7 @@ class AirfoilADflow(BaseProblem):
 
         # Getting the directory where package is saved
         pkgdir = sys.modules["blackbox"].__path__[0]
-
-        if self.options.alpha == "explicit":
-            filepath = os.path.join(pkgdir, "airfoil_adflow_problem/runscript.py")
-        else:
-            filepath = os.path.join(pkgdir, "airfoil_adflow_problem/runscript_solve_cl.py")
+        filepath = os.path.join(pkgdir, "airfoil_adflow_problem/runscript.py")
 
         # Copy the runscript to analysis directory
         os.system(f"cp {filepath} {directory}/{self.samples_generated + 1}/runscript.py")
@@ -311,7 +307,7 @@ class AirfoilADflow(BaseProblem):
         finally:
 
             # Cleaning the directory
-            files = ["vol_mesh.cgns", "input.pickle", "runscript.py", "output.pickle", "fort.6", "opt.hst", "surfMesh.xyz"] 
+            files = ["vol_mesh.cgns", "input.pickle", "runscript.py", "surf_mesh.xyz"] 
             
             for file in files:
                 if os.path.exists(file):
@@ -456,7 +452,11 @@ class AirfoilADflow(BaseProblem):
             "meshing_options": self.options.meshing_options,
             "refine": self.options.refine,
             "write_slice_file": self.options.write_slice_file,
-            "get_flowfield_data": self.options.get_flowfield_data
+            "get_flowfield_data": self.options.get_flowfield_data,
+            "alpha_type": self.options.alpha,
+            "target_CL": self.options.target_CL,
+            "target_CL_tol": self.options.target_CL_tol,
+            "starting_alpha": self.options.starting_alpha
         }
 
         # Adding non-shape DV
@@ -474,12 +474,6 @@ class AirfoilADflow(BaseProblem):
             mask = self.mask == "reynolds"
             mask = mask.reshape(-1,)
             input["reynolds"] = x[mask]
-
-        # Adding target Cl if alpha is implicit
-        if self.options.alpha == "implicit":
-            input["target_CL"] = self.options.target_CL
-            input["target_CL_tol"] = self.options.target_CL_tol
-            input["starting_alpha"] = self.options.starting_alpha
 
         # Saving the input file
         filehandler = open("input.pickle", "xb")

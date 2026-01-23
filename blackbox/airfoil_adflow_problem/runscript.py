@@ -35,6 +35,10 @@ try:
     refine = input["refine"]
     slice = input["write_slice_file"]
     get_flowfield_data = input["get_flowfield_data"]
+    alpha_type = input["alpha_type"]
+    CL_target = input["target_CL"]
+    target_CL_tol = input["target_CL_tol"]
+    starting_alpha = input["starting_alpha"]
 
     # Assigning non-shape DVs
     if "alpha" in input.keys():
@@ -107,12 +111,24 @@ try:
         CFDSolver.addSlices("z", 0.5, sliceType="absolute")
 
     ############## Run CFD
-    CFDSolver(ap)
 
-    ############## Evaluating objectives
-    funcs = {}
-    CFDSolver.evalFunctions(ap, funcs)
-    CFDSolver.checkSolutionFailure(ap, funcs)
+    if alpha_type == "explicit":
+
+        CFDSolver(ap)
+
+        ############## Evaluating objectives
+        funcs = {}
+        CFDSolver.evalFunctions(ap, funcs)
+        CFDSolver.checkSolutionFailure(ap, funcs)
+        
+    elif alpha_type == "implicit":
+
+        ############## Run CFD
+        itr_results = CFDSolver.solveCL(ap, CLStar=CL_target, alpha0=starting_alpha, delta=0.2, tol=target_CL_tol, autoReset=False, maxIter=8, writeSolution=True)
+
+        ############## Evaluating objectives
+        funcs = {}
+        CFDSolver.evalFunctions(ap, funcs)
 
     ############# Post-processing
 
@@ -129,7 +145,10 @@ try:
 
         scalars = f.create_group("scalars")
 
-        scalars.attrs["fail"] = funcs["fail"]
+        if alpha_type == "explicit":
+            scalars.attrs["fail"] = funcs["fail"]
+        elif alpha_type == "implicit":
+            scalars.attrs["fail"] = not itr_results["converged"]
 
         # Printing and storing results based on evalFuncs in aero problem
         for obj in ap.evalFuncs:
