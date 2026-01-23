@@ -59,7 +59,7 @@ class AirfoilADflow(BaseProblem):
                     * `upper_cst`: upper surface cst coefficients
                     * `alpha`: angle of attack of the flow
                     * `mach`: mach number of the flow
-                    * `altitude`: altitude
+                    * `reynolds`: reynolds number for the flow
 
             lower_bound: float or np.ndarray
                 lower bound for the parameter. It should be a 1D numpy array
@@ -470,10 +470,10 @@ class AirfoilADflow(BaseProblem):
             mask = mask.reshape(-1,)
             input["mach"] = x[mask]
 
-        if "altitude" in self.parameters:
-            mask = self.mask == "altitude"
+        if "reynolds" in self.parameters:
+            mask = self.mask == "reynolds"
             mask = mask.reshape(-1,)
-            input["altitude"] = x[mask]
+            input["reynolds"] = x[mask]
 
         # Adding target Cl if alpha is implicit
         if self.options.alpha == "implicit":
@@ -493,7 +493,7 @@ class AirfoilADflow(BaseProblem):
             Parameters
             ----------
             name: name of the parameter. It can be "upper_cst", "lower_cst", 
-                "alpha", "mach" or "altitude"
+                "alpha", "mach" or "reynolds"
 
             lb: lower bound of the parameter
 
@@ -501,7 +501,7 @@ class AirfoilADflow(BaseProblem):
         """
 
         # List of possible parameters
-        valid_parameters = ["upper_cst", "lower_cst", "alpha", "mach", "altitude"]
+        valid_parameters = ["upper_cst", "lower_cst", "alpha", "mach", "reynolds"]
 
         # Validating name of the parameter
         assert isinstance(name, str), "'name' argument must be a string"
@@ -513,7 +513,7 @@ class AirfoilADflow(BaseProblem):
         if name.lower() == "alpha":
             assert self.options.alpha == "explicit", "'alpha' cannot be a parameter when \"alpha\" attribute in options is 'implicit'"
 
-        if name.lower() in ["mach", "altitude"]:
+        if name.lower() in ["mach", "reynolds"]:
             assert name.lower() in self.options.aero_problem.inputs.keys(), f"initialize '{name}' in the aero problem to set it as parameter"
 
         # Validating bounds
@@ -521,7 +521,7 @@ class AirfoilADflow(BaseProblem):
             if name.lower() in ["upper_cst", "lower_cst"]:
                 assert isinstance(bound, np.ndarray) and bound.ndim == 1, f"lower and upper bound should be a 1D numpy array if name is 'lower_cst' or 'upper_cst'"
             else:
-                assert isinstance(bound, float), f"lower and upper bound should be float if name is 'alpha', 'mach' or 'altitude'"
+                assert isinstance(bound, float), f"lower and upper bound should be float if name is 'alpha', 'mach' or 'reynolds'"
             
         # Validating shape of bounds
         if name.lower() == "upper_cst":

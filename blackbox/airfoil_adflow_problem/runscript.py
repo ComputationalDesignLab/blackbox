@@ -43,8 +43,8 @@ try:
     if "mach" in input.keys():
         ap.mach = input["mach"][0]
 
-    if "altitude" in input.keys():
-        ap.altitude = input["altitude"][0]
+    if "reynolds" in input.keys():
+        ap.reynolds = input["reynolds"][0]
 
     # Getting solver and meshing options from input file
     solverOptions = input["solver_options"]
