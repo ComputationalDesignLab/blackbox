@@ -11,7 +11,7 @@ comm = MPI.COMM_WORLD
 
 class AirfoilADflow(BaseProblem):
 
-    def __init__(self, options: AirfoilADflowOptions):
+    def __init__(self, options: AirfoilADflowOptions) -> None:
         """
             Class for performing airfoil analysis using ADflow solver
             
@@ -68,7 +68,7 @@ class AirfoilADflow(BaseProblem):
         self.mask = np.append(self.mask, mask)
         self.variables.append(name.lower())
 
-    def __call__(self, x: np.ndarray, return_results: bool = False) -> None | dict[int, dict[str, dict[str, ]]]:
+    def __call__(self, x: np.ndarray, return_results: bool = False) -> None | dict:
         """
             Method to evaluate given x. It can be a single or multiple samples of
             size (d,) or (N,d) where N is the number of samples and d is the number of
@@ -144,6 +144,79 @@ class AirfoilADflow(BaseProblem):
         if return_results:
             return output
 
+    def calculate_area(self, x: np.ndarray) -> float:
+        """
+            Method to calculate the area of an airfoil shape based on given parameters
+
+            Parameters
+            ----------
+            x: 1D numpy array
+                design variable
+
+            Returns
+            -------
+            area: float
+                set of parameters based on which airfoil area will be computed
+        """
+
+        # Getting the updated airfoil points
+        points = self._get_airfoil(x)
+
+        x = points[:,0]
+        y = points[:,1]
+
+        area = 0.0
+        N = len(x)
+        j = N - 1
+        for i in range(0,N):
+            area += (x[j] + x[i]) * (y[j] - y[i])
+            j = i
+        area = abs(area)/2.0
+
+        return area
+    
+    def read_results(self, filename: str) -> dict:
+        """
+            Method to read a HDF5 file containing results from an
+            airfoil analysis and convert it to a dictionary which can be used later
+
+            Parameters
+            ----------
+            filename: str
+                name of the HDF5 file
+
+            Returns
+            -------
+                out: a dictionary containing data stored in HDF5 file
+        """
+
+        assert isinstance(filename, str), "file name should be a string"
+
+        output = {}
+
+        # read the output hdf5 file
+        f = h5py.File(filename,'r')
+
+        for key in list(f.keys()):
+
+            if key == "scalars":
+                output[key] = {}
+                for k, v in f[key].attrs.items():
+                    output[key][k] = v
+
+            elif key == "fields":
+                output[key] = {}
+                for k in list(f[key].keys()):
+                    output[key][k] = f[key][k][()]
+
+        f.close()
+
+        return output
+    
+    ###########################################################
+    ######### Below methods are for internal use only #########
+    ###########################################################
+    
     def _run_analysis(self, x: np.ndarray) -> None:
         """
             Method to evaluate a given set of parameters
@@ -228,75 +301,6 @@ class AirfoilADflow(BaseProblem):
 
             # Changing the directory back to root
             os.chdir("../..")
-
-    def calculate_area(self, x: np.ndarray) -> float:
-        """
-            Method to calculate the area of an airfoil shape based on given parameters
-
-            Parameters
-            ----------
-            x: 1D numpy array
-                design variable
-
-            Returns
-            -------
-            area: float
-                set of parameters based on which airfoil area will be computed
-        """
-
-        # Getting the updated airfoil points
-        points = self._get_airfoil(x)
-
-        x = points[:,0]
-        y = points[:,1]
-
-        area = 0.0
-        N = len(x)
-        j = N - 1
-        for i in range(0,N):
-            area += (x[j] + x[i]) * (y[j] - y[i])
-            j = i
-        area = abs(area)/2.0
-
-        return area
-    
-    def read_results(self, filename: str) -> dict:
-        """
-            Method to read a HDF5 file containing results from an
-            airfoil analysis and convert it to a dictionary which can be used later
-
-            Parameters
-            ----------
-            filename: str
-                name of the HDF5 file
-
-            Returns
-            -------
-                out: a dictionary containing data stored in HDF5 file
-        """
-
-        assert isinstance(filename, str), "file name should be a string"
-
-        output = {}
-
-        # read the output hdf5 file
-        f = h5py.File(filename,'r')
-
-        for key in list(f.keys()):
-
-            if key == "scalars":
-                output[key] = {}
-                for k, v in f[key].attrs.items():
-                    output[key][k] = v
-
-            elif key == "fields":
-                output[key] = {}
-                for k in list(f[key].keys()):
-                    output[key][k] = f[key][k][()]
-
-        f.close()
-
-        return output
 
     def _get_airfoil(self, x: np.ndarray) -> np.ndarray:
         """
