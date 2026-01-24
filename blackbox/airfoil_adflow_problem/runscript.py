@@ -34,7 +34,8 @@ try:
     ap = input["aero_problem"]
     refine = input["refine"]
     slice = input["write_slice_file"]
-    get_flowfield_data = input["get_flowfield_data"]
+    scalar_output = input["scalar_output"]
+    surface_output = input["surface_output"]
     alpha_type = input["alpha_type"]
     CL_target = input["target_CL"]
     target_CL_tol = input["target_CL_tol"]
@@ -118,7 +119,7 @@ try:
 
         ############## Evaluating objectives
         funcs = {}
-        CFDSolver.evalFunctions(ap, funcs)
+        CFDSolver.evalFunctions(ap, funcs, evalFuncs=scalar_output)
         CFDSolver.checkSolutionFailure(ap, funcs)
         
     elif alpha_type == "implicit":
@@ -128,17 +129,25 @@ try:
 
         ############## Evaluating objectives
         funcs = {}
-        CFDSolver.evalFunctions(ap, funcs)
+        CFDSolver.evalFunctions(ap, funcs, evalFuncs=scalar_output)
+
+    CFDSolver.writeSurfaceSolutionFile("surface.cgns")
 
     ############# Post-processing
 
     # printing the result
     if comm.rank == 0:
+
         print("")
         print("#" + "-"*129 + "#")
         print(" "*59 + "Result" + ""*59)
         print("#" + "-"*129 + "#")
         print("")
+
+        # rename the pitching moment and change the sign
+        funcs[f"{ap.name}_cm"] = -funcs.pop(f"{ap.name}_cmz") 
+        scalar_output.remove("cmz")
+        scalar_output.append("cm")
 
         # Storing the results in output file
         f = h5py.File('output.hdf5','w')
@@ -151,30 +160,23 @@ try:
             scalars.attrs["fail"] = not itr_results["converged"]
 
         # Printing and storing results based on evalFuncs in aero problem
-        for obj in ap.evalFuncs:
-            
+        for obj in scalar_output:
             print("{} = ".format(obj), funcs["{}_{}".format(ap.name, obj)])
-
             scalars.attrs[f"{obj}"] = funcs["{}_{}".format(ap.name, obj)]
-            
-        if get_flowfield_data:
 
-            field_group = f.create_group("fields")
+        # Write field data
+        field_group = f.create_group("fields")
+        reader = pyvista.CGNSReader("surface.cgns")
+        reader.load_boundary_patch = False
+        ds = reader.read() # read the mesh
+        str_grid = ds[0][0] # get the base-block
 
-            reader = pyvista.CGNSReader(f"{ap.name}_surf.cgns")
-            
-            reader.load_boundary_patch = False
+        # Extract the surface variables from cgns file
+        for var_name in set(ds[0][0].array_names):
+            if var_name != "Base/Zone" and var_name != "mach":
+                field_group.create_dataset(var_name.lower(), data=np.asarray(ds[0][0][var_name]))
 
-            ds = reader.read() # read the mesh
-
-            str_grid = ds[0][0] # get the base-block
-
-            for var_name in set(ds[0][0].array_names):
-                if var_name != "Base/Zone":
-                    field_group.create_dataset(var_name.lower(), data=np.asarray(ds[0][0][var_name]))
-
-            if solverOptions["writeSurfaceSolution"]:
-                os.system(f"rm {ap.name}_surf.cgns")
+        os.system("rm surface.cgns")
 
         f.close()
 

@@ -110,9 +110,6 @@ class AirfoilADflow(BaseProblem):
 
         assert x.shape[1] == self.bounds[0].shape[0], "size of given sample 'x' is not same as the number of parameters"
 
-        if self.options.get_flowfield_data:
-            self.options.solver_options["writeSurfaceSolution"] = True
-
         # Creating and writing a description file
         description = open("{}/description.txt".format(self.options.directory), "a", buffering=1)
 
@@ -153,7 +150,7 @@ class AirfoilADflow(BaseProblem):
                 
             finally:
                 # Write time taken for analysis to desc file
-                description.write(f"\nTime taken for analysis: {(time()-t1)/60} min.")
+                description.write(f"\nTime taken for analysis: {(time()-t1)/60} min.\n")
 
                 self.samples_generated += 1
 
@@ -452,7 +449,8 @@ class AirfoilADflow(BaseProblem):
             "meshing_options": self.options.meshing_options,
             "refine": self.options.refine,
             "write_slice_file": self.options.write_slice_file,
-            "get_flowfield_data": self.options.get_flowfield_data,
+            "scalar_output": self.options.scalar_output,
+            "surface_output": self.options.surface_output,
             "alpha_type": self.options.alpha,
             "target_CL": self.options.target_CL,
             "target_CL_tol": self.options.target_CL_tol,
