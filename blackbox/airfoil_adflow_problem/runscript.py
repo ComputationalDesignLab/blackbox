@@ -145,9 +145,10 @@ try:
         print("")
 
         # rename the pitching moment and change the sign
-        funcs[f"{ap.name}_cm"] = -funcs.pop(f"{ap.name}_cmz") 
-        scalar_output.remove("cmz")
-        scalar_output.append("cm")
+        if f"{ap.name}_cmz" in funcs.keys():
+            funcs[f"{ap.name}_cm"] = -funcs.pop(f"{ap.name}_cmz") 
+            scalar_output.remove("cmz")
+            scalar_output.append("cm")
 
         # Storing the results in output file
         f = h5py.File('output.hdf5','w')
