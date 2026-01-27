@@ -1,7 +1,7 @@
 ############# Script file for running airfoil analysis.
 
 # Imports
-import pickle, os, h5py
+import pickle, os, h5py, json
 from mpi4py import MPI
 from adflow import ADFLOW
 from pyhyp import pyHyp
@@ -30,12 +30,12 @@ try:
     input = pickle.load(filehandler)
     filehandler.close()
 
-    # Getting aero problem from input file
+    # Getting some options
     ap = input["aero_problem"]
     refine = input["refine"]
-    slice = input["write_slice_file"]
-    scalar_output = input["scalar_output"]
-    surface_output = input["surface_output"]
+    scalar_outputs = input["scalar_outputs"]
+
+    # implicit/explicit alpha options
     alpha_type = input["alpha_type"]
     CL_target = input["target_CL"]
     target_CL_tol = input["target_CL_tol"]
@@ -54,7 +54,6 @@ try:
     # Getting solver and meshing options from input file
     solverOptions = input["solver_options"]
     solverOptions["gridFile"] = "vol_mesh.cgns"
-    solverOptions["liftindex"] = 2 # Always 2 since meshing is done internally
 
     meshingOptions = input["meshing_options"]
     meshingOptions["inputFile"] = "surf_mesh.xyz"
@@ -108,35 +107,50 @@ try:
     CFDSolver = ADFLOW(options=solverOptions, comm=comm)
 
     # Adding pressure distribution output
-    if slice:
+    if input["write_slice_file"]:
         CFDSolver.addSlices("z", 0.5, sliceType="absolute")
 
     ############## Run CFD
 
-    if alpha_type == "explicit":
+    if input["alpha_type"] == "explicit":
 
         CFDSolver(ap)
 
-        ############## Evaluating objectives
+        # Evaluating objectives
         funcs = {}
-        CFDSolver.evalFunctions(ap, funcs, evalFuncs=scalar_output)
+        CFDSolver.evalFunctions(ap, funcs, evalFuncs=scalar_outputs)
         CFDSolver.checkSolutionFailure(ap, funcs)
         
-    elif alpha_type == "implicit":
+    elif input["alpha_type"] == "implicit":
 
-        ############## Run CFD
-        itr_results = CFDSolver.solveCL(ap, CLStar=CL_target, alpha0=starting_alpha, delta=0.2, tol=target_CL_tol, autoReset=False, maxIter=8, writeSolution=True)
+        # Run CFD
+        itr_results = CFDSolver.solveCL(ap, CLStar=CL_target, alpha0=input["starting_alpha"], delta=0.2, tol=input["target_CL_tol"], autoReset=False, maxIter=8, writeSolution=True)
 
-        ############## Evaluating objectives
+        # Evaluating objectives
         funcs = {}
-        CFDSolver.evalFunctions(ap, funcs, evalFuncs=scalar_output)
+        CFDSolver.evalFunctions(ap, funcs, evalFuncs=scalar_outputs)
 
-    CFDSolver.writeSurfaceSolutionFile("surface.cgns")
-
-    ############# Post-processing
-
-    # printing the result
+    ############## post-processing
+    
     if comm.rank == 0:
+
+        if alpha_type == "implicit":
+            funcs["fail"] = not itr_results["converged"]
+
+        # rename the pitching moment and change the sign
+        if f"{ap.name}_cmz" in funcs.keys():
+            funcs[f"{ap.name}_cm"] = -funcs.pop(f"{ap.name}_cmz")
+
+        # remove ap name from keys
+        funcs = {
+            k[3:] if k.startswith("ap_") else k: v
+            for k, v in funcs.items()
+        }
+
+        # dumpy the scalar outputs to json file
+        with open("scalar_outputs.json", "w") as fp:
+            json.dump(funcs, fp, indent=4)
+        fp.close()
 
         print("")
         print("#" + "-"*129 + "#")
@@ -144,42 +158,33 @@ try:
         print("#" + "-"*129 + "#")
         print("")
 
-        # rename the pitching moment and change the sign
-        if f"{ap.name}_cmz" in funcs.keys():
-            funcs[f"{ap.name}_cm"] = -funcs.pop(f"{ap.name}_cmz") 
-            scalar_output.remove("cmz")
-            scalar_output.append("cm")
-
-        # Storing the results in output file
-        f = h5py.File('output.hdf5','w')
-
-        scalars = f.create_group("scalars")
-
-        if alpha_type == "explicit":
-            scalars.attrs["fail"] = funcs["fail"]
-        elif alpha_type == "implicit":
-            scalars.attrs["fail"] = not itr_results["converged"]
-
         # Printing and storing results based on evalFuncs in aero problem
-        for obj in scalar_output:
-            print("{} = ".format(obj), funcs["{}_{}".format(ap.name, obj)])
-            scalars.attrs[f"{obj}"] = funcs["{}_{}".format(ap.name, obj)]
+        for key, value in funcs.items():
+            print(f"{key} = {value}")
 
-        # Write field data
-        field_group = f.create_group("fields")
-        reader = pyvista.CGNSReader("surface.cgns")
-        reader.load_boundary_patch = False
-        ds = reader.read() # read the mesh
-        str_grid = ds[0][0] # get the base-block
+        if solverOptions["writeSurfaceSolution"] or solverOptions["writeVolumeSolution"]:
 
-        # Extract the surface variables from cgns file
-        for var_name in set(ds[0][0].array_names):
-            if var_name != "Base/Zone" and var_name != "mach":
-                field_group.create_dataset(var_name.lower(), data=np.asarray(ds[0][0][var_name]))
+            # Storing the results in output file
+            f = h5py.File('field_outputs.hdf5','w')
 
-        os.system("rm surface.cgns")
+            for field_type, fname in zip(["surface", "volume"], [f"{ap.name}_surf.cgns", f"{ap.name}_vol.cgns"]):
 
-        f.close()
+                if os.path.exists(fname):
+
+                    # Write field data
+                    field_group = f.create_group(field_type)
+                    
+                    reader = pyvista.CGNSReader(fname)
+                    reader.load_boundary_patch = False
+                    ds = reader.read() # read the mesh
+                    str_grid = ds[0][0] # get the base-block
+
+                    # Extract the surface variables from cgns file
+                    for var_name in set(ds[0][0].array_names[2:]): # ignore first two entires
+                        if var_name != "Base/Zone" and var_name != "mach":
+                            field_group.create_dataset(var_name.lower(), data=np.asarray(ds[0][0][var_name]))
+
+            f.close()
 
         # Redirecting to original stdout
         os.dup2(stdout, 1)
