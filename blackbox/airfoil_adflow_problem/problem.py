@@ -1,4 +1,4 @@
-import os, sys, pickle, psutil, h5py
+import os, sys, pickle, psutil, h5py, json
 import numpy as np
 from mpi4py import MPI
 from time import time
@@ -116,7 +116,7 @@ class AirfoilADflow(BaseProblem):
         if self.samples_generated == 0:
 
             description.write("---------------------------------------------------")
-            description.write("\nAirfoil sample generation using ADflow")
+            description.write("\nAirfoil analysis using ADflow")
             description.write("\n--------------------------------------------------")
             description.write(f"\nVariables: {self.parameters}")
             description.write(f"\nLower bound for design variables:\n{self.bounds[0]}")
@@ -273,6 +273,9 @@ class AirfoilADflow(BaseProblem):
 
         # write surface mesh
         self._write_surf_mesh(coords=points, filename="surf_mesh.xyz")
+
+        # write parameters
+        self._write_parameters(x)
 
         # Create input file
         self._create_input_file(x)
@@ -449,8 +452,7 @@ class AirfoilADflow(BaseProblem):
             "meshing_options": self.options.meshing_options,
             "refine": self.options.refine,
             "write_slice_file": self.options.write_slice_file,
-            "scalar_output": self.options.scalar_output,
-            "surface_output": self.options.surface_output,
+            "scalar_outputs": self.options.scalar_outputs,
             "alpha_type": self.options.alpha,
             "target_CL": self.options.target_CL,
             "target_CL_tol": self.options.target_CL_tol,
@@ -477,6 +479,25 @@ class AirfoilADflow(BaseProblem):
         filehandler = open("input.pickle", "xb")
         pickle.dump(input, filehandler)
         filehandler.close()
+
+    def _write_parameters(self, x):
+        """
+            Method to write a set of prameters `x` to a json file
+        """
+
+        assert len(self.parameters) > 0, "add some parameters before calling this method"
+
+        parameters = {}
+        for name in self.parameters:
+            mask = self.mask == name
+            if name == "lower_cst" or name == "upper_cst":
+                parameters[name] = x[mask].tolist()
+            else:
+                parameters[name] = x[mask].item()
+
+        with open("parameters.json", "w") as fp:
+            json.dump(parameters, fp, indent=4)
+        fp.close()
 
     def _check_variable(self, name: str, lower_bound: float | np.ndarray, upper_bound: float | np.ndarray):
         """
