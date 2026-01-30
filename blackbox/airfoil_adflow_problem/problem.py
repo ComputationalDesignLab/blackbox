@@ -100,7 +100,10 @@ class AirfoilADflow(BaseProblem):
             return_results: bool
                 flag to determine if the results should be returned or not.
                 This should be set to True only when you want this function to
-                return the results
+                return the results.
+                
+                `NOTE`: This is only useful when you are doing sequential
+                data generation
         """
 
         assert len(self.parameters) > 0, "add some parameters before running analysis"
@@ -138,7 +141,8 @@ class AirfoilADflow(BaseProblem):
                 self._run_analysis(x[i,:])
 
                 if return_results:
-                    output[self.samples_generated+1] = self.read_results(f'{self.options.directory}/{self.samples_generated+1}/output.hdf5')
+                    output[self.samples_generated+1] = self.read_results(f"{self.options.directory}/{self.samples_generated+1}")
+                    output[self.samples_generated+1]["parameters"] = x[i,:]
 
             except Exception as e:
                 description.write(f"\n Error: {e}")
@@ -146,7 +150,7 @@ class AirfoilADflow(BaseProblem):
 
                 if return_results:
                     output[f"{i}"] = {}
-                    output[f"{i}"]["scalars"] = {"fail": True}
+                    output[f"{i}"]["scalar"] = {"fail": True}
                 
             finally:
                 # Write time taken for analysis to desc file
@@ -190,40 +194,37 @@ class AirfoilADflow(BaseProblem):
 
         return area
     
-    def read_results(self, filename: str) -> dict:
+    def read_results(self, dir_name: str) -> dict:
         """
-            Method to read a HDF5 file containing results from an
+            Method to read scalars.json and field_outputs.hdf5 files containing results from an
             airfoil analysis and convert it to a dictionary which can be used later
 
             Parameters
             ----------
-            filename: str
-                name of the HDF5 file
+            dir_name: str
+                name of directory where the results from the analysis are saved
 
             Returns
             -------
-                out: a dictionary containing data stored in HDF5 file
+                out: a dictionary containing data stored in the folder
         """
 
-        assert isinstance(filename, str), "file name should be a string"
+        assert isinstance(dir_name, str), "file name should be a string"
 
         output = {}
 
-        # read the output hdf5 file
-        f = h5py.File(filename,'r')
+        with open(f"{dir_name}/scalar_outputs.json", "r") as fp:
+            scalar_data = json.load(fp)
+        fp.close()
 
-        for key in list(f.keys()):
+        output["scalar"] = scalar_data
 
-            if key == "scalars":
-                output[key] = {}
-                for k, v in f[key].attrs.items():
-                    output[key][k] = v
-
-            elif key == "fields":
-                output[key] = {}
-                for k in list(f[key].keys()):
-                    output[key][k] = f[key][k][()]
-
+        # read the field outputs hdf5 file
+        f = h5py.File(f"{dir_name}/field_outputs.hdf5", "r")
+        for key in list(f.keys()): # only for reading a group
+            output[key] = {}
+            for k in list(f[key].keys()):
+                output[key][k] = f[key][k][()]
         f.close()
 
         return output
