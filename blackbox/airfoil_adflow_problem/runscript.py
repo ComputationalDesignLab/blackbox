@@ -174,15 +174,19 @@ try:
                     # Write field data
                     field_group = f.create_group(field_type)
                     
-                    reader = pyvista.CGNSReader(fname)
+                    reader = pyvista.CGNSReader(fname) # initialize the CGNS reader
                     reader.load_boundary_patch = False
-                    ds = reader.read() # read the mesh
-                    str_grid = ds[0][0] # get the base-block
+                    dataset = reader.read() # read the cgns file
+                    str_grid = dataset[0][0].cell_data_to_point_data() # get the base-block
+                    point_data = str_grid.point_data # get point data
 
-                    # Extract the surface variables from cgns file
-                    for var_name in set(ds[0][0].array_names[2:]): # ignore first two entires
-                        if var_name != "Base/Zone" and var_name != "mach":
-                            field_group.create_dataset(var_name.lower(), data=np.asarray(ds[0][0][var_name]))
+                    mask = str_grid.points[:,-1] == 0.0 # mask to extract only one face data
+
+                    field_group.create_dataset("MeshPoints", data=np.asarray(str_grid.points[mask,:2])) # write mesh points
+
+                    # store data
+                    for var_name in point_data.keys():
+                        field_group.create_dataset(var_name, data=np.asarray(point_data[var_name][mask]))
 
             f.close()
 
