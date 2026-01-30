@@ -216,16 +216,16 @@ class AirfoilADflow(BaseProblem):
         with open(f"{dir_name}/scalar_outputs.json", "r") as fp:
             scalar_data = json.load(fp)
         fp.close()
-
         output["scalar"] = scalar_data
 
         # read the field outputs hdf5 file
-        f = h5py.File(f"{dir_name}/field_outputs.hdf5", "r")
-        for key in list(f.keys()): # only for reading a group
-            output[key] = {}
-            for k in list(f[key].keys()):
-                output[key][k] = f[key][k][()]
-        f.close()
+        if os.path.exists(f"{dir_name}/field_outputs.hdf5"):
+            f = h5py.File(f"{dir_name}/field_outputs.hdf5", "r")
+            for key in list(f.keys()): # only for reading a group
+                output[key] = {}
+                for k in list(f[key].keys()):
+                    output[key][k] = f[key][k][()]
+            f.close()
 
         return output
     
@@ -273,7 +273,7 @@ class AirfoilADflow(BaseProblem):
             self._plot_airfoil(self.parametrization.orig_coords, points)
 
         # write surface mesh
-        self._write_surf_mesh(coords=points, filename="surf_mesh.xyz")
+        self._write_surf_mesh(coords=points, filename=self.options.meshing_options["inputFile"])
 
         # write parameters
         self._write_parameters(x)

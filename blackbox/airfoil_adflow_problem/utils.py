@@ -80,7 +80,7 @@ class AirfoilADflowOptions:
         self.airfoil_file = os.path.abspath(self.airfoil_file)
         self.directory = os.path.abspath(self.directory)
 
-        # set some solver options
+        # set some solver and mesh options
         self.solver_options["volumeVariables"] = self.volume_outputs
         self.solver_options["surfaceVariables"] = self.surface_outputs
         self.solver_options["writeSurfaceSolution"] = self.write_surface_output
@@ -91,3 +91,5 @@ class AirfoilADflowOptions:
         self.solver_options["outputDirectory"] = "."
         self.solver_options["numberSolutions"] = False
         self.solver_options["printTiming"] = False
+        self.solver_options["gridFile"] = "vol_mesh.cgns"
+        self.meshing_options["inputFile"] = "surf_mesh.xyz"

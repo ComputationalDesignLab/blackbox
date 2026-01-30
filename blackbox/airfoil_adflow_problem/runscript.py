@@ -34,6 +34,8 @@ try:
     ap = input["aero_problem"]
     refine = input["refine"]
     scalar_outputs = input["scalar_outputs"]
+    solverOptions = input["solver_options"]
+    meshingOptions = input["meshing_options"]
 
     # implicit/explicit alpha options
     alpha_type = input["alpha_type"]
@@ -51,13 +53,6 @@ try:
     if "reynolds" in input.keys():
         ap.reynolds = input["reynolds"][0]
 
-    # Getting solver and meshing options from input file
-    solverOptions = input["solver_options"]
-    solverOptions["gridFile"] = "vol_mesh.cgns"
-
-    meshingOptions = input["meshing_options"]
-    meshingOptions["inputFile"] = "surf_mesh.xyz"
-
     ############## Generating mesh
 
     if comm.rank == 0:
@@ -68,7 +63,7 @@ try:
 
     hyp = pyHyp(options=meshingOptions, comm=comm)
     hyp.run()
-    hyp.writeCGNS("vol_mesh.cgns")
+    hyp.writeCGNS(solverOptions["gridFile"])
 
     ############## Refining the mesh
 
@@ -76,7 +71,7 @@ try:
     if comm.rank == 0:
 
         # Read the grid
-        grid = readGrid("vol_mesh.cgns")
+        grid = readGrid(solverOptions["gridFile"])
 
         if refine == 1:
             grid.refine(['i', 'k'])
@@ -89,7 +84,7 @@ try:
             grid.coarsen()
             grid.coarsen()
 
-        grid.writeToCGNS("vol_mesh.cgns")
+        grid.writeToCGNS(solverOptions["gridFile"])
 
     # Wait till root is done with refining/coarse of mesh
     comm.barrier()
@@ -147,7 +142,7 @@ try:
             for k, v in funcs.items()
         }
 
-        # dumpy the scalar outputs to json file
+        # dump the scalar outputs to json file
         with open("scalar_outputs.json", "w") as fp:
             json.dump(funcs, fp, indent=4)
         fp.close()
