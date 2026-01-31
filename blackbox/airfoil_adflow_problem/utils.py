@@ -16,9 +16,20 @@ class AirfoilADflowOptions:
     solver_options: dict
     meshing_options: dict
     aero_problem: AeroProblem = Field(exclude=True)
-    refine: int = 0
-    num_cst_upper: int = 6
-    num_cst_lower: int = 6
+    num_cst_upper: int = Field(default=6)
+    num_cst_lower: int = Field(default=6)
+    
+    # Meshing options
+    mesh_levels: int = Field(default=129, description="number of levels to march from the airfoil surface")
+    initial_offwall_spacing: float = Field(default=1e-6, description="height of the first element from airfoil surface")
+    constant_offwall_layers: int = Field(default=1)
+    marching_distance: float = Field(default=100.0) # 100 times the airfoil chord
+    refine_volume_mesh: int = Field(default=0)
+
+    # Output options
+    scalar_outputs: list[int] = Field(default_factory=lambda: valid_scalar_outputs)
+    surface_outputs: list[int] = Field(default_factory=lambda: valid_surface_outputs)
+    volume_outputs: list[int] = Field(default_factory=lambda: valid_volume_outputs)
 
     # Other options
     directory: str = "output"
@@ -53,8 +64,7 @@ class AirfoilADflowOptions:
         assert self.num_cst_upper > 0, "number of CST coefficients for upper surface should be more than 0"
         assert self.num_cst_lower > 0, "number of CST coefficients for lower surface should be more than 0"
         assert psutil.cpu_count(False) >= self.num_processors + 1, "requested number of processors is more than available processors"
-
-        assert self.refine in [-2,-1,0,1,2], "meshing refine options should be from -2, -1, 0, 1, and 2"
+        assert self.refine_volume_mesh in [-2,-1,0,1,2], "volume mesh refine option should be from -2, -1, 0, 1, and 2"
         assert self.alpha in ["explicit", "implicit"], "option 'alpha' should be 'explicit' or 'implicit'"
 
         # check scalar and surface output list
@@ -92,4 +102,17 @@ class AirfoilADflowOptions:
         self.solver_options["numberSolutions"] = False
         self.solver_options["printTiming"] = False
         self.solver_options["gridFile"] = "vol_mesh.cgns"
-        self.meshing_options["inputFile"] = "surf_mesh.xyz"
+
+        # create meshing options dict
+        self.meshing_options ={
+            "inputFile": "surf_mesh.xyz",
+            "unattachedEdgesAreSymmetry": False,
+            "outerFaceBC": "farfield",
+            "BC": {1: {"jLow": "zSymm", "jHigh": "zSymm"}},
+            "families": "wall",
+            # grid Parameters
+            "N": self.mesh_levels,
+            "s0": self.initial_offwall_spacing,
+            "marchDist": self.marching_distance,
+            "nConstantStart": self.constant_offwall_layers
+        }

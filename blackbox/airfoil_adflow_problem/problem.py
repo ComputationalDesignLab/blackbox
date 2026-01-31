@@ -451,7 +451,7 @@ class AirfoilADflow(BaseProblem):
             "solver_options": self.options.solver_options,
             "aero_problem": self.options.aero_problem,
             "meshing_options": self.options.meshing_options,
-            "refine": self.options.refine,
+            "refine_volume_mesh": self.options.refine_volume_mesh,
             "write_slice_file": self.options.write_slice_file,
             "scalar_outputs": self.options.scalar_outputs,
             "alpha_type": self.options.alpha,

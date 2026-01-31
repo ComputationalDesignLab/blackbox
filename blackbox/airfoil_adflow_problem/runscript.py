@@ -5,7 +5,6 @@ import pickle, os, h5py, json
 from mpi4py import MPI
 from adflow import ADFLOW
 from pyhyp import pyHyp
-from cgnsutilities.cgnsutilities import readGrid
 import pyvista
 import numpy as np
 
@@ -32,7 +31,7 @@ try:
 
     # Getting some options
     ap = input["aero_problem"]
-    refine = input["refine"]
+    refine_volume_mesh = input["refine_volume_mesh"]
     scalar_outputs = input["scalar_outputs"]
     solverOptions = input["solver_options"]
     meshingOptions = input["meshing_options"]
@@ -70,21 +69,21 @@ try:
     # Only one processor has to do this
     if comm.rank == 0:
 
-        # Read the grid
-        grid = readGrid(solverOptions["gridFile"])
+        if refine_volume_mesh != 0:
+            from cgnsutilities.cgnsutilities import readGrid
 
-        if refine == 1:
-            grid.refine(['i', 'k'])
-        if refine == 2:
-            grid.refine(['i', 'k'])
-            grid.refine(['i', 'k'])
-        if refine == -1:
-            grid.coarsen()
-        if refine == -2:
-            grid.coarsen()
-            grid.coarsen()
+            # Read the grid
+            grid = readGrid(solverOptions["gridFile"])
 
-        grid.writeToCGNS(solverOptions["gridFile"])
+            if refine_volume_mesh > 0:
+                for _ in range(refine_volume_mesh):
+                    grid.refine(["i", "k"])
+
+            else:
+                for _ in range(-refine_volume_mesh):
+                    grid.coarsen()
+
+            grid.writeToCGNS(solverOptions["gridFile"])
 
     # Wait till root is done with refining/coarse of mesh
     comm.barrier()
@@ -94,7 +93,7 @@ try:
     if comm.rank == 0:
         print("")
         print("#" + "-"*129 + "#")
-        print(" "*59 + "Analysis Log" + ""*59)
+        print(" "*59 + "Solver Log" + ""*59)
         print("#" + "-"*129 + "#")
         print("")
 
