@@ -1,7 +1,7 @@
 import os, psutil
 from baseclasses import AeroProblem
 from pydantic import BaseModel, ConfigDict, Field, model_validator, computed_field
-from typing import Literal, Optional
+from typing import Literal
 
 class AirfoilADflowOptions(BaseModel):
     """
@@ -180,19 +180,6 @@ class AirfoilADflowOptions(BaseModel):
         """
             Method for validating and setting some options after initialization
         """
-        
-        # check if required packages are available with specific versions
-        if self.plot_airfoil:
-            try:
-                import matplotlib.pyplot
-            except ImportError as e:
-                raise ValueError("`matplotlib` is required when `plot_airfoil=True`") from e
-            
-        if self.write_surface_output or self.write_volume_output:
-            try:
-                import pyvista
-            except ImportError as e:
-                raise ValueError("`pyvista` is required when ``") from e
 
         # set paths
         self.airfoil_file = os.path.abspath(self.airfoil_file)
