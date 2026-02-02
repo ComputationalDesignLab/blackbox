@@ -1,13 +1,10 @@
-import os, sys, pickle, psutil, h5py, json
+import os, sys, pickle, json
 import numpy as np
-from mpi4py import MPI
 from time import time
 
 from .cst import CST
 from .utils import AirfoilADflowOptions
 from ..base_classes.base_problem import BaseProblem
-
-comm = MPI.COMM_WORLD
 
 class AirfoilADflow(BaseProblem):
 
@@ -30,6 +27,41 @@ class AirfoilADflow(BaseProblem):
         assert isinstance(options, AirfoilADflowOptions), "options argument should be an object of AirfoilOptions class"
 
         self.options = options
+
+        # check if required packages are available with specific versions
+        try:
+            from adflow import ADFLOW
+        except:
+            raise RuntimeError(
+                "ADFLOW solver is not installed or can not be imported\n\n"
+                "You can follow the installation guide: https://mdolab-adflow.readthedocs-hosted.com/en/latest/install.html"
+            )
+        
+        try:
+            from pyhyp import pyHyp
+        except:
+            raise RuntimeError(
+                "pyHyp is not installed or can not be imported\n\n"
+                "You can follow the installation guide: https://mdolab-pyhyp.readthedocs-hosted.com/en/latest/install.html"
+            )
+            
+        if self.options.write_surface_output or self.options.write_volume_output:
+            try:
+                import pyvista, h5py
+            except ImportError as e:
+                raise ValueError(
+                    "`pyvista` and `h5py` are not installed, it is required when surface or volume output is set to `True`"
+                    "Run this command to install both these pacages: pip install pyvista h5py"
+                ) from e
+            
+        if self.options.plot_airfoil:
+            try:
+                import matplotlib.pyplot
+            except ImportError as e:
+                raise ValueError(
+                    "`matplotlib` is not installed, it is required when `plot_airfoil=True`"
+                    "Run this command to install matplotlib: pip install matplotlib"
+                ) from e
 
         # Creating directory for storing the results
         if not os.path.isdir(self.options.directory):
@@ -209,6 +241,8 @@ class AirfoilADflow(BaseProblem):
                 out: a dictionary containing data stored in the folder
         """
 
+        import h5py
+
         assert isinstance(dir_name, str), "file name should be a string"
 
         output = {}
@@ -246,6 +280,10 @@ class AirfoilADflow(BaseProblem):
         assert len(self.parameters) > 0, "add some parameters before running analysis"
         assert isinstance(x, np.ndarray) and x.ndim == 1, "given sample 'x' should be a 1D numpy array"
         assert x.shape[0] 
+
+        import psutil
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
 
         print("Running analysis {}".format(self.samples_generated + 1))
 
