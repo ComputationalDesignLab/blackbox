@@ -1,5 +1,6 @@
-import os, sys, pickle, json
+import os, sys, pickle, json, h5py
 import numpy as np
+import pyvista as pv
 from time import time
 from packaging import version
 
@@ -347,6 +348,29 @@ class AirfoilADflow(BaseProblem):
                 for pid in pid_list:
                     if not pid.is_running():
                         pid_list.remove(pid)
+
+            for fname in ["surface", "volume"]:
+
+                if os.path.exists(f"{fname}.cgns"):
+
+                    # Storing the results in output file
+                    f = h5py.File(f'{fname}_outputs.hdf5','w')
+                    
+                    reader = pv.CGNSReader(f"{fname}.cgns") # initialize the CGNS reader
+                    reader.load_boundary_patch = False
+                    dataset = reader.read() # read the cgns file
+                    str_grid = dataset[0][0].cell_data_to_point_data() # get the base-block
+                    point_data = str_grid.point_data # get point data
+
+                    mask = str_grid.points[:,-1] == 0.0 # mask to extract only one face data
+
+                    f.create_dataset("MeshPoints", data=np.asarray(str_grid.points[mask,:2])) # write mesh points
+
+                    # store data
+                    for var_name in point_data.keys():
+                        f.create_dataset(var_name, data=np.asarray(point_data[var_name][mask]))
+
+                    f.close()
 
         except Exception as e: 
             print(e)
