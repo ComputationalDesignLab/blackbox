@@ -1,6 +1,7 @@
 import os, sys, pickle, json
 import numpy as np
 from time import time
+from packaging import version
 
 from .cst import CST
 from .utils import AirfoilADflowOptions
@@ -30,20 +31,28 @@ class AirfoilADflow(BaseProblem):
 
         # check if required packages are available with specific versions
         try:
-            from adflow import ADFLOW
+            import adflow
         except:
             raise RuntimeError(
                 "ADFLOW solver is not installed or can not be imported\n\n"
                 "You can follow the installation guide: https://mdolab-adflow.readthedocs-hosted.com/en/latest/install.html"
             )
+        else:
+            MIN_VERSION = version.parse("2.11.0")
+            CURR_VERSION = version.parse(adflow.__version__)
+            assert CURR_VERSION >= MIN_VERSION, f"ADFlow version is {CURR_VERSION} but minimum {MIN_VERSION} is required"
         
         try:
-            from pyhyp import pyHyp
+            import pyhyp
         except:
             raise RuntimeError(
                 "pyHyp is not installed or can not be imported\n\n"
                 "You can follow the installation guide: https://mdolab-pyhyp.readthedocs-hosted.com/en/latest/install.html"
             )
+        else:
+            MIN_VERSION = version.parse("2.6.0")
+            CURR_VERSION = version.parse(pyhyp.__version__)
+            assert CURR_VERSION >= MIN_VERSION, f"pyHyp version is {CURR_VERSION} but minimum {MIN_VERSION} is required"
             
         if self.options.write_surface_output or self.options.write_volume_output:
             try:
@@ -241,8 +250,6 @@ class AirfoilADflow(BaseProblem):
                 out: a dictionary containing data stored in the folder
         """
 
-        import h5py
-
         assert isinstance(dir_name, str), "file name should be a string"
 
         output = {}
@@ -254,6 +261,7 @@ class AirfoilADflow(BaseProblem):
 
         # read the field outputs hdf5 file
         if os.path.exists(f"{dir_name}/field_outputs.hdf5"):
+            import h5py
             f = h5py.File(f"{dir_name}/field_outputs.hdf5", "r")
             for key in list(f.keys()): # only for reading a group
                 output[key] = {}
