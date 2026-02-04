@@ -260,15 +260,17 @@ class AirfoilADflow(BaseProblem):
         fp.close()
         output["scalar"] = scalar_data
 
-        # read the field outputs hdf5 file
-        if os.path.exists(f"{dir_name}/field_outputs.hdf5"):
-            import h5py
-            f = h5py.File(f"{dir_name}/field_outputs.hdf5", "r")
-            for key in list(f.keys()): # only for reading a group
-                output[key] = {}
-                for k in list(f[key].keys()):
-                    output[key][k] = f[key][k][()]
-            f.close()
+        for fname in ["surface", "volume"]:
+
+            if os.path.exists(f"{dir_name}/{fname}_outputs.hdf5"):
+
+                import h5py
+
+                output[fname] = {}
+                f = h5py.File(f"{dir_name}/{fname}_outputs.hdf5", "r")
+                for key in list(f.keys()): # reading a group containing only 
+                    output[fname][key] = f[key][()]
+                f.close()
 
         return output
     
