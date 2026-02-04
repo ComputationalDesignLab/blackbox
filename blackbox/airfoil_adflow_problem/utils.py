@@ -5,7 +5,7 @@ from typing import Literal
 
 class AirfoilADflowOptions(BaseModel):
     """
-        This class is used to define various settings for running ADflow simulations on airfoil geometries.
+        This class is used to define various settings for running ADflow simulations on airfoil geometries parameterized using CST
     """
 
     model_config = ConfigDict(
@@ -135,9 +135,9 @@ class AirfoilADflowOptions(BaseModel):
         description="If True, generate a plot of the deformed airfoil geometry vs original file"
     )
 
-    # -------------------------------
-    # Writing and plotting arguments
-    # -------------------------------
+    # ------------------------
+    # Alpha related arguments
+    # ------------------------
 
     alpha: Literal["explicit", "implicit"] = Field(
         default="explicit",
@@ -173,6 +173,11 @@ class AirfoilADflowOptions(BaseModel):
         description="Number of processors to use for the ADflow simulation",
         ge=1,
         le=psutil.cpu_count(False)-1
+    )
+
+    compute_area: bool = Field(
+        default=False,
+        description="Flag to compute area and include it in scalar outputs"
     )
 
     @model_validator(mode="after")

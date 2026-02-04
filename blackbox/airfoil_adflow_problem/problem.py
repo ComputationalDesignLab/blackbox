@@ -372,6 +372,20 @@ class AirfoilADflow(BaseProblem):
 
                     f.close()
 
+            if self.options.compute_area:
+
+                # read the scalar outputs to json file
+                with open(f"scalar_outputs.json", "r") as fp:
+                    scalar_output = json.load(fp)
+                fp.close()
+
+                scalar_output["area"] = self.calculate_area(x)
+
+                # dump the scalar outputs with area to json file
+                with open("scalar_outputs.json", "w") as fp:
+                    json.dump(scalar_output, fp, indent=4)
+                fp.close()
+
         except Exception as e: 
             print(e)
 
