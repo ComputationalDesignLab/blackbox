@@ -1,12 +1,10 @@
 ############# Script file for running airfoil analysis.
 
 # Imports
-import pickle, os, h5py, json
+import pickle, os, json
 from mpi4py import MPI
 from adflow import ADFLOW
 from pyhyp import pyHyp
-import pyvista
-import numpy as np
 
 # Getting MPI comm
 comm = MPI.COMM_WORLD
@@ -128,6 +126,12 @@ try:
     
     if comm.rank == 0:
 
+        if os.path.exists(f"{ap.name}_surf.cgns"):
+            os.rename(f"{ap.name}_surf.cgns", "surface.cgns")
+
+        if os.path.exists(f"{ap.name}_vol.cgns"):
+            os.rename(f"{ap.name}_vol.cgns", "volume.cgns")
+
         if alpha_type == "implicit":
             funcs["fail"] = not itr_results["converged"]
 
@@ -155,34 +159,6 @@ try:
         # Printing and storing results based on evalFuncs in aero problem
         for key, value in funcs.items():
             print(f"{key} = {value}")
-
-        if solverOptions["writeSurfaceSolution"] or solverOptions["writeVolumeSolution"]:
-
-            # Storing the results in output file
-            f = h5py.File('field_outputs.hdf5','w')
-
-            for field_type, fname in zip(["surface", "volume"], [f"{ap.name}_surf.cgns", f"{ap.name}_vol.cgns"]):
-
-                if os.path.exists(fname):
-
-                    # Write field data
-                    field_group = f.create_group(field_type)
-                    
-                    reader = pyvista.CGNSReader(fname) # initialize the CGNS reader
-                    reader.load_boundary_patch = False
-                    dataset = reader.read() # read the cgns file
-                    str_grid = dataset[0][0].cell_data_to_point_data() # get the base-block
-                    point_data = str_grid.point_data # get point data
-
-                    mask = str_grid.points[:,-1] == 0.0 # mask to extract only one face data
-
-                    field_group.create_dataset("MeshPoints", data=np.asarray(str_grid.points[mask,:2])) # write mesh points
-
-                    # store data
-                    for var_name in point_data.keys():
-                        field_group.create_dataset(var_name, data=np.asarray(point_data[var_name][mask]))
-
-            f.close()
 
         # Redirecting to original stdout
         os.dup2(stdout, 1)
