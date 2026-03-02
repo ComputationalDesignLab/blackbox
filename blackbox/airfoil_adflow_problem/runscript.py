@@ -141,7 +141,7 @@ try:
 
         # remove ap name from keys
         funcs = {
-            k[3:] if k.startswith("ap_") else k: v
+            k[len(f"{ap.name}_"):] if k.startswith(f"{ap.name}_") else k: v
             for k, v in funcs.items()
         }
 
