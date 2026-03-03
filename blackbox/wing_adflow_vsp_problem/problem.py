@@ -4,7 +4,7 @@ import pyvista as pv
 from time import time
 from packaging import version
 
-from .utils import WingVSPOptions
+from .utils import WingADflowVSPOptions
 from ..base_classes.base_problem import BaseProblem
 from pygeo import DVGeometryVSP
 from cgnsutilities.cgnsutilities import readGrid
@@ -13,9 +13,9 @@ from mpi4py import MPI
         
 comm = MPI.COMM_WORLD
 
-class WingVSPADflow(BaseProblem):
+class WingADflowVSP(BaseProblem):
 
-    def __init__(self, options: WingVSPOptions):
+    def __init__(self, options: WingADflowVSPOptions):
         """
             Class for performing wing analysis using ADflow solver
             
@@ -27,11 +27,11 @@ class WingVSPADflow(BaseProblem):
 
             Parameters
             ----------
-            options: WingVSPOptions
+            options: WingADflowVSPOptions
                 wing vsp option dataclass object
         """
 
-        assert isinstance(options, WingVSPOptions), "options argument should be an object of AirfoilOptions class"
+        assert isinstance(options, WingADflowVSPOptions), "options argument should be an object of AirfoilOptions class"
 
         self.options = options
 
