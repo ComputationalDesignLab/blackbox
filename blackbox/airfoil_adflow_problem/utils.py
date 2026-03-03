@@ -141,7 +141,7 @@ class AirfoilADflowOptions(BaseModel):
 
     alpha: Literal["explicit", "implicit"] = Field(
         default="explicit",
-        description="Angle-of-attack control mode. Use `implicit` if you want solver to solve for alpha based on a target lift coefficient. `NOTE`: If you use implicit mode, then `alpha` can be set as a parameter"
+        description="Angle-of-attack control mode. Use `implicit` if you want solver to solve for alpha based on a target lift coefficient. `NOTE`: If you use `implicit` mode, then `alpha` cannot be set as a parameter"
     )
 
     target_CL: float = Field(
