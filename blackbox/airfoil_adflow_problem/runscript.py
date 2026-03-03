@@ -127,10 +127,10 @@ try:
     if comm.rank == 0:
 
         if os.path.exists(f"{ap.name}_surf.cgns"):
-            os.rename(f"{ap.name}_surf.cgns", "surface.cgns")
+            os.rename(f"{ap.name}_surf.cgns", "surface_solution.cgns")
 
         if os.path.exists(f"{ap.name}_vol.cgns"):
-            os.rename(f"{ap.name}_vol.cgns", "volume.cgns")
+            os.rename(f"{ap.name}_vol.cgns", "volume_solution.cgns")
 
         if alpha_type == "implicit":
             funcs["fail"] = not itr_results["converged"]

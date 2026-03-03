@@ -353,12 +353,12 @@ class AirfoilADflow(BaseProblem):
 
             for fname in ["surface", "volume"]:
 
-                if os.path.exists(f"{fname}.cgns"):
+                if os.path.exists(f"{fname}_solution.cgns"):
 
                     # Storing the results in output file
                     f = h5py.File(f'{fname}_outputs.hdf5','w')
                     
-                    reader = pv.CGNSReader(f"{fname}.cgns") # initialize the CGNS reader
+                    reader = pv.CGNSReader(f"{fname}_solution.cgns") # initialize the CGNS reader
                     reader.load_boundary_patch = False
                     dataset = reader.read() # read the cgns file
                     str_grid = dataset[0][0].cell_data_to_point_data() # get the base-block
