@@ -1,4 +1,4 @@
-from blackbox.airfoil_adflow_problem import AirfoilADflow, AirfoilADflowOptions
+from blackbox.airfoil_adflow_cst_problem import AirfoilADflowCST, AirfoilADflowCSTOptions
 from baseclasses import AeroProblem
 import numpy as np
 from pyDOE3 import lhs
@@ -39,7 +39,7 @@ aero_problem = AeroProblem(
     areaRef=1.0, chordRef=1.0, xRef = 0.25, yRef = 0.0, zRef = 0.0
 )
 
-options = AirfoilADflowOptions(
+options = AirfoilADflowCSTOptions(
     airfoil_file="airfoil.dat",
     solver_options=solver_options,
     aero_problem = aero_problem,
@@ -50,7 +50,7 @@ options = AirfoilADflowOptions(
 )
 
 # Example for generating samples
-airfoil = AirfoilADflow(options=options)
+airfoil = AirfoilADflowCST(options=options)
 
 # Add lower surface as a parameter
 coeff = airfoil.parametrization.lower_cst # get the fitted CST coeff
