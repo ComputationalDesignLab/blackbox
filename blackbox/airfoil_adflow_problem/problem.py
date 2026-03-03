@@ -5,12 +5,12 @@ from time import time
 from packaging import version
 
 from .cst import CST
-from .utils import AirfoilADflowOptions
+from .utils import AirfoilADflowCSTOptions
 from ..base_classes.base_problem import BaseProblem
 
-class AirfoilADflow(BaseProblem):
+class AirfoilADflowCST(BaseProblem):
 
-    def __init__(self, options: AirfoilADflowOptions) -> None:
+    def __init__(self, options: AirfoilADflowCSTOptions) -> None:
         """
             Class for performing airfoil analysis using ADflow solver
             
@@ -26,7 +26,7 @@ class AirfoilADflow(BaseProblem):
                 airfoil option dataclass object
         """
 
-        assert isinstance(options, AirfoilADflowOptions), "options argument should be an object of AirfoilOptions class"
+        assert isinstance(options, AirfoilADflowCSTOptions), "options argument should be an object of AirfoilOptions class"
 
         self.options = options
 

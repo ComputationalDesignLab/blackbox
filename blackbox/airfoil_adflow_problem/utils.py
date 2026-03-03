@@ -3,7 +3,7 @@ from baseclasses import AeroProblem
 from pydantic import BaseModel, ConfigDict, Field, model_validator, computed_field
 from typing import Literal
 
-class AirfoilADflowOptions(BaseModel):
+class AirfoilADflowCSTOptions(BaseModel):
     """
         This class is used to define various settings for running ADflow simulations on airfoil geometries parameterized using CST
     """

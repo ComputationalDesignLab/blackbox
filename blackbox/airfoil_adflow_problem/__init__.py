@@ -1,2 +1,2 @@
-from .problem import AirfoilADflow
-from .utils import AirfoilADflowOptions
+from .problem import AirfoilADflowCST
+from .utils import AirfoilADflowCSTOptions
