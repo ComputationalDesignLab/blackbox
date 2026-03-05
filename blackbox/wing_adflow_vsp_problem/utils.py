@@ -70,6 +70,22 @@ class WingADflowVSPOptions(BaseModel):
         description="If True, write volume output from adflow in cgns format. A ready-to-use HDF5 file containing volume data extracted from cgns file is also written"
     )
 
+    # ----------------
+    # Other arguments
+    # ----------------
+
+    directory: str = Field(
+        default="output",
+        description="Directory where all simulation outputs will be written"
+    )
+
+    num_processors: int = Field(
+        default=4,
+        description="Number of processors to use for the ADflow simulation",
+        ge=1,
+        le=psutil.cpu_count(False)-1
+    )
+
     @model_validator(mode="after")
     def post_init_validation(self):
         """
