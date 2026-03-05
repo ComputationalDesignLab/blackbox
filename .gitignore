@@ -1,5 +1,5 @@
 blackbox.egg-info/
 __pycache__/
 docs/build
-examples/airfoil_adflow_cst_problem/output
+examples/airfoil_adflow_cst/output
 .vscode
