@@ -1,4 +1,5 @@
 import os, sys, pickle, json, h5py
+from copy import deepcopy
 import numpy as np
 import pyvista as pv
 from time import time
@@ -12,7 +13,7 @@ class WingADflowVSP(BaseProblem):
         """
             Class for performing wing analysis using ADflow solver
             
-            OpenVSP is used for parametrizing the airfoil in this problem
+            OpenVSP is used for parametrizing the wing shape in this problem
 
             idwarp is used for deforming the given volume mesh based on the wing geometry changes
 
@@ -63,9 +64,6 @@ class WingADflowVSP(BaseProblem):
                 assert val.key != "alpha"
 
         # Some initializations which will be used later
-        # self.parameters = []
-        # self.mask = np.array([])
-        # self.bounds = (np.array([]), np.array([]))
         self.samples_generated = 0
 
     @property
@@ -81,10 +79,10 @@ class WingADflowVSP(BaseProblem):
             lb = np.append(lb, val.lower)
             ub = np.append(ub, val.upper)
 
-        if self.options.vsp_file is not None:
+        if self.options.wing_vsp is not None:
 
-            lb = np.append(lb, self.options.vsp_file.bounds[0])
-            ub = np.append(ub, self.options.vsp_file.bounds[1])
+            lb = np.append(lb, self.options.wing_vsp.bounds[0])
+            ub = np.append(ub, self.options.wing_vsp.bounds[1])
 
         return (lb, ub)
 
@@ -108,7 +106,7 @@ class WingADflowVSP(BaseProblem):
                 data generation
         """
 
-        assert len(self.bounds[0].shape[0]) > 0, "add some parameters before running analysis"
+        assert len(self.bounds[0]) > 0, "add some parameters before running analysis"
         assert isinstance(x, np.ndarray), "given sample 'x' should be a numpy array"
 
         x = np.atleast_2d(x)
@@ -123,7 +121,9 @@ class WingADflowVSP(BaseProblem):
             description.write("---------------------------------------------------")
             description.write("\nAirfoil analysis using ADflow")
             description.write("\n--------------------------------------------------")
-            description.write(f"\nVariables: {self.parameters}")
+            description.write(f"\nFlow Variables: {list(self.options.aero_problem.DVs.keys())}")
+            if self.options.wing_vsp is not None:
+                description.write(f"\nShape Variables: {list(self.options.wing_vsp.parameters.keys())}")
             description.write(f"\nLower bound for design variables:\n{self.bounds[0]}")
             description.write(f"\nUpper bound for design variables:\n{self.bounds[1]}")
             description.write("\n-----------------------------")
@@ -195,7 +195,7 @@ class WingADflowVSP(BaseProblem):
 
         # Getting the directory where package is saved
         pkgdir = sys.modules["blackbox"].__path__[0]
-        filepath = os.path.join(pkgdir, "airfoil_adflow_problem/runscript.py")
+        filepath = os.path.join(pkgdir, "wing_adflow_vsp_problem/runscript.py")
 
         # Copy the runscript to analysis directory
         os.system(f"cp {filepath} {directory}/{self.samples_generated + 1}/runscript.py")
@@ -206,7 +206,7 @@ class WingADflowVSP(BaseProblem):
         # write parameters
         self._write_parameters(x)
 
-         # Create input file
+        # create input file
         self._create_input_file(x)
 
         try:
@@ -236,7 +236,7 @@ class WingADflowVSP(BaseProblem):
         finally:
 
             # Cleaning the directory
-            files = ["vol_mesh.cgns", "input.pickle", "runscript.py", "surf_mesh.xyz"] 
+            files = ["input.pickle", "runscript.py", "surf_mesh.xyz"] # "vol_mesh.cgns", 
             
             for file in files:
                 if os.path.exists(file):
@@ -256,18 +256,37 @@ class WingADflowVSP(BaseProblem):
                 1D numpy array representing a single set of parameters
         """
 
+        # make a copy of ap
+        aero_problem = deepcopy(self.options.aero_problem)
+
+        # empty dict for storing parameters
+        flow_params = {}
+
+        # separate flow and shape variables
+        x_flow = x[:len(aero_problem.DVs)]
+
+        # assign flow variables
+        for idx, key in enumerate(aero_problem.DVs.keys()):
+            flow_params[key] = x_flow[idx]
+
+        # set flow conditions in ap
+        aero_problem.setDesignVars(flow_params)
+
         # Creating input dict
         input = {
             "solver_options": self.options.solver_options,
-            "wing_vsp": self.options.vsp_file,
-            "aero_problem": self.options.aero_problem,
-            "write_slice_file": self.options.write_slice_file,
+            "aero_problem": aero_problem,
             "scalar_outputs": self.options.scalar_outputs,
             "alpha_type": self.options.alpha,
             "target_CL": self.options.target_CL,
             "target_CL_tol": self.options.target_CL_tol,
             "starting_alpha": self.options.starting_alpha
         }
+
+        if self.options.wing_vsp is not None:
+            input["vsp_file"] = self.options.wing_vsp.vsp_file
+        else:
+            input["vsp_file"] = None
 
         # Saving the input file
         filehandler = open("input.pickle", "xb")
@@ -279,25 +298,36 @@ class WingADflowVSP(BaseProblem):
             Method to write a set of prameters `x` to a json file
         """
 
-        assert len(self.bounds[0].shape[0]) > 0, "add some parameters before calling this method"
+        assert len(self.bounds[0]) > 0, "add some parameters before calling this method"
         assert isinstance(x, np.ndarray) and x.ndim == 1, "x must be a 1D numpy array"
         assert x.shape[0] == self.bounds[0].shape[0], "number of entries in x is not same as the number of parameters"
 
+        ap = self.options.aero_problem # get aero problem
+        
+        parameters = {} # empty dict for storing parameters
+
         # separate flow and shape variables
-        x_flow = x[:len(self.options.aero_problem.DVs)]
-        x_shape = x[len(self.options.aero_problem.DVs):]
+        x_flow = x[:len(ap.DVs)]
+        x_shape = x[len(ap.DVs):]
 
-        for val in x_flow:
+        # assign flow variables
+        for idx, key in enumerate(ap.DVs.keys()):
+            parameters[key] = x_flow[idx]
 
-            print
+        # assign shape variables, if any
+        if self.options.wing_vsp is not None:
 
-        parameters = {}
-        for name in self.parameters:
-            mask = self.mask == name
-            if name == "lower_cst" or name == "upper_cst":
-                parameters[name] = x[mask].tolist()
-            else:
-                parameters[name] = x[mask].item()
+            wing_vsp = self.options.wing_vsp # get wing vsp
+
+            for key in wing_vsp.parameters.keys():
+                parameters[key.lower()] = x_shape[wing_vsp.mask == key].item()
+
+                # write pygeo parameters
+                pygeo_params = self.options.wing_vsp.get_pygeo_parameter_dict(x_shape)
+
+                with open("pygeo_parameters.json", "w") as fp:
+                    json.dump(pygeo_params, fp, indent=4)
+                fp.close()
 
         with open("parameters.json", "w") as fp:
             json.dump(parameters, fp, indent=4)
