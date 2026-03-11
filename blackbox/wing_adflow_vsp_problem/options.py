@@ -2,6 +2,7 @@ import os, psutil
 from baseclasses import AeroProblem
 from pydantic import BaseModel, ConfigDict, Field, model_validator, computed_field
 from typing import Literal
+from .wing_vsp import WingVSP
 
 class WingADflowVSPOptions(BaseModel):
     """
@@ -16,10 +17,6 @@ class WingADflowVSPOptions(BaseModel):
     # --------------------
     # Mandatory arguments
     # --------------------
-    
-    vsp_file: str = Field(
-        description="Path to the vsp file containing the wing geometry"
-    )
 
     mesh_file: str = Field(
         description="Path to the cgns volume mesh file for the wing geometry"
@@ -32,6 +29,12 @@ class WingADflowVSPOptions(BaseModel):
     aero_problem: AeroProblem = Field(
         exclude=True,
         description="AeroProblem instance defining flow conditions for the ADflow solver, this field is excluded from serialization"
+    )
+
+    wing_vsp: WingVSP = Field(
+        exclude=True,
+        default=None,
+        description="an instance of `WingVSP` class defining various shape parameters"
     )
 
     # ----------------------------
@@ -70,6 +73,30 @@ class WingADflowVSPOptions(BaseModel):
         description="If True, write volume output from adflow in cgns format. A ready-to-use HDF5 file containing volume data extracted from cgns file is also written"
     )
 
+    # ------------------------
+    # Alpha related arguments
+    # ------------------------
+
+    alpha: Literal["explicit", "implicit"] = Field(
+        default="explicit",
+        description="Angle-of-attack control mode. Use `implicit` if you want solver to solve for alpha based on a target lift coefficient. `NOTE`: If you use `implicit` mode, then `alpha` cannot be set as a parameter"
+    )
+
+    target_CL: float = Field(
+        default=0.824,
+        description="Target lift coefficient used when alpha is solved implicitly"
+    )
+
+    target_CL_tol: float = Field(
+        default=1e-3,
+        description="Tolerance on the lift coefficient when solving for implicit alpha"
+    )
+
+    starting_alpha: float = Field(
+        default=2.5,
+        description="Initial guess for the angle of attack (in degrees) when using implicit alpha mode"
+    )
+
     # ----------------
     # Other arguments
     # ----------------
@@ -93,13 +120,8 @@ class WingADflowVSPOptions(BaseModel):
         """
 
         # set paths
-        self.vsp_file = os.path.abspath(self.vsp_file)
         self.mesh_file = os.path.abspath(self.mesh_file)
         self.directory = os.path.abspath(self.directory)
-
-        # check if vsp file path exists
-        if not os.path.exists(self.vsp_file):
-            raise ValueError("Provided vsp file path does not exist")
         
         # check if mesh file path exists
         if not os.path.exists(self.mesh_file):
