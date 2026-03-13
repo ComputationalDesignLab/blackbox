@@ -6,6 +6,12 @@ from mpi4py import MPI
 from adflow import ADFLOW
 from idwarp import USMesh
 from pygeo import DVGeometryVSP
+import warnings
+
+warnings.filterwarnings(
+    "ignore",
+    message="Using internally generated IDWarp surfaces.*"
+)
 
 # Getting MPI comm
 comm = MPI.COMM_WORLD
@@ -33,6 +39,7 @@ try:
     scalar_outputs = input["scalar_outputs"]
     solver_options = input["solver_options"]
     vsp_file = input["vsp_file"]
+    write_vsp_file = input["write_vsp_file"]
 
     # implicit/explicit alpha options
     alpha_type = input["alpha_type"]
@@ -61,7 +68,7 @@ try:
             # 'symmetryPlanes':[],
             # 'aExp': 3.0,
             # 'bExp': 5.0,
-            'LdefFact': 75.0,
+            'LdefFact': 75.0, # needed for large changes in mesh
             # 'alpha': 0.25,
             'errTol': 1e-5,
             # 'evalMode': 'fast',
@@ -110,6 +117,9 @@ try:
 
         # set deformed volume mesh for analysis
         solver_options["gridFile"] = 'vol_mesh.cgns'
+
+        if write_vsp_file:
+            geo_vsp.writeVSPFile("updated_model.vsp3")
 
     ############## Settign up adflow
 
