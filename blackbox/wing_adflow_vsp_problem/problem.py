@@ -280,7 +280,8 @@ class WingADflowVSP(BaseProblem):
             "alpha_type": self.options.alpha,
             "target_CL": self.options.target_CL,
             "target_CL_tol": self.options.target_CL_tol,
-            "starting_alpha": self.options.starting_alpha
+            "starting_alpha": self.options.starting_alpha,
+            "write_vsp_file": self.options.write_vsp_file
         }
 
         if self.options.wing_vsp is not None:
