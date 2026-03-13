@@ -119,9 +119,10 @@ class WingVSP():
 
         assert isinstance(name, str), "`name` argument must be string"
         assert name in possible_global_paramaters, f"`{name}` is not a valid parameter"
-        assert name not in self.parameters.keys(), f"`{name}` is already added as a parameter"
         assert isinstance(lower, float) and isinstance(upper, float), "`lower` and `upper` must be float values"
         assert lower < upper, "`upper` must be greater than `lower`"
+        for key in self.parameters.keys():
+            assert name not in key, f"`{name}` is already added as a global/local parameter"
 
         # empty list for storing pygeo openvsp parameter names
         dvgeo_name = []
@@ -168,28 +169,123 @@ class WingVSP():
                 upper bound for the parameter
 
             section_id: int
-                an integer denoting to which section the parameters belongs to
+                an integer denoting which section the parameters belongs to
 
                 `NOTE`: `section_id` must not be more than number of sections in the VSP model
         """
 
-        possible_section_paramaters = ["Twist"]
+        possible_section_paramaters = ["Span", "Root_Chord", "Tip_Chord", "Dihedral", "Sweep", "Twist"]
 
         assert isinstance(name, str), "`name` argument must be string"
         assert name in possible_section_paramaters, f"`{name}` is not a valid parameter"
-        assert name not in self.parameters.keys(), f"`{name}` is already added as a parameter"
         assert isinstance(lower, float) and isinstance(upper, float), "`lower` and `upper` must be float values"
         assert lower < upper, "`upper` must be greater than `lower`"
-        assert isinstance(section_id, int) and section_id >=0 and section_id <= self.number_of_xsec, f"`section_id` must be an integer between 0 and {self.number_of_xsec}"
+        assert isinstance(section_id, int) and 1 <= section_id <= self.number_of_sections, f"`section_id` must be an integer between 1 and {self.number_of_sections}"
+
+        for key in self.parameters.keys():
+            if name == key:
+                raise AssertionError(f"`{name}` is already added as a global parameter")
+            else:
+                assert f"{name}_{section_id}" not in key, f"`{name}_{section_id}` is already added as a local parameter"
 
         # update bounds
         lb = np.append(self.bounds[0], lower)
         ub = np.append(self.bounds[1], upper)
 
         # set updated variables
-        self.mask = np.append(self.mask, name)
+        self.mask = np.append(self.mask, name+f"{section_id}")
         self.bounds = (lb, ub)
-        self.parameters[name] = [f"{self.component_name}:XSec_{section_id}:{name}"]
+        self.parameters[name+f"{section_id}"] = [f"{self.component_name}:XSec_{section_id}:{name}"]
+
+    def add_airfoil_cst_parameter(
+        self,
+        surface: str,
+        lower: np.ndarray,
+        upper: np.ndarray,
+        section_id: int,
+    ) -> None:
+        """
+            Method to add cross-section airfoil as a parameter for analysis
+
+            Currently, airfoil is parameterized using CST method only
+
+            Parameters
+            ----------
+            surface: str
+                a string denoting whether to add `upper` or `lower` surface
+
+            lower: list
+                a list containing lower bound for all the CST coefficients
+
+            upper: list
+                a list containing upper bound for all the CST coefficients
+
+            section_id: int
+                an integer denoting which section the parameter belongs to.
+                It must be >= -1 and <= number of sections. `NOTE`: -1 indicates
+                that use same airfoil parameterization along entire span, i.e,
+                uniform cross-section
+        """
+
+        # Some checks
+        assert surface.lower() in ["upper", "lower"], "`surface` must be a either 'upper' or 'lower'"
+        assert isinstance(lower, np.ndarray) and isinstance(upper, np.ndarray) and lower.ndim == upper.ndim == 1 and lower.shape[0] == upper.shape[0], "`lower` and `upper` arugment must be a 1D numpy array of same shape"
+        assert np.all(lower < upper), "`upper` must be greater than `lower`"
+        assert isinstance(section_id, int) and -1 <= section_id <= self.number_of_sections, f"`section_id` must be an integer between -1 and {self.number_of_sections}"
+
+        surface = surface.lower()
+
+        # Select CST function/variables dynamically
+        if surface == "upper":
+            degree_func = self.vsp_model.GetUpperCSTDegree
+            group_prefix = "UpperCoeff"
+            param_prefix = "Au"
+        else:
+            degree_func = self.vsp_model.GetLowerCSTDegree
+            group_prefix = "LowerCoeff"
+            param_prefix = "Al"
+
+        dvgeo_name = []
+
+        # Determine sections to process
+        sections = [section_id] if section_id != -1 else range(self.number_of_xsec)
+
+        for sec in sections:
+
+            # get xsec id
+            xsec_id = self.vsp_model.GetXSec(self.xsec_surf_id, sec)
+
+            # check number xsec type
+            assert self.vsp_model.GetXSecShape(xsec_id) == self.vsp_model.XS_CST_AIRFOIL, f"airfoil at section {sec} is not CST"
+
+            num_coeff = degree_func(xsec_id) + 1 # get number of cst coeffs
+
+            # check number of cst coeffs
+            assert len(lower) == num_coeff and len(upper) == num_coeff, (
+                f"lower/upper bounds must match CST coefficient count ({num_coeff}) at section {sec}"
+            )
+
+            for i in range(num_coeff):
+                dvgeo_name.append(f"{self.component_name}:{group_prefix}_{sec}:{param_prefix}_{i}")
+
+        # mask naming
+        param_name = (
+            f"{surface}_airfoil{section_id}" if section_id != -1 else f"{surface}_airfoil"
+        )
+
+        # mask for the parameter
+        mask = np.array([param_name]*len(lower))
+
+        # update parameter list
+        self.parameters[param_name] = dvgeo_name
+
+        # update bounds
+        lb = np.append(self.bounds[0], lower)
+        ub = np.append(self.bounds[1], upper)
+
+        # update variables
+        self.mask = np.append(self.mask, mask)
+        self.bounds = (lb, ub)
 
     def get_pygeo_parameter_dict(self, x: np.ndarray) -> dict:
         """
@@ -214,6 +310,12 @@ class WingVSP():
             for val in vals:
                 if key == "Span":
                     dvgeo_params[val] = x[self.mask == key].item()/self.number_of_sections
+                elif "_airfoil" in key:
+                    for x_val in x[self.mask == key]:
+
+                        
+
+                    pass
                 else:
                     dvgeo_params[val] = x[self.mask == key].item()
 
