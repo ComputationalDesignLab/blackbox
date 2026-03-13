@@ -73,6 +73,11 @@ class WingADflowVSPOptions(BaseModel):
         description="If True, write volume output from adflow in cgns format. A ready-to-use HDF5 file containing volume data extracted from cgns file is also written"
     )
 
+    write_vsp_file: bool = Field(
+        default=False,
+        description="If true, write the updated VSP model. This option will only work when shape variables are added"
+    )
+
     # ------------------------
     # Alpha related arguments
     # ------------------------
