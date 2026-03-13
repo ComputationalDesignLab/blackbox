@@ -212,7 +212,10 @@ class WingVSP():
 
         for key, vals in self.parameters.items():
             for val in vals:
-                dvgeo_params[val] = x[self.mask == key].item()
+                if key == "Span":
+                    dvgeo_params[val] = x[self.mask == key].item()/self.number_of_sections
+                else:
+                    dvgeo_params[val] = x[self.mask == key].item()
 
         return dvgeo_params
     
