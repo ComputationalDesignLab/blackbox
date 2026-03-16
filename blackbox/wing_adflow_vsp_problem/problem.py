@@ -116,20 +116,10 @@ class WingADflowVSP(BaseProblem):
         # Creating and writing a description file
         description = open("{}/description.txt".format(self.options.directory), "a", buffering=1)
 
+        # Write intro
         if self.samples_generated == 0:
-
-            description.write("---------------------------------------------------")
-            description.write("\nAirfoil analysis using ADflow")
-            description.write("\n--------------------------------------------------")
-            description.write(f"\nFlow Variables: {list(self.options.aero_problem.DVs.keys())}")
-            if self.options.wing_vsp is not None:
-                description.write(f"\nShape Variables: {list(self.options.wing_vsp.parameters.keys())}")
-            description.write(f"\nLower bound for design variables:\n{self.bounds[0]}")
-            description.write(f"\nUpper bound for design variables:\n{self.bounds[1]}")
-            description.write("\n-----------------------------")
-            description.write("\nAnalysis specific description")
-            description.write("\n-----------------------------")
-
+            self._write_initial_description(description)
+            
         if return_results:
             output = {}
 
@@ -368,3 +358,33 @@ class WingADflowVSP(BaseProblem):
         with open("parameters.json", "w") as fp:
             json.dump(parameters, fp, indent=4)
         fp.close()
+
+    def _write_initial_description(self, description) -> None:
+        """
+            Method to write initial description containing parameters,
+            and corresponding upper and lower bound
+        """
+
+        # parameters
+        parameters = list(self.options.aero_problem.DVs.keys())
+        parameters.extend(list(self.options.wing_vsp.parameters.keys()))
+
+        # Initial message
+        description.write("--------------------------------------------------\n")
+        description.write("Wing analysis using ADflow\n")
+        description.write("--------------------------------------------------\n")
+
+        # Parameter table header
+        description.write("\n")
+        description.write(f"{'Parameter':<35} {'Lower Bound':>15} {'Upper Bound':>15}\n")
+        description.write("-" * 67 + "\n")
+
+        # Table rows
+        for name, lb, ub in zip(parameters, self.bounds[0], self.bounds[1]):
+            description.write(f"{name:<35} {lb:>15.6f} {ub:>15.6f}\n")
+
+        # Analysis description section
+        description.write("\n")
+        description.write("-----------------------------\n")
+        description.write("Analysis specific description\n")
+        description.write("-----------------------------\n")
