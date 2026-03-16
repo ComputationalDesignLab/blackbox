@@ -230,7 +230,41 @@ class WingADflowVSP(BaseProblem):
                     if not pid.is_running():
                         pid_list.remove(pid)
 
-        except Exception as e: 
+            for fname in ["surface", "volume"]:
+
+                if os.path.exists(f"{fname}_solution.cgns"):
+
+                    # Storing the results in output file
+                    f = h5py.File(f'{fname}_outputs.hdf5','w')
+                    
+                    reader = pv.CGNSReader(f"{fname}_solution.cgns") # initialize the CGNS reader
+                    reader.load_boundary_patch = False
+                    dataset = reader.read() # read the cgns file
+
+                    # from surface solution, only keep surface data
+                    if fname == "surface":
+                        for key in dataset[0].keys():
+                            if "Wall" not in key:
+                                del dataset[0][key]
+
+                    # combine all multi-blocks
+                    combined = dataset[0].combine()
+
+                    # get point data
+                    point_data = combined.cell_data_to_point_data().point_data
+
+                    # get mesh points
+                    mesh_points = combined.cell_data_to_point_data().points
+
+                    f.create_dataset("MeshPoints", data=np.asarray(mesh_points)) # write mesh points
+
+                    # store data
+                    for var_name in point_data.keys():
+                        f.create_dataset(var_name, data=np.asarray(point_data[var_name]))
+
+                    f.close()
+
+        except Exception as e:
             print(e)
 
         finally:
