@@ -40,6 +40,7 @@ try:
     solver_options = input["solver_options"]
     vsp_file = input["vsp_file"]
     write_vsp_file = input["write_vsp_file"]
+    write_stl_file = input["write_stl_file"]
 
     # implicit/explicit alpha options
     alpha_type = input["alpha_type"]
@@ -120,6 +121,9 @@ try:
 
         if write_vsp_file:
             geo_vsp.writeVSPFile("updated_model.vsp3")
+
+        if write_stl_file:
+            geo_vsp.vspModel.ExportFile("updated_model.stl", geo_vsp.vspModel.SET_ALL, geo_vsp.vspModel.EXPORT_STL)
 
     ############## Settign up adflow
 

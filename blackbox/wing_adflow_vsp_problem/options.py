@@ -75,7 +75,12 @@ class WingADflowVSPOptions(BaseModel):
 
     write_vsp_file: bool = Field(
         default=False,
-        description="If true, write the updated VSP model. This option will only work when shape variables are added"
+        description="If true, write the updated VSP model in vsp3 file. This option will only work when shape variables are added"
+    )
+
+    write_stl_file: bool = Field(
+        default=False,
+        description="If true, write the updated VSP model in a stl file. This option will only work when shape variables are added"
     )
 
     # ------------------------
