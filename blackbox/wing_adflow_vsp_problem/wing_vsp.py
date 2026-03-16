@@ -80,27 +80,31 @@ class WingVSP():
         self.mask = np.array([])
         self.bounds = (np.array([]), np.array([]))
 
-    def add_global_parameter(
+    def add_shape_parameter(
         self,
         name: str,
-        lower: float,
-        upper: float,
+        lower: np.ndarray,
+        upper: np.ndarray,
+        sections: list,
     ) -> None:
         """
-            Method for adding global wing parameters for analysis
+            Method for adding a single wing planform parameter for analysis
 
-            Some of the examples are span, dihedral, sweep
+            Example: span, dihedral, sweep, twist, root chord, and tip chord
 
             Parameters
             ----------
             name: str
                 name of the parameter to be added. It can only be:
                     * `Span`: span of the section
+                    * `Root_Chord`: root chord of the section
+                    * `Tip_Chord`: tip chord of the section
                     * `Dihedral`: dihedral of the section
                     * `Sweep`: sweep of the section
+                    * `Twist`: twist of the section
 
-                `NOTE`: You can add a single parameter for all sections, refer to
-                        `section_id` argument for more detail
+                `NOTE`: You can add a single parameter for a set of sections, refer to
+                        `sections` argument for more detail
 
             lower: float
                 lower bound for the parameter
@@ -108,70 +112,11 @@ class WingVSP():
             upper: float
                 upper bound for the parameter
 
-            section_id: int
-                an integer denoting to which section the parameters belongs to.
-                The default is -1, which indicates that a single value controls
-                this parameter across all the sections. `NOTE`: This parameter must
-                not be more than number of sections in the VSP model
-        """
-
-        possible_global_paramaters = ["Span", "Dihedral", "Sweep"]
-
-        assert isinstance(name, str), "`name` argument must be string"
-        assert name in possible_global_paramaters, f"`{name}` is not a valid parameter"
-        assert isinstance(lower, float) and isinstance(upper, float), "`lower` and `upper` must be float values"
-        assert lower < upper, "`upper` must be greater than `lower`"
-        for key in self.parameters.keys():
-            assert name not in key, f"`{name}` is already added as a global/local parameter"
-
-        # empty list for storing pygeo openvsp parameter names
-        dvgeo_name = []
-
-        # store openvsp parameter names
-        for i in range(self.number_of_sections):
-            dvgeo_name.append(f"{self.component_name}:XSec_{i+1}:{name}")
-
-        # update bounds
-        lb = np.append(self.bounds[0], lower)
-        ub = np.append(self.bounds[1], upper)
-
-        self.mask = np.append(self.mask, name)
-        self.bounds = (lb, ub)
-        self.parameters[name] = dvgeo_name
-
-    def add_local_parameter(
-        self,
-        name: str,
-        lower: float,
-        upper: float,
-        section_id: int
-    ) -> None:
-        """
-            Method for adding local/sectional wing parameters for analysis
-
-            Some of the examples are twist, chord
-
-            Parameters
-            ----------
-            name: str
-                name of the parameter to be added. It can only be:
-                    * `Span`: span of the section
-                    * `Dihedral`: dihedral of the section
-                    * `Sweep`: sweep of the section
-
-                `NOTE`: You can add a single parameter for all sections, refer to
-                        `section_id` argument for more detail
-
-            lower: float
-                lower bound for the parameter
-
-            upper: float
-                upper bound for the parameter
-
-            section_id: int
-                an integer denoting which section the parameters belongs to
-
-                `NOTE`: `section_id` must not be more than number of sections in the VSP model
+            sections: list
+                a list denoting which section the parameters belongs to. The list must
+                contain integers between 1 and maximum number of sections. If the list contains
+                more than one entires, then only value will control the parameter across given section
+                numbers.
         """
 
         possible_section_paramaters = ["Span", "Root_Chord", "Tip_Chord", "Dihedral", "Sweep", "Twist"]
@@ -180,22 +125,34 @@ class WingVSP():
         assert name in possible_section_paramaters, f"`{name}` is not a valid parameter"
         assert isinstance(lower, float) and isinstance(upper, float), "`lower` and `upper` must be float values"
         assert lower < upper, "`upper` must be greater than `lower`"
-        assert isinstance(section_id, int) and 1 <= section_id <= self.number_of_sections, f"`section_id` must be an integer between 1 and {self.number_of_sections}"
+        assert isinstance(sections, list), "`sections` argument must be a list"
 
-        for key in self.parameters.keys():
-            if name == key:
-                raise AssertionError(f"`{name}` is already added as a global parameter")
-            else:
-                assert f"{name}_{section_id}" not in key, f"`{name}_{section_id}` is already added as a local parameter"
+        dvgeo_name = []
+
+        for sec in sections:
+
+            # check list entries
+            assert isinstance(sec, int) and 1 <= sec <= self.number_of_sections, f"The entires in `sections` list must be integers between 1 and {self.number_of_sections}"
+
+            dvgeo_name.append(f"{self.component_name}:XSec_{sec}:{name}") # append dvgeo name
+
+            # check if this parameter is already added
+            for key in self.parameters.keys():
+                assert dvgeo_name[-1] not in self.parameters[key], f"{name} at section {sec} is already added as a parameter"
+
+        # parameter name
+        param_name = f"{name}_{'_'.join(map(str,sections))}"
+
+        # update parameter list
+        self.parameters[param_name] = dvgeo_name
 
         # update bounds
         lb = np.append(self.bounds[0], lower)
         ub = np.append(self.bounds[1], upper)
 
-        # set updated variables
-        self.mask = np.append(self.mask, name+f"{section_id}")
+        # update variables
+        self.mask = np.append(self.mask, param_name)
         self.bounds = (lb, ub)
-        self.parameters[name+f"{section_id}"] = [f"{self.component_name}:XSec_{section_id}:{name}"]
 
     def add_airfoil_cst_parameters(
         self,
@@ -322,8 +279,8 @@ class WingVSP():
 
         for key, vals in self.parameters.items():
             for val in vals:
-                if key == "Span":
-                    dvgeo_params[val] = x[self.mask == key].item()/self.number_of_sections
+                if "Span" in key:
+                    dvgeo_params[val] = x[self.mask == key].item()/len(vals)
                 else:
                     dvgeo_params[val] = x[self.mask == key].item()
 
