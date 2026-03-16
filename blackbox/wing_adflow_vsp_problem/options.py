@@ -93,7 +93,7 @@ class WingADflowVSPOptions(BaseModel):
     )
 
     target_CL: float = Field(
-        default=0.824,
+        default=0.5,
         description="Target lift coefficient used when alpha is solved implicitly"
     )
 
@@ -142,7 +142,6 @@ class WingADflowVSPOptions(BaseModel):
         self.solver_options["surfaceVariables"] = self.surface_outputs
         self.solver_options["writeSurfaceSolution"] = self.write_surface_output
         self.solver_options["writeVolumeSolution"] = self.write_volume_output
-        # self.solver_options["liftIndex"] = 2 # y-axis
         self.solver_options["printAllOptions"] = False
         self.solver_options["printIntro"] = False
         self.solver_options["outputDirectory"] = "."
