@@ -61,7 +61,7 @@ class WingADflowVSP(BaseProblem):
         # ensure alpha is not added as a DV
         if self.options.alpha == "implicit":
             for key, val in self.options.aero_problem.DVs.items():
-                assert val.key != "alpha"
+                assert val.key != "alpha", "angle of attack cannot be added as a parmeter, when `alpha` is set to `implicit` mode"
 
         # Some initializations which will be used later
         self.samples_generated = 0
@@ -270,7 +270,7 @@ class WingADflowVSP(BaseProblem):
         finally:
 
             # Cleaning the directory
-            files = ["input.pickle", "runscript.py", "surf_mesh.xyz"] # "vol_mesh.cgns", 
+            files = ["input.pickle", "runscript.py", "surf_mesh.xyz", "vol_mesh.cgns"] 
             
             for file in files:
                 if os.path.exists(file):
