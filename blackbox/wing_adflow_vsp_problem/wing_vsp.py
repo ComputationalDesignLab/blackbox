@@ -281,7 +281,7 @@ class WingVSP():
                     assert f"airfoil_xsec_{sec}_{param_prefix}{i}" not in key, f"CST coefficient {i} for {surface} airfoil at section {sec} is already added as a parameter"
 
             # parameter name
-            param_name = f"airfoil_xsec_{sec}_{param_prefix}{i}"
+            param_name = f"airfoil_xsec_{'_'.join(map(str,sections))}_{param_prefix}{i}"
 
             # update parameter list
             self.parameters[param_name] = dvgeo_name
