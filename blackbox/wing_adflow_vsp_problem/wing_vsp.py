@@ -255,10 +255,14 @@ class WingVSP():
             xsec_id = self.vsp_model.GetXSec(self.xsec_surf_id, sec)
 
             # check number xsec type
-            assert self.vsp_model.GetXSecShape(xsec_id) == self.vsp_model.XS_CST_AIRFOIL, f"airfoil at section {sec} is not CST"
+            assert self.vsp_model.GetXSecShape(xsec_id) == self.vsp_model.XS_CST_AIRFOIL, f"airfoil at section {sec} is not of type CST"
 
-            num_coeff = degree_func(xsec_id) + 1 # get number of cst coeffs
-
+            # get number of allowed cst coeffs parametrization
+            if surface == "lower" and self.vsp_model.GetParmVal(self.vsp_model.GetXSecParm(xsec_id, "ContLERad")) == 1.0:
+                num_allowed_parameters = degree_func(xsec_id) # the continuous LE is set, then the first lower surface CST coefficient cannot be a design variable
+            else:
+                num_allowed_parameters = degree_func(xsec_id) + 1
+                
             # check number of cst coeffs
             assert len(lower) == num_allowed_parameters and len(upper) == num_allowed_parameters, (
                 f"lower/upper bound size must match number of alowed CST coefficients for parameterization ({num_allowed_parameters}) at section {sec}"
