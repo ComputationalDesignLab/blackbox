@@ -260,15 +260,15 @@ class WingVSP():
             num_coeff = degree_func(xsec_id) + 1 # get number of cst coeffs
 
             # check number of cst coeffs
-            assert len(lower) == num_coeff and len(upper) == num_coeff, (
-                f"lower/upper size must match number of CST coefficients ({num_coeff}) at section {sec}"
+            assert len(lower) == num_allowed_parameters and len(upper) == num_allowed_parameters, (
+                f"lower/upper bound size must match number of alowed CST coefficients for parameterization ({num_allowed_parameters}) at section {sec}"
             )
 
         # empty array for storing
         mask = np.array([])
 
         # loop through each coefficient
-        for i in range(num_coeff):
+        for i in range(num_allowed_parameters):
 
             dvgeo_name = []
 
