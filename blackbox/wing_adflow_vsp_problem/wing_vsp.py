@@ -1,6 +1,6 @@
 import os
-from importlib.metadata import version
 import numpy as np
+from importlib.metadata import version
 
 def parse_version(v):
     return tuple(int(x) for x in v.split("."))
@@ -258,7 +258,7 @@ class WingVSP():
         self.mask = np.append(self.mask, mask)
         self.bounds = (lb, ub)
 
-    def get_pygeo_parameter_dict(self, x: np.ndarray) -> dict:
+    def get_pygeo_parameter_dict(self, x: np.ndarray) -> dict[str, float]:
         """
             Method to get pygeo openvsp parameter dictionary for a given
             set of parameters
@@ -286,6 +286,51 @@ class WingVSP():
 
         return dvgeo_params
     
-    ###########################################################
-    ######### Below methods are for internal use only #########
-    ###########################################################
+    def compute_volume(self, x: np.ndarray) -> float:
+        """
+            Method to compute volume of the wing for given set of parameters
+        """
+
+        assert isinstance(x, np.ndarray) and x.ndim == 1, "`x` should be a 1D numpy array"
+        assert x.shape[0] == self.bounds[0].shape[0], "provided `x` does not have correct number of parameters"
+
+        # some variables
+        analysis_name = "CompGeom"
+        file_name, _ = self.vsp_file.split(".")
+
+        # get formated dv dict
+        params = self.get_pygeo_parameter_dict(x)
+
+        # update vsp model
+        for key, val in params.items():
+
+            # get group and parameter name
+            _, group_name, param_name = key.split(":")
+
+            # get param id
+            param_id = self.vsp_model.FindParm(self.component_id, param_name, group_name)
+
+            # set the val
+            self.vsp_model.SetParmValUpdate(param_id, val)
+
+        # update model
+        self.vsp_model.Update()
+
+        # setup comp geom analysis
+        self.vsp_model.SetAnalysisInputDefaults(analysis_name)
+
+        # set some analysis inputs
+        self.vsp_model.SetIntAnalysisInput(analysis_name, "WriteCSVFlag", [0])
+
+        # execute analysis
+        res_id = self.vsp_model.ExecAnalysis(analysis_name)
+
+        # Get wing volume
+        volume = self.vsp_model.GetDoubleResults(res_id, "Theo_Vol")[0]
+
+        # Delete mesh geom, results, analysis files
+        self.vsp_model.DeleteGeom(self.vsp_model.FindGeoms()[-1])
+        self.vsp_model.DeleteAllResults()
+        os.remove(f"{file_name}_CompGeom.txt")
+
+        return volume
