@@ -47,6 +47,8 @@ try:
     CL_target = input["target_CL"]
     target_CL_tol = input["target_CL_tol"]
     starting_alpha = input["starting_alpha"]
+    initial_delta_alpha = input["initial_delta_alpha"]
+    max_iterations = input["max_iterations"]
 
     ############## Read and set flow variables
 
@@ -155,7 +157,16 @@ try:
     elif input["alpha_type"] == "implicit":
 
         # Run CFD
-        itr_results = CFDSolver.solveCL(ap, CLStar=CL_target, alpha0=input["starting_alpha"], delta=0.2, tol=input["target_CL_tol"], autoReset=False, maxIter=8, writeSolution=True)
+        itr_results = CFDSolver.solveCL(
+            ap, 
+            CLStar=CL_target,
+            alpha0=starting_alpha,
+            delta=initial_delta_alpha,
+            tol=target_CL_tol, 
+            autoReset=False,
+            maxIter=max_iterations,
+            writeSolution=True
+        )
 
         # Evaluating objectives
         funcs = {}

@@ -308,6 +308,8 @@ class WingADflowVSP(BaseProblem):
             "target_CL": self.options.target_CL,
             "target_CL_tol": self.options.target_CL_tol,
             "starting_alpha": self.options.starting_alpha,
+            "initial_delta_alpha": self.options.initial_delta_alpha,
+            "max_iterations": self.options.max_iterations,
             "write_vsp_file": self.options.write_vsp_file,
             "write_stl_file": self.options.write_stl_file,
         }

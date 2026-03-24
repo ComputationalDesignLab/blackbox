@@ -107,6 +107,16 @@ class WingADflowVSPOptions(BaseModel):
         description="Initial guess for the angle of attack (in degrees) when using implicit alpha mode"
     )
 
+    initial_delta_alpha: float = Field(
+        default=0.5,
+        description="Initial guess for the change in alpha for secant search"
+    )
+
+    max_iterations: int = Field(
+        default=8,
+        description="number of iterations for secant search"
+    )
+
     # ----------------
     # Other arguments
     # ----------------
