@@ -3,9 +3,12 @@ from copy import deepcopy
 import numpy as np
 import pyvista as pv
 from time import time
-from packaging import version
-from .options import WingADflowVSPOptions
+from importlib.metadata import version
 from ..base_classes.base_problem import BaseProblem
+from .options import WingADflowVSPOptions
+
+def parse_version(v):
+    return tuple(int(x) for x in v.split("."))
 
 class WingADflowVSP(BaseProblem):
 
@@ -38,8 +41,8 @@ class WingADflowVSP(BaseProblem):
                 "You can follow the installation guide: https://mdolab-adflow.readthedocs-hosted.com/en/latest/install.html"
             )
         else:
-            MIN_VERSION = version.parse("2.11.0")
-            CURR_VERSION = version.parse(adflow.__version__)
+            MIN_VERSION = parse_version("2.11.0")
+            CURR_VERSION = parse_version(version("adflow"))
             assert CURR_VERSION >= MIN_VERSION, f"ADFlow version is {CURR_VERSION} but minimum {MIN_VERSION} is required"
 
         if self.options.write_surface_output or self.options.write_volume_output:
