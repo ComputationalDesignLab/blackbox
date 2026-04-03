@@ -229,7 +229,7 @@ class WingADflowVSP(BaseProblem):
 
         # Getting the directory where package is saved
         pkgdir = sys.modules["blackbox"].__path__[0]
-        filepath = os.path.join(pkgdir, "wing_adflow_vsp_problem/runscript.py")
+        filepath = os.path.join(pkgdir, "wing_problem/runscript.py")
 
         # Copy the runscript to analysis directory
         os.system(f"cp {filepath} {directory}/{self.samples_generated + 1}/runscript.py")
