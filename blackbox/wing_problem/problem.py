@@ -12,7 +12,7 @@ def parse_version(v):
 
 class WingADflowVSP(BaseProblem):
 
-    def __init__(self, options: WingADflowVSPOptions):
+    def __init__(self, options: WingADflowVSPOptions) -> None:
         """
             Class for performing wing analysis using ADflow solver
             
@@ -70,9 +70,15 @@ class WingADflowVSP(BaseProblem):
         self.samples_generated = 0
 
     @property
-    def bounds(self):
+    def bounds(self) -> tuple[np.ndarray]:
         """
             Method to get upper and lower bound based on added parameters
+
+            Returns
+            -------
+            bounds: tuple
+                a tuple containing two 1d numpy arrays - one for lower bound
+                and other for upper bound
         """
 
         lb = np.array([])
@@ -144,8 +150,8 @@ class WingADflowVSP(BaseProblem):
                 description.write(f"\n -------- Analysis failed ----------")
 
                 if return_results:
-                    output[f"{i}"] = {}
-                    output[f"{i}"]["scalar"] = {"fail": True}
+                    output[self.samples_generated+1] = {}
+                    output[self.samples_generated+1]["scalar"] = {"fail": True}
                 
             finally:
                 # Write time taken for analysis to desc file
@@ -158,9 +164,44 @@ class WingADflowVSP(BaseProblem):
         if return_results:
             return output
 
-    def read_results(self):
+    def read_results(self, dir_name: str) -> dict:
+        """
+            Method to read scalars.json and field_outputs.hdf5 files containing results from a
+            wing analysis and convert it to a dictionary which can be used later
 
-        pass
+            Parameters
+            ----------
+            dir_name: str
+                name of directory where the results from the analysis are saved
+
+            Returns
+            -------
+            out: dict 
+                a dictionary containing data stored in the folder
+        """
+
+        assert isinstance(dir_name, str), "file name should be a string"
+
+        output = {}
+
+        with open(f"{dir_name}/scalar_outputs.json", "r") as fp:
+            scalar_data = json.load(fp)
+        fp.close()
+        output["scalar"] = scalar_data
+
+        for fname in ["surface", "volume"]:
+
+            if os.path.exists(f"{dir_name}/{fname}_outputs.hdf5"):
+
+                import h5py
+
+                output[fname] = {}
+                f = h5py.File(f"{dir_name}/{fname}_outputs.hdf5", "r")
+                for key in list(f.keys()): # reading a group containing only 
+                    output[fname][key] = f[key][()]
+                f.close()
+
+        return output
 
     ###########################################################
     ######### Below methods are for internal use only #########

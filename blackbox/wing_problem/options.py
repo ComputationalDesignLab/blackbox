@@ -83,6 +83,26 @@ class WingADflowVSPOptions(BaseModel):
         description="If true, write the updated VSP model in a stl file. This option will only work when shape variables are added"
     )
 
+    write_lift_distribution: bool = Field(
+        default=False,
+        description="If true, add a lift distribution along the wing span and write the distribution file after analysis"
+    )
+
+    num_segments: int = Field(
+        default=100,
+        description="number of points in the lift distribution, only relevant when `write_lift_distribution` is set to True"
+    )
+
+    write_slice_file: bool = Field(
+        default=False,
+        description="If true, add slices along the wing span and write the slice file after analysis"
+    )
+
+    slice_location: list = Field(
+        default_factory=lambda: [0.05, 0.2, 0.4, 0.6, 0.8, 0.95],
+        description="a list describing relative slice location along the wing span"
+    )
+
     # ------------------------
     # Alpha related arguments
     # ------------------------
