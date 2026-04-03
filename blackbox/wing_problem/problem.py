@@ -345,14 +345,20 @@ class WingADflowVSP(BaseProblem):
             "solver_options": self.options.solver_options,
             "aero_problem": aero_problem,
             "scalar_outputs": self.options.scalar_outputs,
+            # implicit alpha options
             "alpha_type": self.options.alpha,
             "target_CL": self.options.target_CL,
             "target_CL_tol": self.options.target_CL_tol,
             "starting_alpha": self.options.starting_alpha,
             "initial_delta_alpha": self.options.initial_delta_alpha,
             "max_iterations": self.options.max_iterations,
+            # write options
             "write_vsp_file": self.options.write_vsp_file,
             "write_stl_file": self.options.write_stl_file,
+            "write_lift_distribution": self.options.write_lift_distribution,
+            "num_segments": self.options.num_segments,
+            "write_slice_file": self.options.write_slice_file,
+            "slice_location": self.options.slice_location
         }
 
         if self.options.wing_vsp is not None:

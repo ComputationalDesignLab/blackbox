@@ -39,8 +39,6 @@ try:
     scalar_outputs = input["scalar_outputs"]
     solver_options = input["solver_options"]
     vsp_file = input["vsp_file"]
-    write_vsp_file = input["write_vsp_file"]
-    write_stl_file = input["write_stl_file"]
 
     # implicit/explicit alpha options
     alpha_type = input["alpha_type"]
@@ -121,10 +119,10 @@ try:
         # set deformed volume mesh for analysis
         solver_options["gridFile"] = 'vol_mesh.cgns'
 
-        if write_vsp_file:
+        if input["write_vsp_file"]:
             geo_vsp.writeVSPFile("updated_model.vsp3")
 
-        if write_stl_file:
+        if input["write_stl_file"]:
             geo_vsp.vspModel.ExportFile("updated_model.stl", geo_vsp.vspModel.SET_ALL, geo_vsp.vspModel.EXPORT_STL)
 
     ############## Settign up adflow
@@ -138,10 +136,20 @@ try:
 
     # Creating adflow object
     CFDSolver = ADFLOW(options=solver_options, comm=comm)
+    
+    # Direction along wing span
+    if CFDSolver.options["liftIndex"] == 2:
+        direction = "z"
+    elif CFDSolver.options["liftIndex"] == 3:
+        direction = "y"
 
-    # Adding pressure distribution output
-    # if input["write_slice_file"]:
-    #     CFDSolver.addSlices("z", 0.5, sliceType="absolute")
+    # Adding lift distribution
+    if input["write_lift_distribution"]:
+        CFDSolver.addLiftDistribution(nSegments=input["num_segments"], direction=direction)
+
+    # Adding wing slices
+    if input["write_slice_file"]:
+        CFDSolver.addSlices(positions=input["slice_location"], direction=direction)
 
     ############## Run CFD
 
@@ -181,6 +189,12 @@ try:
 
         if os.path.exists(f"{ap.name}_vol.cgns"):
             os.rename(f"{ap.name}_vol.cgns", "volume_solution.cgns")
+
+        if input["write_lift_distribution"]:
+            os.rename(f"{ap.name}_lift.dat", "lift_distribution.dat")
+
+        if input["write_slice_file"]:
+            os.rename(f"{ap.name}_slices.dat", "slices.dat")
 
         if alpha_type == "implicit":
             funcs["fail"] = not itr_results["converged"]

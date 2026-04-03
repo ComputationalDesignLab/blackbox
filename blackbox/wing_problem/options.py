@@ -1,6 +1,6 @@
 import os, psutil
 from baseclasses import AeroProblem
-from pydantic import BaseModel, ConfigDict, Field, model_validator, computed_field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import Literal
 from .wing_vsp import WingVSP
 
@@ -89,8 +89,9 @@ class WingADflowVSPOptions(BaseModel):
     )
 
     num_segments: int = Field(
-        default=100,
-        description="number of points in the lift distribution, only relevant when `write_lift_distribution` is set to True"
+        default=200,
+        description="number of points to use along the wing span while writing lift distribution file, only relevant when `write_lift_distribution` is set to True",
+        ge=1
     )
 
     write_slice_file: bool = Field(
@@ -100,7 +101,8 @@ class WingADflowVSPOptions(BaseModel):
 
     slice_location: list = Field(
         default_factory=lambda: [0.05, 0.2, 0.4, 0.6, 0.8, 0.95],
-        description="a list describing relative slice location along the wing span"
+        description="a list describing relative slice location along the wing span, only relevant when `write_slice_file` is set to True",
+        min_length=1
     )
 
     # ------------------------
@@ -166,6 +168,9 @@ class WingADflowVSPOptions(BaseModel):
         # check if mesh file path exists
         if not os.path.exists(self.mesh_file):
             raise ValueError("Provided mesh file path does not exist")
+        
+        for val in self.slice_location:
+            assert isinstance(val, float) and 0.0 <= val <= 1.0, "entries in slice location list must be a float between 0 and 1"
 
         # set some solver and mesh options
         self.solver_options["volumeVariables"] = self.volume_outputs
