@@ -54,11 +54,10 @@ parent_comm.send(os.getpid(), dest=0, tag=comm.rank)
 
 try:
 
-    # redirecting the stdout - only root processor does printing
-    if comm.rank == 0:
-        log = open("log.txt", "a")
-        stdout = os.dup(1)
-        os.dup2(log.fileno(), 1)
+    # redirecting the stdout
+    log = open("log.txt", "a")
+    stdout = os.dup(1)
+    os.dup2(log.fileno(), 1)
 
     ############## Reading input file for the analysis
 
@@ -304,55 +303,54 @@ try:
         prob.model.scenario.coupling.struct.sp.setOption("numbersolutions", False)
         prob.model.scenario.coupling.struct.sp.writeSolution(baseName="struct_output")
 
-    ############## post-processing
-    
-    if comm.rank == 0:
+        ############## post-processing
+        
+        if comm.rank == 0:
 
-        if os.path.exists(f"{ap.name}_surf.cgns"):
-            os.rename(f"{ap.name}_surf.cgns", "surface_solution.cgns")
+            if os.path.exists(f"{ap.name}_surf.cgns"):
+                os.rename(f"{ap.name}_surf.cgns", "surface_solution.cgns")
 
-        if os.path.exists(f"{ap.name}_vol.cgns"):
-            os.rename(f"{ap.name}_vol.cgns", "volume_solution.cgns")
+            if os.path.exists(f"{ap.name}_vol.cgns"):
+                os.rename(f"{ap.name}_vol.cgns", "volume_solution.cgns")
 
-        if input["write_lift_distribution"]:
-            os.rename(f"{ap.name}_lift.dat", "lift_distribution.dat")
+            if input["write_lift_distribution"]:
+                os.rename(f"{ap.name}_lift.dat", "lift_distribution.dat")
 
-        if input["write_slice_file"]:
-            os.rename(f"{ap.name}_slices.dat", "slices.dat")
+            if input["write_slice_file"]:
+                os.rename(f"{ap.name}_slices.dat", "slices.dat")
 
-        # remove ap name from keys
-        funcs = {
-            k[len(f"{ap.name}_"):] if k.startswith(f"{ap.name}_") else k: v
-            for k, v in funcs.items()
-        }
+            # remove ap name from keys
+            funcs = {
+                k[len(f"{ap.name}_"):] if k.startswith(f"{ap.name}_") else k: v
+                for k, v in funcs.items()
+            }
 
-        # dump the scalar outputs to json file
-        with open("scalar_outputs.json", "w") as fp:
-            json.dump(funcs, fp, indent=4)
-        fp.close()
+            # dump the scalar outputs to json file
+            with open("scalar_outputs.json", "w") as fp:
+                json.dump(funcs, fp, indent=4)
+            fp.close()
 
-        print("")
-        print("#" + "-"*129 + "#")
-        print(" "*59 + "Result" + ""*59)
-        print("#" + "-"*129 + "#")
-        print("")
+            print("")
+            print("#" + "-"*129 + "#")
+            print(" "*59 + "Result" + ""*59)
+            print("#" + "-"*129 + "#")
+            print("")
 
-        # Printing and storing results based on evalFuncs in aero problem
-        for key, value in funcs.items():
-            print(f"{key} = {value}")
-
-        # Redirecting to original stdout
-        os.dup2(stdout, 1)
-        os.close(stdout)
+            # Printing and storing results based on evalFuncs in aero problem
+            for key, value in funcs.items():
+                print(f"{key} = {value}")
 
 except Exception as e:
     if comm.rank == 0:
         print(e)
 
 finally:
+    # Redirecting to original stdout
+    os.dup2(stdout, 1)
+    os.close(stdout)
+
     # close the file
-    if comm.rank == 0:
-        log.close()
+    log.close()
 
     # Getting intercomm and disconnecting
     # Otherwise, program will enter deadlock
