@@ -10,7 +10,7 @@ from .options import WingAeroStructOptions
 def parse_version(v):
     return tuple(int(x) for x in v.split("."))
 
-class WingAeroStructOptions(BaseProblem):
+class WingAeroStructVSP(BaseProblem):
 
     def __init__(self, options: WingAeroStructOptions) -> None:
         """
@@ -343,7 +343,7 @@ class WingAeroStructOptions(BaseProblem):
         finally:
 
             # Cleaning the directory
-            files = ["input.pickle", "runscript.py", "surf_mesh.xyz", "vol_mesh.cgns"] 
+            files = ["input.pickle", "runscript.py"]#, "vol_mesh.cgns"] 
             
             for file in files:
                 if os.path.exists(file):
@@ -381,7 +381,7 @@ class WingAeroStructOptions(BaseProblem):
 
         # Creating input dict
         input = {
-            "solver_options": self.options.solver_options,
+            "aero_solver_options": self.options.aero_solver_options,
             "aero_problem": aero_problem,
             "scalar_outputs": self.options.scalar_outputs,
             "struct_mesh_file": self.options.struct_mesh_file,
