@@ -87,6 +87,25 @@ class WingAeroStructOptions(BaseModel):
         min_length=1
     )
 
+    # ----------------------------
+    # Load factor arguments
+    # ----------------------------
+
+    load_factor_parameter: bool = Field(
+        default=False,
+        description="Flag to indicate whether load factor will be varied or not. By default (when this flag is `False`), a standard 1g load factor is applied. If true, then load factor is alos considered as a parameter with `load_factor_lb` and `load_factor_ub` as lower and upper bound, respectively."
+    )
+
+    load_factor_lb: float = Field(
+        default=0.8,
+        description="Lower bound for the load factor parameter"
+    )
+
+    load_factor_ub: float = Field(
+        default=1.2,
+        description="Upper bound for the load factor parameter"
+    )
+
     # -------------------------------
     # Writing and plotting arguments
     # -------------------------------
@@ -158,6 +177,9 @@ class WingAeroStructOptions(BaseModel):
         
         for val in self.slice_location:
             assert isinstance(val, float) and 0.0 <= val <= 1.0, "entries in slice location list must be a float between 0 and 1"
+
+        if self.load_factor_parameter:
+            assert self.load_factor_lb < self.load_factor_ub, "lower bound for load factor must be less than upper bound"
 
         # set some solver and mesh options
         self.aero_solver_options["volumeVariables"] = self.volume_outputs

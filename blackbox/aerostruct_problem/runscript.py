@@ -45,19 +45,6 @@ def element_callback(dvNum, compID, compDescript, elemDescripts, specialDVs, **k
 
     return elem
 
-def problem_setup(scenario_name, fea_assembler, problem):
-    """
-        Function to add fixed forces and eval functions to structural problems used in tacs builder
-    """
-
-    # Add TACS Functions
-    problem.addFunction("mass", functions.StructuralMass)
-    problem.addFunction("ks_vmfailure", functions.KSFailure, safetyFactor=1.0, ksWeight=100.0)
-
-    # Add gravity load
-    g = np.array([0.0, -9.81, 0.0])  # gravity is along negative y direction m/s^2
-    problem.addInertialLoad(g)
-
 # getting MPI comm
 comm = MPI.COMM_WORLD
 parent_comm = comm.Get_parent()
@@ -202,6 +189,27 @@ try:
     else:
         direction = "z"
         isym = 2
+
+    def problem_setup(scenario_name, fea_assembler, problem):
+        """
+            Function to add fixed forces and eval functions to structural problems used in tacs builder
+        """
+
+        # Add TACS Functions
+        problem.addFunction("mass", functions.StructuralMass)
+        problem.addFunction("ks_vmfailure", functions.KSFailure, safetyFactor=1.0, ksWeight=100.0)
+
+        # Add 1g load
+        if direction == "z":
+            g = np.array([0.0, -9.81, 0.0])  # gravity is along negative y direction m/s^2
+        elif direction == "y":
+            g = np.array([0.0, 0.0, -9.81])  # gravity is along negative z direction m/s^2
+        
+        # Multiply by load factor if it is a parameter
+        if "load_factor" in params.keys():
+            g = params["load_factor"] * g
+            
+        problem.addInertialLoad(g)
 
     class Top(Multipoint):
 

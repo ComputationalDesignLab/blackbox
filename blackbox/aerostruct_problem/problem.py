@@ -136,6 +136,11 @@ class WingAeroStructVSP(BaseProblem):
             lb = np.append(lb, self.options.wing_vsp.bounds[0])
             ub = np.append(ub, self.options.wing_vsp.bounds[1])
 
+        if self.options.load_factor_parameter:
+
+            lb = np.append(lb, self.options.load_factor_lb)
+            ub = np.append(ub, self.options.load_factor_ub)
+
         return (lb, ub)
     
     def __call__(self, x: np.ndarray, return_results: bool = False) -> None | dict:
@@ -420,7 +425,7 @@ class WingAeroStructVSP(BaseProblem):
 
         # separate flow and shape variables
         x_flow = x[:len(ap.DVs)]
-        x_shape = x[len(ap.DVs):]
+        x_shape = x[len(ap.DVs):-1] if self.options.load_factor_parameter else x[len(ap.DVs):]
 
         # assign flow variables
         for idx, key in enumerate(ap.DVs.keys()):
@@ -440,6 +445,10 @@ class WingAeroStructVSP(BaseProblem):
                 with open("pygeo_parameters.json", "w") as fp:
                     json.dump(pygeo_params, fp, indent=4)
                 fp.close()
+
+        # add load factor if it is a parameter
+        if self.options.load_factor_parameter:
+            parameters["load_factor"] = x[-1]
 
         with open("parameters.json", "w") as fp:
             json.dump(parameters, fp, indent=4)
