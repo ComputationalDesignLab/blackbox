@@ -160,15 +160,16 @@ class WingAeroStructOptions(BaseModel):
             assert isinstance(val, float) and 0.0 <= val <= 1.0, "entries in slice location list must be a float between 0 and 1"
 
         # set some solver and mesh options
-        self.solver_options["volumeVariables"] = self.volume_outputs
-        self.solver_options["surfaceVariables"] = self.surface_outputs
-        self.solver_options["writeSurfaceSolution"] = self.write_surface_output
-        self.solver_options["writeVolumeSolution"] = self.write_volume_output
-        self.solver_options["printAllOptions"] = False
-        self.solver_options["printIntro"] = False
-        self.solver_options["outputDirectory"] = "."
-        self.solver_options["numberSolutions"] = False
-        self.solver_options["printTiming"] = False
-        self.solver_options["gridFile"] = self.aero_mesh_file
+        self.aero_solver_options["volumeVariables"] = self.volume_outputs
+        self.aero_solver_options["surfaceVariables"] = self.surface_outputs
+        self.aero_solver_options["writeSurfaceSolution"] = self.write_surface_output
+        self.aero_solver_options["writeVolumeSolution"] = self.write_volume_output
+        self.aero_solver_options["printAllOptions"] = False
+        self.aero_solver_options["printIntro"] = False
+        self.aero_solver_options["outputDirectory"] = "."
+        self.aero_solver_options["numberSolutions"] = False
+        self.aero_solver_options["printTiming"] = False
+        self.aero_solver_options["forcesAsTractions"] = False
+        self.aero_solver_options["gridFile"] = self.aero_mesh_file
 
         return self
