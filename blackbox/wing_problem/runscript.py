@@ -1,4 +1,4 @@
-############# Script file for running airfoil analysis.
+############# Script file for running wing analysis
 
 # Imports
 import pickle, os, json
