@@ -17,33 +17,12 @@ from tacs.pymeshloader import pyMeshLoader
 from tacs import constitutive, elements, functions
 from  mphys.scenario_aerostructural import ScenarioAeroStructural
 
+os.environ['OPENMDAO_REPORTS'] = "0" # disable report generation
+
 warnings.filterwarnings(
     "ignore",
     message="Using internally generated IDWarp surfaces.*"
 )
-
-def element_callback(dvNum, compID, compDescript, elemDescripts, specialDVs, **kwargs):
-    """
-        Callback function used to setup TACS element objects and DVs
-    """
-
-    # Material properties
-    rho = 2500.0  # density kg/m^3
-    E = 70.0e9  # Young's modulus (Pa)
-    nu = 0.30  # Poisson's ratio
-    ys = 350e6  # yield stress
-    t = 0.01  # shell thickness, m
-
-    # Setup (isotropic) property and constitutive objects
-    prop = constitutive.MaterialProperties(rho=rho, E=E, nu=nu, ys=ys)
-    # Set one thickness dv for every component
-    con = constitutive.IsoShellConstitutive(prop, t=t, tNum=dvNum)
-
-    # For each element type in this component, pass back the appropriate tacs element object
-    transform = None
-    elem = elements.Quad4Shell(transform, con)
-
-    return elem
 
 # getting MPI comm
 comm = MPI.COMM_WORLD
@@ -170,10 +149,10 @@ try:
         nastran_obj.write_bdf(struct_mesh_file)
 
         if input["write_vsp_file"]:
-            geo_vsp.writeVSPFile("updated_model.vsp3")
+            geo_vsp.writeVSPFile("wing_model.vsp3")
 
         if input["write_stl_file"]:
-            geo_vsp.vspModel.ExportFile("updated_model.stl", geo_vsp.vspModel.SET_ALL, geo_vsp.vspModel.EXPORT_STL)
+            geo_vsp.vspModel.ExportFile("wing_model.stl", geo_vsp.vspModel.SET_ALL, geo_vsp.vspModel.EXPORT_STL)
 
     ############## Setting up openmdao model
 
@@ -222,7 +201,6 @@ try:
             # struct builder
             struct_builder = TacsBuilder(
                 mesh_file="wingbox.bdf",
-                element_callback=element_callback,
                 problem_setup=problem_setup,
                 write_solution=False
             )
@@ -239,8 +217,8 @@ try:
                 flow_parameters.add_output(name, np.array([params[name]]))
 
             # coupled aerostructural scenario
-            nonlinear_solver = om.NonlinearBlockGS(maxiter=25, iprint=2, use_aitken=True, rtol=1e-12, atol=1e-12, err_on_non_converge=True)
-            linear_solver = om.LinearBlockGS(maxiter=25, iprint=2, use_aitken=True, rtol=1e-12, atol=1e-12, err_on_non_converge=True)
+            nonlinear_solver = om.NonlinearBlockGS(maxiter=25, iprint=2, use_aitken=True, rtol=1e-8, atol=1e-8, err_on_non_converge=True)
+            linear_solver = om.LinearBlockGS(maxiter=25, iprint=2, use_aitken=True, rtol=1e-8, atol=1e-8, err_on_non_converge=True)
             self.mphys_add_scenario(
                 "scenario",
                 ScenarioAeroStructural(
@@ -301,7 +279,7 @@ try:
 
         # write struct solution files
         prob.model.scenario.coupling.struct.sp.setOption("numbersolutions", False)
-        prob.model.scenario.coupling.struct.sp.writeSolution(baseName="struct_output")
+        prob.model.scenario.coupling.struct.sp.writeSolution(baseName="structural_solution")
 
         ############## post-processing
         
@@ -339,6 +317,14 @@ try:
             # Printing and storing results based on evalFuncs in aero problem
             for key, value in funcs.items():
                 print(f"{key} = {value}")
+
+            # Cleaning the directory
+            files = ["input.pickle", "runscript.py", "mphys.html", 
+                "pygeo_parameters.json", "vol_mesh.cgns", "wingbox.bdf"] 
+            
+            for file in files:
+                if os.path.exists(file):
+                    os.system(f"rm {file}")
 
 except Exception as e:
     if comm.rank == 0:

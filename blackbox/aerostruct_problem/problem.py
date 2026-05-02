@@ -328,6 +328,9 @@ class WingAeroStructVSP(BaseProblem):
                     # combine all multi-blocks
                     combined = dataset[0].combine()
 
+                    # store data as vtu
+                    combined.save(f"{fname}_solution.vtu")
+
                     # get point data
                     point_data = combined.cell_data_to_point_data().point_data
 
@@ -336,23 +339,35 @@ class WingAeroStructVSP(BaseProblem):
 
                     f.create_dataset("MeshPoints", data=np.asarray(mesh_points)) # write mesh points
 
-                    # store data
+                    # store data as hdf5
                     for var_name in point_data.keys():
                         f.create_dataset(var_name, data=np.asarray(point_data[var_name]))
 
                     f.close()
 
+            if os.path.exists("structural_solution.f5"):
+
+                os.system("f5tovtk structural_solution.f5")
+
+                reader = pv.VTKDataSetReader("structural_solution.vtk") # initialize the VTK reader
+
+                dataset = reader.read() # read the vtk file
+
+                dataset.point_data["thickness"] = dataset.point_data["dv1"] # rename the thickness
+
+                # remove dv variables from dataset
+                for key in dataset.point_data.keys():
+                    if "dv" in key:
+                        dataset.point_data.remove(key)
+
+                dataset.save("structural_solution.vtu")
+
+                os.system("rm structural_solution.vtk")
+
         except Exception as e:
             print(e)
 
         finally:
-
-            # Cleaning the directory
-            files = ["input.pickle", "runscript.py"]#, "vol_mesh.cgns"] 
-            
-            for file in files:
-                if os.path.exists(file):
-                    os.system(f"rm {file}")
 
             # Changing the directory back to root
             os.chdir("../..")

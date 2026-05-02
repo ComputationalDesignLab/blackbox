@@ -75,14 +75,14 @@ class WingAeroStructOptions(BaseModel):
         min_length=1
     )
 
-    surface_outputs: list[Literal["rho", "p", "temp", "cp", "vx", "vy", "vz", "cf", "cfx", "cfy", "cfz", "yplus"]] = Field(
-        default_factory=lambda: ["rho", "p", "temp", "cp", "vx", "vy", "vz", "cf", "cfx", "cfy", "cfz", "yplus"],
+    surface_outputs: list[Literal["rho", "p", "temp", "cp", "cf", "cfx", "cfy", "cfz", "yplus"]] = Field(
+        default_factory=lambda: ["rho", "p", "temp", "cp", "cf", "cfx", "cfy", "cfz", "yplus"],
         description="List of surface output identifiers to be written during the simulation, the provided list should contain atleast one valid identifier",
         min_length=1
     )
 
-    volume_outputs: list[Literal["cp", "mach", "temp"]] = Field(
-        default_factory=lambda: ["cp", "mach", "temp"],
+    volume_outputs: list[Literal["cp", "mach"]] = Field(
+        default_factory=lambda: ["cp", "mach"],
         description="List of volume output identifiers to be written during the simulation, the provided list should contain atleast one valid identifier",
         min_length=1
     )
