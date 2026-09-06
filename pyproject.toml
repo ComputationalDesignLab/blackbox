@@ -2,3 +2,20 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "blackbox"
+authors = [
+    {name = "CODE Lab"}
+]
+maintainers = [
+    {name = "Pavankumar Koratikere", email = "pkoratik@purdue.edu"}
+]
+version = "0.1.0"
+requires-python = ">= 3.11"
+dependencies = [
+    "numpy", 
+    "scipy",
+    "pyDOE3",
+    "pydantic"
+]
+readme = "README.md"
