@@ -7,8 +7,13 @@ Follow below steps for installing Blackbox:
 
 - Clone or download the latest tagged release from Blackbox's `github repository <https://github.com/ComputationalDesignLab/blackbox/releases>`_.
 - Open the terminal and ``cd`` into the root of cloned/downloaded repository
-- (optional) Activate the virtual environment in which you want to install Blackbox and run::
+- Activate the virtual environment in which you want to install Blackbox
+- Run the following command to instal the package::
 
 	pip install .
 
-**Note**: This will not install additional packages/libraries required for specific problems. You will need to install those separately. Refer below sections for more details about installing additional packages/libraries for specific problems.
+- If you want to install the package in editable mode, run the following command::
+	
+	pip install -e .
+
+.. note:: This will not install additional packages/libraries required for specific problems, you will need to install those separately. Refer specific problem section for more details about required packages/libraries.
