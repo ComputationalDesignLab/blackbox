@@ -23,12 +23,12 @@ class SingleOutputAnalyticalProblem(BaseProblem):
             Parameters
             ----------
             x: np.ndarray
-                1D/2D numpy array of shape (dim,) or (n_samples,dim)
+                1D/2D numpy array of shape ``(num_inputs,)`` or ``(n_samples,num_samples)``
 
             Returns
             -------
             y: np.ndarray
-                1D/2D numpy array of shape (n_samples,1) or (1,) 
+                1D/2D numpy array of shape ``(1,)`` or ``(n_samples,1)``
                 containing the required output value for each input sample
         """
 

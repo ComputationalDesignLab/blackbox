@@ -6,7 +6,7 @@ class Ackley(SingleOutputAnalyticalProblem):
         Class for defining the ackley function. More details about this
         problem can be found here: https://www.sfu.ca/~ssurjano/ackley.html
 
-        Default range of bounds for the design variable is [-32.768,32.768]^10
+        Default range of bounds for each design variable is ``[-32.768,32.768]``
 
         Parameters
         ----------
@@ -25,6 +25,19 @@ class Ackley(SingleOutputAnalyticalProblem):
         self._y_opt = 0.0
 
     def _evaluate(self, x:np.ndarray) -> np.ndarray:
+        """
+            Evaluate the Ackley function for given input `x`
+
+            Parameters
+            ----------
+            x : np.ndarray
+                input samples with shape ``(n_samples, num_inputs)`` or ``(num_inputs,)``
+
+            Returns
+            -------
+            np.ndarray
+                an array of shape ``(n_samples, 1)`` or ``(1,)`` containing ackley function values
+        """
 
         a = 20.0
         b = 0.2
@@ -38,6 +51,8 @@ class Levy(SingleOutputAnalyticalProblem):
     """
         Class for defining the levy function. More details about this
         problem can be found here: https://www.sfu.ca/~ssurjano/levy.html
+
+        Default range of bounds for each design variable is ``[-10,10]``
 
         Parameters
         ----------
@@ -56,6 +71,19 @@ class Levy(SingleOutputAnalyticalProblem):
         self._y_opt = 0.0
 
     def _evaluate(self, x:np.ndarray) -> np.ndarray:
+        """
+            Evaluate the Levy function for given input `x`
+
+            Parameters
+            ----------
+            x : np.ndarray
+                input samples with shape ``(n_samples, num_inputs)`` or ``(num_inputs,)``
+
+            Returns
+            -------
+            np.ndarray
+                an array of shape ``(n_samples, 1)`` or ``(1,)`` containing levy function values
+        """
 
         w = 1.0 + (x - 1.0) / 4.0
 
@@ -72,6 +100,8 @@ class Rastrigin(SingleOutputAnalyticalProblem):
     """
         Class for defining the rastrigin function. More details about this
         problem can be found here: https://www.sfu.ca/~ssurjano/rastrigin.html
+
+        Default range of bounds for each design variable is ``[-5.12,5.12]``
 
         Parameters
         ----------
@@ -90,6 +120,19 @@ class Rastrigin(SingleOutputAnalyticalProblem):
         self._y_opt = 0.0
 
     def _evaluate(self, x:np.ndarray) -> np.ndarray:
+        """
+            Evaluate the Rastrigin function for given input `x`
+
+            Parameters
+            ----------
+            x : np.ndarray
+                input samples with shape ``(n_samples, num_inputs)`` or ``(num_inputs,)``
+
+            Returns
+            -------
+            np.ndarray
+                an array of shape ``(n_samples, 1)`` or ``(1,)`` containing rastrigin function values
+        """
 
         return 10.0*self.num_inputs + np.sum(x**2 - 10.0*np.cos(2.0*np.pi*x), axis=-1)
 
@@ -102,6 +145,8 @@ class Hartmann(SingleOutputAnalyticalProblem):
         Hartmann 3D - https://www.sfu.ca/~ssurjano/hart3.html\n
         Hartmann 4D - https://www.sfu.ca/~ssurjano/hart4.html\n
         Hartmann 6D - https://www.sfu.ca/~ssurjano/hart6.html
+
+        Default range of bounds for each design variable is ``[0,1]``
 
         Parameters
         ----------
@@ -164,6 +209,19 @@ class Hartmann(SingleOutputAnalyticalProblem):
         self.alpha = np.array([[1.0], [1.2], [3.0], [3.2]])
 
     def _evaluate(self, x:np.ndarray) -> np.ndarray:
+        """
+            Evaluate the Hartmann function for given input `x`
+
+            Parameters
+            ----------
+            x : np.ndarray
+                input samples with shape ``(n_samples, num_inputs)`` or ``(num_inputs,)``
+
+            Returns
+            -------
+            np.ndarray
+                an array of shape ``(n_samples, 1)`` or ``(1,)`` containing hartmann function values
+        """
 
         innersum = np.sum(self.A * (np.expand_dims(x,-2) - 1e-4*self.P)**2, axis=-1)
 
@@ -178,6 +236,9 @@ class Hartmann(SingleOutputAnalyticalProblem):
 class Branin(SingleOutputAnalyticalProblem):
     """
         Class for defining the branin function
+
+        There are only two variables in this problem. Default
+        range of bounds for these variables are ``[-5,10]`` and ``[0,15]``
 
         Parameters
         ----------
@@ -194,6 +255,19 @@ class Branin(SingleOutputAnalyticalProblem):
         self._y_opt = 0.397887
     
     def _evaluate(self, x:np.ndarray) -> np.ndarray:
+        """
+            Evaluate the Branin function for given input `x`
+
+            Parameters
+            ----------
+            x : np.ndarray
+                input samples with shape ``(n_samples, num_inputs)`` or ``(num_inputs,)``
+
+            Returns
+            -------
+            np.ndarray
+                an array of shape ``(n_samples, 1)`` or ``(1,)`` containing branin function values
+        """
 
         a = 1.0
         b = 5.1 / (4.0 * np.pi**2)
@@ -212,6 +286,11 @@ class ModifiedBranin(SingleOutputAnalyticalProblem):
     """
         Class for defining the modified branin function
 
+        The number of design variables and their default bounds
+        are same as the one used for standard Branin function
+
+        This function is obtained from Forrester's surrogate modeling book
+
         Parameters
         ----------
         negate: bool
@@ -227,6 +306,19 @@ class ModifiedBranin(SingleOutputAnalyticalProblem):
         self._y_opt = -16.64402
 
     def _evaluate(self, x:np.ndarray) -> np.ndarray:
+        """
+            Evaluate the modified branin function for given input `x`
+
+            Parameters
+            ----------
+            x : np.ndarray
+                input samples with shape ``(n_samples, num_inputs)`` or ``(num_inputs,)``
+
+            Returns
+            -------
+            np.ndarray
+                an array of shape ``(n_samples, 1)`` or ``(1,)`` containing modified branin function values
+        """
 
         a = 1.0
         b = 5.1 / (4.0 * np.pi**2)
