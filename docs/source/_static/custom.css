@@ -1,8 +1,31 @@
 .wy-side-nav-search .logo, .wy-side-nav-search img {
-    max-height: 100px;  /* or whatever size you prefer */
+    max-height: 100px;
     width: auto;
 }
 
 .wy-nav-content {
-    max-width: 62%;  /* try 1200–1600 */
+    max-width: 62%;
+}
+
+img.image-margin {
+    margin-bottom: 1em !important;
+}
+
+.rst-content dl:not(.docutils) dt {
+   display: table;
+   margin: 6px 0;
+   font-size: 90%;
+   line-height: normal;
+   background: #e7f2fa;
+   color: #2980B9;
+   border-top: solid 3px #6ab0de;
+   padding: 6px;
+   position: relative;
+}
+
+.pydantic-options-group {
+    font-size: 1.2em;
+    font-weight: 600;
+    margin-top: 1.5em;
+    margin-bottom: 0.75em;
 }
