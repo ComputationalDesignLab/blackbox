@@ -2,10 +2,11 @@
 API Reference
 =======================
 
-The API documentation for analytical problems is as follows:
+The API documentation for various problems are as follows:
 
 .. toctree::
     :maxdepth: 1
 
-    base_classes
     analytical_problems
+    airfoil_problem
+    wing_problem

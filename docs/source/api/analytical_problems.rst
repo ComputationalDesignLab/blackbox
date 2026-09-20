@@ -2,26 +2,31 @@
 Analytical Problems
 ===================
 
+.. autoclass:: blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem
+    :special-members: __call__
+    :members: set_bounds
+    :show-inheritance:
+
 .. autoclass:: blackbox.analytical_problems.single_output_problem.Ackley
-    :members:
+    :private-members: _evaluate
     :show-inheritance:
 
 .. autoclass:: blackbox.analytical_problems.single_output_problem.Levy
-    :members:
+    :private-members: _evaluate
     :show-inheritance:
 
 .. autoclass:: blackbox.analytical_problems.single_output_problem.Rastrigin
-    :members:
+    :private-members: _evaluate
     :show-inheritance:
 
 .. autoclass:: blackbox.analytical_problems.single_output_problem.Hartmann
-    :members:
+    :private-members: _evaluate
     :show-inheritance:
 
 .. autoclass:: blackbox.analytical_problems.single_output_problem.Branin
-    :members:
+    :private-members: _evaluate
     :show-inheritance:
 
 .. autoclass:: blackbox.analytical_problems.single_output_problem.ModifiedBranin
-    :members:
+    :private-members: _evaluate
     :show-inheritance:
