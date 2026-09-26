@@ -76,17 +76,19 @@ class AirfoilADflowCSTOptions(BaseModel):
 
     refine_volume_mesh: Literal[-2, -1, 0, 1, 2] = Field(
         default=0,
-        description="Flag indicating whether volume mesh should be refined/coarsed after mesh generation. The possible values are:"
-                    "-2: coarsen the mesh twice"
-                    "-2: coarsen the mesh once"
-                    "0: no change in generated mesh"
-                    "1: refine the mesh once"
-                    "2: refine the mesh twice"
+        description=(
+            "Flag indicating whether volume mesh should be refined/coarsened after mesh generation. The possible values are:\n\n"
+            "* ``-2``: coarsen the mesh twice\n"
+            "* ``-1``: coarsen the mesh once\n"
+            "* ``0``: no change in generated mesh\n"
+            "* ``1``: refine the mesh once\n"
+            "* ``2``: refine the mesh twice"
+        )
     )
 
-    # ----------------------------
-    # Simulation output arguments
-    # ----------------------------
+    # -------------------------------
+    # Writing and plotting arguments
+    # -------------------------------
 
     scalar_outputs: list[Literal["cl", "clp", "clv", "cd", "cdp", "cdv", "cm"]] = Field(
         default_factory=lambda: ["cl", "clp", "clv", "cd", "cdp", "cdv", "cm"],
@@ -106,33 +108,29 @@ class AirfoilADflowCSTOptions(BaseModel):
         min_length=1
     )
 
-    # -------------------------------
-    # Writing and plotting arguments
-    # -------------------------------
-
     write_surface_output: bool = Field(
         default=False,
-        description="If True, write surface output from adflow in cgns format. A ready-to-use HDF5 file containing surface data extracted from cgns file is also written"
+        description="If ``True``, write surface output from adflow in cgns format. A ready-to-use HDF5 file containing surface data extracted from cgns file is also written"
     )
 
     write_volume_output: bool = Field(
         default=False,
-        description="If True, write volume output from adflow in cgns format. A ready-to-use HDF5 file containing volume data extracted from cgns file is also written"
+        description="If ``True``, write volume output from adflow in cgns format. A ready-to-use HDF5 file containing volume data extracted from cgns file is also written"
     )
 
     write_slice_file: bool = Field(
         default=False,
-        description="If True, writes a slice file for post-processing and visualization"
+        description="If ``True``, writes a slice file for post-processing and visualization"
     )
 
     write_airfoil_coordinates: bool = Field(
         default=False,
-        description="If True, writes a deformed airfoil coordinates in a dat file"
+        description="If ``True``, writes a deformed airfoil coordinates in a dat file"
     )
 
     plot_airfoil: bool = Field(
         default=False,
-        description="If True, generate a plot of the deformed airfoil geometry vs original file"
+        description="If ``True``, generate a plot of the deformed airfoil geometry vs original file"
     )
 
     # ------------------------
@@ -141,7 +139,7 @@ class AirfoilADflowCSTOptions(BaseModel):
 
     alpha: Literal["explicit", "implicit"] = Field(
         default="explicit",
-        description="Angle-of-attack control mode. Use `implicit` if you want solver to solve for alpha based on a target lift coefficient. `NOTE`: If you use `implicit` mode, then `alpha` cannot be set as a parameter"
+        description="Angle-of-attack control mode. Use ``implicit`` if you want solver to solve for alpha based on a target lift coefficient. `NOTE`: If you use ``implicit`` mode, then ``alpha`` cannot be set as a parameter"
     )
 
     target_CL: float = Field(
