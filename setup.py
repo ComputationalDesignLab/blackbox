@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='blackbox',
-    version='0.9.0',
+    version='0.1.0',
     packages=find_packages(include=['blackbox*']),
     install_requires=["numpy>=1.21.6", 
                       "scipy>=1.7.3", 
