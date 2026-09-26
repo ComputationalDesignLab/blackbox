@@ -96,6 +96,7 @@ class WingVSP():
             ----------
             name: str
                 name of the parameter to be added. It can only be:
+                
                     * `Span`: span of the section
                     * `Root_Chord`: root chord of the section
                     * `Tip_Chord`: tip chord of the section
@@ -179,7 +180,7 @@ class WingVSP():
 
             sections: list
                 a list containing section indices whose CST coefficients are to be 
-                added as a parameter. `NOTE`: If there is more than one entry in
+                added as a parameter. ``NOTE``: If there is more than one entry in
                 this list, then all those sections will have uniform airfoil shape
                 parametrization
         """
@@ -269,7 +270,13 @@ class WingVSP():
             Parameters
             ----------
             x: np.ndarray
-                1D numpy array containing a single set of parameters
+                1D numpy array that contains value of the parameters
+
+            Returns
+            -------
+            pygeo_params: dict[str, float]
+                a key-value pairs that contains pygeo paramters and corresponding
+                parameter values
         """
 
         assert isinstance(x, np.ndarray) and x.ndim == 1, "`x` should be a 1D numpy array"
@@ -289,6 +296,16 @@ class WingVSP():
     def compute_volume(self, x: np.ndarray) -> float:
         """
             Method to compute volume of the wing for given set of parameters
+
+            Parameters
+            ----------
+            x: np.ndarray
+                1D numpy array that contains value of the parameters
+
+            Returns
+            -------
+            volume: float
+                volume of the wing based on given parameters
         """
 
         assert isinstance(x, np.ndarray) and x.ndim == 1, "`x` should be a 1D numpy array"

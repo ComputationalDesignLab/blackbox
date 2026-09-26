@@ -109,10 +109,8 @@ class WingADflowVSP(BaseProblem):
             return_results: bool
                 flag to determine if the results should be returned or not.
                 This should be set to True only when you want this function to
-                return the results.
-                
-                `NOTE`: This is only useful when you are doing sequential
-                data generation
+                return the results. ``NOTE``: This is only useful when you are
+                doing sequential data generation
         """
 
         assert len(self.bounds[0]) > 0, "add some parameters before running analysis"

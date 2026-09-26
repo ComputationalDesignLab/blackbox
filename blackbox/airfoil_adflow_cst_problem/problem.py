@@ -12,13 +12,11 @@ class AirfoilADflowCST(BaseProblem):
 
     def __init__(self, options: AirfoilADflowCSTOptions) -> None:
         """
-            Class for performing airfoil analysis using ADflow solver
-            
-            CST is used for parametrizing the airfoil in this problem
-
-            pyHyp is used for creating mesh around the airfoil
-
-            Refer to the documentation for more details about the analysis pipeline
+            Class for performing aerodynamic analysis of an airfoil
+            using ``ADflow`` solver. Class shape transformation is used
+            for parametrizing the airfoil shape. ``pyHyp`` is used 
+            for creating mesh around the airfoil. Refer to the documentation
+            for more details about the analysis pipeline.
 
             Parameters
             ----------
@@ -74,11 +72,7 @@ class AirfoilADflowCST(BaseProblem):
                 ) from e
 
         # Creating directory for storing the results
-        if not os.path.isdir(self.options.directory):
-            os.system("mkdir {}".format(self.options.directory))
-        else:
-            os.system("rm -r {}".format(self.options.directory))
-            os.system("mkdir {}".format(self.options.directory))
+        os.makedirs(self.options.directory, exist_ok=True)
 
         # Initializing the parametrization object
         self.parametrization = CST(self.options.airfoil_file, num_cst=[self.options.num_cst_upper, self.options.num_cst_lower])
@@ -89,7 +83,12 @@ class AirfoilADflowCST(BaseProblem):
         self.bounds = (np.array([]), np.array([]))
         self.samples_generated = 0
 
-    def add_parameter(self, name: str, lower_bound: float | np.ndarray, upper_bound: float | np.ndarray) -> None:
+    def add_parameter(
+        self,
+        name: str,
+        lower_bound: float | np.ndarray,
+        upper_bound: float | np.ndarray
+    ) -> None:
         """
             Method for adding a parameter for the airfoil problem
 
@@ -97,6 +96,7 @@ class AirfoilADflowCST(BaseProblem):
             ----------
             name: str
                 name of the parameter to be added. It can only be:
+
                     * `lower_cst`: lower surface cst coefficients
                     * `upper_cst`: upper surface cst coefficients
                     * `alpha`: angle of attack of the flow
@@ -105,11 +105,11 @@ class AirfoilADflowCST(BaseProblem):
 
             lower_bound: float or np.ndarray
                 lower bound for the parameter. It should be a 1D numpy array
-                if the parameter is `lower` or `upper`, otherwise a float
+                if the parameter is `lower_cst` or `upper_cst`, otherwise a float
 
             upper_bound: float or np.ndarray
                 upper bound for the parameter. It should be a 1D numpy array
-                if the parameter is `lower` or `upper`, otherwise a float
+                if the parameter is `lower_cst` or `upper_cst`, otherwise a float
         """
 
         self._check_variable(name, lower_bound, upper_bound)
@@ -128,24 +128,25 @@ class AirfoilADflowCST(BaseProblem):
         self.mask = np.append(self.mask, mask)
         self.parameters.append(name.lower())
 
-    def __call__(self, x: np.ndarray, return_results: bool = False) -> None | dict:
+    def __call__(
+        self,
+        x: np.ndarray,
+        return_results: bool = False
+    ) -> None | dict:
         """
-            Method to evaluate given x. It can be a single or multiple samples of
-            size (d,) or (N,d) where N is the number of samples and d is the number of
-            parameters added
+            Method to evaluate given sample(s). Input can be a single or multiple samples of
+            size (num_inputs,) or (n_samples,num_inputs)
 
             Parameters
             ----------
             x: np.ndarray
-                a numpy array representing values for added parameters
+                a numpy array representing samples that will be evaluated 
 
             return_results: bool
                 flag to determine if the results should be returned or not.
                 This should be set to True only when you want this function to
-                return the results.
-                
-                `NOTE`: This is only useful when you are doing sequential
-                data generation
+                return the results. ``NOTE``: This is only useful when you 
+                are doing sequential data generation
         """
 
         assert len(self.parameters) > 0, "add some parameters before running analysis"
@@ -211,13 +212,13 @@ class AirfoilADflowCST(BaseProblem):
 
             Parameters
             ----------
-            x: 1D numpy array
-                design variable
+            x: np.ndarray
+                set of parameters based on which airfoil area will be computed
 
             Returns
             -------
             area: float
-                set of parameters based on which airfoil area will be computed
+                area of the airfoil computed based on the given set of parameters
         """
 
         # Getting the updated airfoil points
@@ -248,7 +249,8 @@ class AirfoilADflowCST(BaseProblem):
 
             Returns
             -------
-                out: a dictionary containing data stored in the folder
+            out: dict 
+                a dictionary containing data stored in the folder
         """
 
         assert isinstance(dir_name, str), "file name should be a string"
