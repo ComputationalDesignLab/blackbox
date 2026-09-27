@@ -8,4 +8,5 @@ Blackbox
     introduction
     install
     problems/problem
+    hpc
     api/API
