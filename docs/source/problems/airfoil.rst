@@ -25,6 +25,9 @@ The ``Airfoil`` problem requires several additional packages that must be instal
    * - `pyHyp`_
      - >= 2.6.2
      - Used for generating the CFD volume mesh from the surface mesh
+   * - `cgnsutilities`_
+     - >= 2.8.1
+     - Used for refining/coarsening the generated volume mesh, only required if you set a non-zero value for ``refine_volume_mesh`` options
    * - `ADflow`_
      - 2.11.0
      - Used as the CFD solver for airfoil flow simulations
@@ -40,6 +43,7 @@ The ``Airfoil`` problem requires several additional packages that must be instal
 .. _mdolab-baseclasses: https://github.com/mdolab/baseclasses
 .. _pyHyp: https://github.com/mdolab/pyhyp
 .. _ADflow: https://github.com/mdolab/adflow
+.. _cgnsutilities: https://github.com/mdolab/cgnsutilities
 .. _pyvista: https://docs.pyvista.org/
 .. _h5py: https://docs.h5py.org/
 
@@ -141,25 +145,38 @@ The following code snippet shows an example of how to add parameters:
 Evaluating samples
 -------------------
 
-After adding parameters, evaluating samples is straight forward. Following code snippet illustrates how to evaluate samples:
+After adding the parameters, evaluating samples is straightforward. Following code snippet illustrates how to evaluate a set of samples:
 
 .. literalinclude:: ../../../examples/airfoil_adflow_cst/runscript.py
     :start-after: # rst RUN start
     :end-before: # rst RUN end
 
-First, 10 samples are generated using a latin hypercube sampling (LHS) method within a unit hypercube. These samples are then scaled to the correct bound for the problem. The bounds for a problem can be accessed using the ``bounds`` property method from the initialized object. It returns a tuple containing two 1-D numpy arrays: first array is the lower bound and second array is the upper bound. 
+First, 10 samples are generated using a Latin hypercube sampling (LHS) method within a unit hypercube. You can use any sampling method of your choice to generate the samples. These samples are then scaled to the appropriate bounds for the problem. The bounds can be accessed through the ``bounds`` property of the initialized problem object. This property is a tuple containing two 1D numpy arrays: the first array contains the lower bounds and the second array contains the upper bounds.
 
-In the code snippet shown above, ``samples`` is a numpy array of shape ``(10,15)``. The ``10`` indicates the number of samples while ``15`` denotes the number of parameters. Essentially, each row in the ``samples`` array is a different sample, i.e., a different set of parameter values. The order of values in each sample array depends on the order in which parameters are added. For example, in this case, the first six entries correspond to lower CST parameter, next six entries are for upper CST parameter, and the remaining three entries are for mach, alpha, and reynolds.
+In the code snippet above, ``samples`` is a numpy array with shape (10, 15). The 10 represents the number of samples, while 15 represents the number of parameters. Each row in ``samples`` array corresponds to a different sample, i.e., a different set of parameter values. The order of the values in each row is determined by the order in which the parameters were added to the problem. For example, in this case, the first six entries correspond to the lower CST parameters, the next six entries correspond to the upper CST parameters, and the remaining three entries correspond to Mach number, angle of attack, and Reynolds number, respectively.
 
-Next, the initialized ``Airfoil`` problem object (``airfoil`` in this case) is be called with the samples that are to be evaluated. The call method for ``Airfoil`` problem accepts two arguments:
+The initialized ``Airfoil`` problem object (``airfoil`` in this case) can then be called with the samples to be evaluated. The ``__call__`` method accepts two arguments:
 
-- ``x (numpy array)``:  an array representing samples that will be evaluated
+- ``x (numpy array)``: an array of shape (N,D) or (D,) representing the samples to be evaluated. Here, ``N`` denotes the number of samples and ``D`` denotes the number of parameters
 
-- ``return_results (bool)``: flag to determine if the results should be returned or not (default = ``False``). This should be set to ``True`` only when you want this function to return the results (e.g. in case of active learning)
+- ``return_results (bool)``: a flag indicating whether the results should be returned by the function (default = ``False``). Set this to ``True`` when the results are needed directly in Python, such as during active learning. When ``return_results`` is ``False``, the requested outputs from each simulation are stored in the corresponding sample directory.
 
-When the 
+Once the dataset generation process starts, a directory with the name specified by the ``directory`` option is created. All generated data are stored within this directory. The directory structure is organized as follows:
 
-If the ``return_results`` argument is set to ``False`` (default behaviour), then all the requested output generated from the simulation is stored in the respective folder.
+- The main directory contains a ``description.txt`` file that provides information about the generated dataset, including the parameters and their bounds.
+
+- A separate subdirectory is created for each evaluated sample. The subdirectories are numbered sequentially starting from ``1`` (i.e., ``1``, ``2``, ``3``, and so on), with each number corresponding to the row of the samples array that was evaluated. For example, the directory ``1`` contains the results for ``samples[0]``, ``2`` contains the results for ``samples[1]``, and so on.
+
+- Each sample directory contains the files generated during the simulation. Depending on the options provided during initialization, the following files may be present:
+
+  - ``log.txt``: a log file containing messages generated during mesh generation and solver execution
+  - ``parameters.json``: a JSON file containing the parameter values used for the sample
+  - ``scalar_outputs.json``: a JSON file containing the scalar outputs specified by the ``scalar_outputs`` option.
+  - ``surface_solution.cgns``: the surface solution written by the solver. This file is stored only when ``write_surface_output`` is set to ``True``
+  - ``volume_solution.cgns``: the volume solution written by the solver. This file is stored only when ``write_volume_output`` is set to ``True``
+  - ``surface_outputs.hdf5``: field data extracted from the surface solution and stored in an HDF5 file. This file is stored only when ``write_surface_output`` is set to ``True``. It will contain entities provided in the ``surface_outputs`` option
+  - ``volume_outputs.hdf5``: field data extracted from the volume solution and stored in an HDF5 file. This file is stored only when ``write_volume_output`` is set to ``True``. It will contain entities provided in the ``volume_outputs`` option
+  - ``airfoil.png``: a figure showing the deformed airfoil and the baseline airfoil
 
 Options
 ========
