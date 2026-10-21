@@ -34,7 +34,7 @@ class WingADflowVSPOptions(BaseModel):
     wing_vsp: WingVSP = Field(
         exclude=True,
         default=None,
-        description="an instance of `WingVSP` class defining various shape parameters"
+        description="Instance of ``WingVSP`` class defining various shape parameters"
     )
 
     # ----------------------------
@@ -65,43 +65,43 @@ class WingADflowVSPOptions(BaseModel):
 
     write_surface_output: bool = Field(
         default=False,
-        description="If True, write surface output from adflow in cgns format. A ready-to-use HDF5 file containing surface data extracted from cgns file is also written"
+        description="If ``True``, write surface output from adflow in cgns format. A ready-to-use HDF5 file containing surface data extracted from cgns file is also written"
     )
 
     write_volume_output: bool = Field(
         default=False,
-        description="If True, write volume output from adflow in cgns format. A ready-to-use HDF5 file containing volume data extracted from cgns file is also written"
+        description="If ``True``, write volume output from adflow in cgns format. A ready-to-use HDF5 file containing volume data extracted from cgns file is also written"
     )
 
     write_vsp_file: bool = Field(
         default=False,
-        description="If true, write the updated VSP model in vsp3 file. This option will only work when shape variables are added"
+        description="If ``True``, write the updated VSP model in vsp3 file. This option will only work when shape variables are added"
     )
 
     write_stl_file: bool = Field(
         default=False,
-        description="If true, write the updated VSP model in a stl file. This option will only work when shape variables are added"
+        description="If ``True``, write the updated VSP model in a stl file. This option will only work when shape variables are added"
     )
 
     write_lift_distribution: bool = Field(
         default=False,
-        description="If true, add a lift distribution along the wing span and write the distribution file after analysis"
+        description="If ``True``, add a lift distribution along the wing span and write the distribution file after analysis"
     )
 
     num_segments: int = Field(
         default=200,
-        description="number of points to use along the wing span while writing lift distribution file, only relevant when `write_lift_distribution` is set to True",
+        description="Number of points to use along the wing span while writing lift distribution file, only relevant when ``write_lift_distribution`` is set to True",
         ge=1
     )
 
     write_slice_file: bool = Field(
         default=False,
-        description="If true, add slices along the wing span and write the slice file after analysis"
+        description="If ``True``, add slices along the wing span and write the slice file after analysis"
     )
 
     slice_location: list = Field(
         default_factory=lambda: [0.05, 0.2, 0.4, 0.6, 0.8, 0.95],
-        description="a list describing relative slice location along the wing span, only relevant when `write_slice_file` is set to True",
+        description="List describing relative slice location along the wing span, only relevant when ``write_slice_file`` is set to ``True``",
         min_length=1
     )
 
@@ -111,7 +111,7 @@ class WingADflowVSPOptions(BaseModel):
 
     alpha: Literal["explicit", "implicit"] = Field(
         default="explicit",
-        description="Angle-of-attack control mode. Use `implicit` if you want solver to solve for alpha based on a target lift coefficient. `NOTE`: If you use `implicit` mode, then `alpha` cannot be set as a parameter"
+        description="Angle-of-attack control mode. Use ``implicit`` if you want solver to solve for alpha based on a target lift coefficient. ``NOTE``: If you use ``implicit`` mode, then ``alpha`` cannot be set as a parameter"
     )
 
     target_CL: float = Field(
@@ -136,7 +136,7 @@ class WingADflowVSPOptions(BaseModel):
 
     max_iterations: int = Field(
         default=8,
-        description="number of iterations for secant search"
+        description="Number of iterations for secant search"
     )
 
     # ----------------
