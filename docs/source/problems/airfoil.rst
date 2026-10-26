@@ -161,7 +161,7 @@ The initialized ``Airfoil`` problem object (``airfoil`` in this case) can then b
 
 - ``return_results (bool)``: a flag indicating whether the results should be returned by the function (default = ``False``). Set this to ``True`` when the results are needed directly in Python, such as during active learning. When ``return_results`` is ``False``, the requested outputs from each simulation are stored in the corresponding sample directory.
 
-Once the dataset generation process starts, a directory with the name specified by the ``directory`` option is created. All generated data are stored within this directory. The directory structure is organized as follows:
+Once the dataset generation process starts, a directory with the name specified by the ``directory`` option is created. All generated data is stored within this directory. The directory structure is organized as follows:
 
 - The main directory contains a ``description.txt`` file that provides information about the generated dataset, including the parameters and their bounds.
 
