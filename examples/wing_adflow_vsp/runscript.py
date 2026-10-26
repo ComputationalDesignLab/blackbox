@@ -73,8 +73,8 @@ options = WingADflowVSPOptions(
     mesh_file="wing_vol_mesh.cgns",
     solver_options=solver_options,
     aero_problem=aero_problem,
-    write_surface_output=False,
-    write_volume_output=False,
+    write_surface_output=True,
+    write_volume_output=True,
     num_processors=10,
     write_vsp_file=True,
     write_stl_file=True,
@@ -89,7 +89,7 @@ wing = WingADflowVSP(options=options)
 from pyDOE3 import lhs
 
 # generate sampling plan for evaluation
-samples = lhs(n=wing.bounds[0].shape[0], samples=3, criterion="cm", iterations=100)
+samples = lhs(n=wing.bounds[0].shape[0], samples=10, criterion="cm", iterations=100)
 samples = wing.bounds[0] + (wing.bounds[1] - wing.bounds[0]) * samples
 
 wing(samples, return_results=False)
