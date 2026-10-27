@@ -10,3 +10,4 @@ Blackbox is being developed to support problems spanning multiple domains and le
     analytical_problems
     airfoil
     wing
+    aerostruct
