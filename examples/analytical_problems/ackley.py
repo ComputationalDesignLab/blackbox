@@ -1,30 +1,19 @@
-from blackbox.analytical_problems import Ackley
-from blackbox.doe import generate_lhs_samples
-import numpy as np
-from scipy.io import savemat
+# rst EXAMPLE start
 from pyDOE3 import lhs
+from scipy.io import savemat
+from blackbox.analytical_problems import Ackley
 
 dim = 10
 
+# initialize problem
 problem = Ackley(num_inputs=dim)
 
+# samples
 x = lhs(dim, 10, criterion="cm")
-
 x = problem.lb + (problem.ub - problem.lb) * x
 
-print(x)
+y = problem(x) # evaluate samples
 
-y = problem(x)
-
-print(y)
-
-print(x[0,:])
-
-print(problem(x[0,:]))
-
-# data = {
-#     'x': x,
-#     'y': y
-# }
-
-# savemat('ackley_values.mat', data)
+# save data
+savemat('ackley_values.mat', {'x': x, 'y': y})
+# rst EXAMPLE end
