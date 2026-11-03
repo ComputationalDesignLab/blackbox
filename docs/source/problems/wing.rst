@@ -18,7 +18,7 @@ The ``Wing`` problem requires several additional packages that must be installed
      - Comments
    * - `mpi4py`_
      - 3.1.6
-     - Used for parallel processing during volume mesh generation and CFD solver execution
+     - Used for parallel processing during mesh deformation and CFD solver execution
    * - `mdolab-baseclasses`_
      - >= 1.8.4
      - Provides ``AeroProblem`` for defining flow and operating conditions
@@ -62,17 +62,17 @@ The ``Wing`` problem accepts a set of samples, where each sample contains parame
 3. **CFD analysis**: The deformed volume mesh and the flow parameters are passed to the ``ADflow`` solver to compute aerodynamic solution
 4. **Output extraction**: Scalar and field quantities from the solver are extracted and stored in a folder
 
-When multiple samples are provided, the workflow is evaluated for each sample, and the resulting outputs are stored separately for each sample. This allows the ``Wing`` problem to provide a consistent interface for generating datasets without requiring users to manually manage geometry processing, mesh generation, solver execution, or output handling.
+When multiple samples are provided, the workflow is evaluated for each sample, and the resulting outputs are stored separately for each sample. This allows the ``Wing`` problem to provide a consistent interface for generating datasets without requiring users to manually manage geometry processing, mesh deformation, solver execution, or output handling.
 
 The complete workflow is illustrated in the XDSM diagram below.
 
 .. image:: ../_static/xdsm_wing.png
     :width: 100%
     :align: center
-    :alt: airfoil problem xdsm
+    :alt: wing problem xdsm
     :class: image-margin
 
-The stacked rectangles representing the shape paramerization, volume mesh deformation, and CFD analysis indicate that these operations use multiple processors through MPI. The ``Wing`` problem therefore abstracts the geometry processing, mesh generation, solver execution, and output handling required for each sample.
+The stacked rectangles representing the shape paramerization, volume mesh deformation, and CFD analysis indicate that these operations use multiple processors through MPI. The ``Wing`` problem therefore abstracts the geometry processing, mesh deformation, solver execution, and output handling required for each sample.
 
 Basic usage
 ============
