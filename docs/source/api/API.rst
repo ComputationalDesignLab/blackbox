@@ -10,3 +10,4 @@ The API documentation for various problems are as follows:
     analytical_problems
     airfoil_problem
     wing_problem
+    aerostruct_problem
