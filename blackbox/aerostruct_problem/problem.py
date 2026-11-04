@@ -347,7 +347,7 @@ class WingAeroStructVSP(BaseProblem):
 
             if os.path.exists("structural_solution.f5"):
 
-                os.system("f5tovtk structural_solution.f5")
+                self._convert_f5_to_vtk("structural_solution.f5")
 
                 reader = pv.VTKDataSetReader("structural_solution.vtk") # initialize the VTK reader
 
@@ -498,3 +498,29 @@ class WingAeroStructVSP(BaseProblem):
         description.write("-----------------------------\n")
         description.write("Analysis specific description\n")
         description.write("-----------------------------\n")
+        
+    def _convert_f5_to_vtk(self, filename: str) -> None:
+        """
+            Method to convert f5 file (generated from TACS) to vtk
+
+            You need to remove MPI initialized env variables before calling f5tovtk utility
+
+            Parameters
+            ----------
+            filename: str
+                name of the f5 file that will be converted to vtk
+        """
+
+        import subprocess
+
+        env = os.environ.copy()
+
+        for key in list(env):
+            if key.startswith("OMPI_"):
+                env.pop(key)
+
+        subprocess.run(
+            ["f5tovtk", filename],
+            check=True,
+            env=env
+        )
