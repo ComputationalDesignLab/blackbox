@@ -85,9 +85,9 @@ There are typically three main steps involved in the process of generating datas
 
 - The leading and trailing edge of the airfoil coordinates must lie on the x-axis.
 
-- All the x-coordinates must be in the range of [0,1].
+- All x-coordinates must be in the range of [0,1].
 
-All the files used in sections below can be found in ``examples`` directory on github.
+All files used in sections below can be found in ``examples`` directory on github.
 
 Initializing the problem
 -------------------------

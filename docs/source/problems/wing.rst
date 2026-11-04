@@ -93,7 +93,7 @@ Additionally, if you are planning to modify the cross-section airfoil, then keep
 
 - Trim the trailing edge at each cross-section using an appropraite value relative to the local chord. It is important to use a relative value to avoid collapse of trailing edge thickness when the airfoil cross-section is modfied. You can set this trim value in the trailing edge options under ``modify`` tab.
 
-The files used in the example demonstrated below is available in the ``examples/wing_adflow_vsp`` directory.
+The files used in the example demonstrated below are available in the ``examples/wing_adflow_vsp`` directory.
 
 Defining flow parameters
 -------------------------
