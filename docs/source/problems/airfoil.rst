@@ -19,6 +19,9 @@ The ``Airfoil`` problem requires several additional packages that must be instal
    * - `mpi4py`_
      - 3.1.6
      - Used for parallel processing during volume mesh generation and CFD solver execution
+   * - `psutil`_
+     - `-`
+     - Used for monitoring child processes launched for analysis
    * - `mdolab-baseclasses`_
      - >= 1.8.4
      - Provides ``AeroProblem`` for defining flow and operating conditions
