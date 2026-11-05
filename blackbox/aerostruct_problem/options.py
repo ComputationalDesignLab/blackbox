@@ -44,7 +44,7 @@ class WingAeroStructOptions(BaseModel):
     wing_vsp: WingVSP = Field(
         exclude=True,
         default=None,
-        description="Instance of `WingVSP` class defining various shape parameters. This argument is mandatory for setting shape parameters"
+        description="Instance of ``WingVSP`` class defining various shape parameters. This argument is mandatory for setting shape parameters"
     )
 
     element_callback_function: Callable = Field(
@@ -71,19 +71,19 @@ class WingAeroStructOptions(BaseModel):
 
     scalar_outputs: list[Literal["cl", "clp", "clv", "cd", "cdp", "cdv", "cmx", "cmy", "cmz"]] = Field(
         default_factory=lambda: ["cl", "clp", "clv", "cd", "cdp", "cdv", "cmx", "cmy", "cmz"],
-        description="List of scalar output identifiers to be written during the simulation, the provided list should contain atleast one valid identifier",
+        description="List of scalar output identifiers to be written during the simulation, the provided list must contain atleast one valid identifier",
         min_length=1
     )
 
     surface_outputs: list[Literal["rho", "p", "temp", "cp", "cf", "cfx", "cfy", "cfz", "yplus"]] = Field(
         default_factory=lambda: ["rho", "p", "temp", "cp", "cf", "cfx", "cfy", "cfz", "yplus"],
-        description="List of surface output identifiers to be written during the simulation, the provided list should contain atleast one valid identifier",
+        description="List of surface output identifiers to be written during the simulation, the provided list must contain atleast one valid identifier",
         min_length=1
     )
 
     volume_outputs: list[Literal["cp", "mach"]] = Field(
         default_factory=lambda: ["cp", "mach"],
-        description="List of volume output identifiers to be written during the simulation, the provided list should contain atleast one valid identifier",
+        description="List of volume output identifiers to be written during the simulation, the provided list must contain atleast one valid identifier",
         min_length=1
     )
 
@@ -93,7 +93,7 @@ class WingAeroStructOptions(BaseModel):
 
     load_factor_parameter: bool = Field(
         default=False,
-        description="Flag to indicate whether load factor will be varied or not. By default (when this flag is `False`), a standard 1g load factor is applied. If true, then load factor is alos considered as a parameter with `load_factor_lb` and `load_factor_ub` as lower and upper bound, respectively."
+        description="Flag to indicate whether load factor will be varied or not. By default, a standard 1g load factor is applied. If ``True``, then load factor is alos considered as a parameter with ``load_factor_lb`` and ``load_factor_ub`` as lower and upper bound, respectively."
     )
 
     load_factor_lb: float = Field(
@@ -112,48 +112,48 @@ class WingAeroStructOptions(BaseModel):
 
     write_surface_output: bool = Field(
         default=False,
-        description="If True, write surface output from adflow in cgns format. A ready-to-use HDF5 file containing surface data extracted from cgns file is also written"
+        description="If ``True``, write surface output from adflow in cgns format. A ready-to-use HDF5 file containing surface data extracted from cgns file is also written"
     )
 
     write_volume_output: bool = Field(
         default=False,
-        description="If True, write volume output from adflow in cgns format. A ready-to-use HDF5 file containing volume data extracted from cgns file is also written"
+        description="If ``True``, write volume output from adflow in cgns format. A ready-to-use HDF5 file containing volume data extracted from cgns file is also written"
     )
 
     write_structural_output: bool = Field(
         default=False,
-        description="If True, write a HDF5 file containting all the structural outputs from TACS"
+        description="If ``True``, write a HDF5 file containting all the structural outputs from TACS"
     )
 
     write_vsp_file: bool = Field(
         default=False,
-        description="If true, write the updated VSP model in vsp3 file. This option will only work when shape variables are added"
+        description="If ``True``, write the updated VSP model in vsp3 file. This option will only work when shape variables are added"
     )
 
     write_stl_file: bool = Field(
         default=False,
-        description="If true, write the updated VSP model in a stl file. This option will only work when shape variables are added"
+        description="If ``True``, write the updated VSP model in a stl file. This option will only work when shape variables are added"
     )
 
     write_lift_distribution: bool = Field(
         default=False,
-        description="If true, add a lift distribution along the wing span and write the distribution file after analysis"
+        description="If ``True``, add a lift distribution along the wing span and write the distribution file after analysis"
     )
 
     num_segments: int = Field(
         default=200,
-        description="number of points to use along the wing span while writing lift distribution file, only relevant when `write_lift_distribution` is set to True",
+        description="Number of points to use along the wing span while writing lift distribution file, only relevant when ``write_lift_distribution`` is set to ``True``",
         ge=1
     )
 
     write_slice_file: bool = Field(
         default=False,
-        description="If true, add slices along the wing span and write the slice file after analysis"
+        description="If ``True``, add slices along the wing span and write the slice file after analysis"
     )
 
     slice_location: list = Field(
         default_factory=lambda: [0.05, 0.2, 0.4, 0.6, 0.8, 0.95],
-        description="a list describing relative slice location along the wing span, only relevant when `write_slice_file` is set to True",
+        description="List describing relative slice location along the wing span, only relevant when ``write_slice_file`` is set to ``True``",
         min_length=1
     )
 
