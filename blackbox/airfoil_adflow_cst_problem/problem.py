@@ -296,7 +296,6 @@ class AirfoilADflowCST(BaseProblem):
 
         import psutil
         from mpi4py import MPI
-        comm = MPI.COMM_WORLD
 
         print("Running analysis {}".format(self.samples_generated + 1))
 
