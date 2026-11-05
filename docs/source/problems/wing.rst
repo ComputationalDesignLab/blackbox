@@ -52,6 +52,7 @@ The ``Wing`` problem requires several additional packages that must be installed
 .. _ADflow: https://github.com/mdolab/adflow
 .. _pyvista: https://docs.pyvista.org/
 .. _h5py: https://docs.h5py.org/
+.. _psutil: https://pypi.org/project/psutil/
 
 Make sure that all required packages are installed with compatible versions before using the ``Wing`` problem.
 
@@ -83,6 +84,8 @@ Basic usage
 To use the ``Wing`` problem, you will require a baseline volume mesh in CGNS format. The ``Wing`` problem does not generate a volume mesh from the wing planform, rather the shape changes are transferred to the volume mesh using ``pyGeo`` and ``idwarp``. It is recommended to check that this baseline volume mesh works with ``ADFlow`` solver. Along with the volume mesh, you will need an OpenVSP model file (.vsp3) that describes the baseline wing planform and geometry around which the volume mesh is created.
 
 .. note:: An OpenVSP model file is only required if you want to modify the wing shape
+
+.. _wing-openvsp-guidelines:
 
 It is important to keep in mind the following guidelines while creating OpenVSP model:
 

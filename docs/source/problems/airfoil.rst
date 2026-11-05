@@ -49,6 +49,7 @@ The ``Airfoil`` problem requires several additional packages that must be instal
 .. _cgnsutilities: https://github.com/mdolab/cgnsutilities
 .. _pyvista: https://docs.pyvista.org/
 .. _h5py: https://docs.h5py.org/
+.. _psutil: https://pypi.org/project/psutil/
 
 Make sure that all required packages are installed with compatible versions before using the Airfoil problem.
 
