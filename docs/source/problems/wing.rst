@@ -78,6 +78,8 @@ The complete workflow is illustrated in the XDSM diagram below.
 
 The stacked rectangles representing the shape paramerization, volume mesh deformation, and CFD analysis indicate that these operations use multiple processors through MPI. The ``Wing`` problem therefore abstracts the geometry processing, mesh deformation, solver execution, and output handling required for each sample.
 
+.. _wing-basic-usage:
+
 Basic usage
 ============
 
@@ -101,6 +103,8 @@ Additionally, if you are planning to modify the cross-section airfoil, then keep
 
 The files used in the example demonstrated below are available in the ``examples/wing_adflow_vsp`` directory.
 
+.. _wing-flow-parameters:
+
 Defining flow parameters
 -------------------------
 
@@ -110,7 +114,9 @@ First step is to define the flow conditions, along with flow parameters, if requ
     :start-after: # rst FLOW start
     :end-before: # rst FLOW end
 
-As illustrated in code snippet above, you must also define the lower and upper value while adding design variables. Refer to the `AeroProblem documentation <https://mdolab-baseclasses.readthedocs-hosted.com/en/latest/pyAero_problem.html>`_ for the available flow conditions.
+As illustrated in code snippet above, you must also define the lower and upper value while adding design variables. Refer to the `AeroProblem documentation <https://mdolab-baseclasses.readthedocs-hosted.com/en/latest/pyAero_problem.html>`_ for available flow conditions.
+
+.. _wing-geometry-parameters:
 
 Defining wing geometry parameters
 ----------------------------------
@@ -161,7 +167,7 @@ Next step is to initialize the ``WingADflowVSPOptions`` class by setting appropr
 Evaluating samples
 -------------------
 
-After adding the parameters, evaluating samples is straightforward. Following code snippet illustrates how to evaluate a set of samples:
+After defining the problem, evaluating samples is straightforward. Following code snippet illustrates how to evaluate a set of samples:
 
 .. literalinclude:: ../../../examples/wing_adflow_vsp/runscript.py
     :start-after: # rst RUN start
