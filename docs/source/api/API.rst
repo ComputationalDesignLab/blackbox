@@ -1,6 +1,6 @@
-=======================
+===============
 API Reference
-=======================
+===============
 
 The API documentation for various problems are as follows:
 
@@ -11,3 +11,5 @@ The API documentation for various problems are as follows:
     airfoil_problem
     wing_problem
     aerostruct_problem
+    mujoco_problem
+    rover_traj_problem
