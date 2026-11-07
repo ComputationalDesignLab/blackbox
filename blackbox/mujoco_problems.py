@@ -10,7 +10,7 @@ try:
 except ImportError:
     raise ImportError("gymnasium is not installed. Please install it to use Mujoco environments.")
 
-class RunningStat():
+class RunningStat:
 
     def __init__(self, shape=None):
         """
