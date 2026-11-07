@@ -111,18 +111,18 @@ class WingAeroStructOptions(BaseModel):
     # -------------------------------
 
     write_surface_output: bool = Field(
-        default=False,
+        default=True,
         description="If ``True``, write surface output from adflow in cgns format. A ready-to-use HDF5 file containing surface data extracted from cgns file is also written"
     )
 
     write_volume_output: bool = Field(
-        default=False,
+        default=True,
         description="If ``True``, write volume output from adflow in cgns format. A ready-to-use HDF5 file containing volume data extracted from cgns file is also written"
     )
 
     write_structural_output: bool = Field(
-        default=False,
-        description="If ``True``, write a HDF5 file containting all the structural outputs from TACS"
+        default=True,
+        description="If ``True``, write raw structural output from TACS. A ``vtu`` file is also written that contains all the structural output from TACS"
     )
 
     write_vsp_file: bool = Field(

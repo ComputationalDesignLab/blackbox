@@ -407,6 +407,7 @@ class WingAeroStructVSP(BaseProblem):
             "struct_mesh_file": self.options.struct_mesh_file,
             "element_callback_function": self.options.element_callback_function,
             # write options
+            "write_structural_output": self.options.write_structural_output,
             "write_vsp_file": self.options.write_vsp_file,
             "write_stl_file": self.options.write_stl_file,
             "write_lift_distribution": self.options.write_lift_distribution,

@@ -15,7 +15,7 @@ from funtofem.mphys import MeldBuilder
 from adflow.mphys import ADflowBuilder
 from tacs.pymeshloader import pyMeshLoader
 from tacs import constitutive, elements, functions
-from  mphys.scenario_aerostructural import ScenarioAeroStructural
+from mphys.scenario_aerostructural import ScenarioAeroStructural
 
 os.environ['OPENMDAO_REPORTS'] = "0" # disable report generation
 
@@ -51,6 +51,7 @@ try:
     aero_solver_options = input["aero_solver_options"]
     vsp_file = input["vsp_file"]
     struct_mesh_file = input["struct_mesh_file"]
+    write_structural_output = input["write_structural_output"]
 
     ############## Read and set flow variables
 
@@ -67,20 +68,8 @@ try:
 
         options = {
             'gridFile': aero_solver_options["gridFile"],
-            # 'fileType':'CGNS',
-            # 'specifiedSurfaces':None,
-            # 'symmetrySurfaces':None,
-            # 'symmetryPlanes':[],
-            # 'aExp': 3.0,
-            # 'bExp': 5.0,
             'LdefFact': 75.0, # needed for large changes in mesh
-            # 'alpha': 0.25,
-            'errTol': 1e-5,
-            # 'evalMode': 'fast',
-            # 'useRotations': True,
-            # 'zeroCornerRotations': True,
-            # 'cornerAngle': 30.0,
-            # 'bucketSize': 8,
+            'errTol': 1e-5
         }
 
         # create the mesh object
@@ -278,8 +267,9 @@ try:
         prob.model.scenario.coupling.aero.solver.solver.writeSolution()
 
         # write struct solution files
-        prob.model.scenario.coupling.struct.sp.setOption("numbersolutions", False)
-        prob.model.scenario.coupling.struct.sp.writeSolution(baseName="structural_solution")
+        if write_structural_output:
+            prob.model.scenario.coupling.struct.sp.setOption("numbersolutions", False)
+            prob.model.scenario.coupling.struct.sp.writeSolution(baseName="structural_solution")
 
         ############## post-processing
         
