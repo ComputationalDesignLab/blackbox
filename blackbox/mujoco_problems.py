@@ -10,7 +10,7 @@ try:
 except ImportError:
     raise ImportError("gymnasium is not installed. Please install it to use Mujoco environments.")
 
-class RunningStat:
+class RunningStat():
 
     def __init__(self, shape=None):
         """
@@ -84,7 +84,8 @@ class MujocoProblem(BaseProblem):
             Parameters
             ----------
             env_name: str
-                name of the mujoco environment, must be a valid
+                name of the mujoco environment, must be: 'Swimmer-v5', 'HalfCheetah-v5',
+                'Hopper-v5', 'Walker2d-v5', or 'Humanoid-v5'
 
             lb: float, default=-1.0
                 lower bound of the input space
