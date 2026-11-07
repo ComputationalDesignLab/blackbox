@@ -3,7 +3,6 @@
 # https://github.com/LamNgo1/cma-meta-algorithm/blob/master/test_functions/function_realworld_bo/functions_mujoco.py
 
 import numpy as np
-from typing import ClassVar, Tuple
 from .base_classes.base_problem import BaseProblem
 
 try:
@@ -69,35 +68,65 @@ class RunningStat():
     def shape(self):
         return self._M.shape
 
+class MujocoProblem(BaseProblem):
 
-class MujocoPolicyFunc(BaseProblem):
-
-    # class variables
-    SWIMMER_ENV: ClassVar[Tuple[str, float, float, int]] = ('Swimmer-v5', -1.0, 1.0, 3)
-    HALF_CHEETAH_ENV: ClassVar[Tuple[str, float, float, int]] = ('HalfCheetah-v5', -1.0, 1.0, 3)
-    HOPPER_ENV: ClassVar[Tuple[str, float, float, int]] = ('Hopper-v5', -1.0, 1.0, 3)
-    WALKER_2D_ENV: ClassVar[Tuple[str, float, float, int]] = ('Walker2d-v5', -1.0, 1.0, 3)
-    HUMANOID_ENV: ClassVar[Tuple[str, float, float, int]] = ('Humanoid-v5', -1.0, 1.0, 3)
-
-    def __init__(self, env_name: str, lb: float, ub: float, num_rollouts: int):
+    def __init__(
+        self,
+        env_name: str, 
+        lb: float = -1.0, 
+        ub: float = 1.0, 
+        num_rollouts: int = 3,
+        seed: int | None = None
+    ):
         """
-            Base class for all mujoco environments
+            Class for setting up MuJoCo environment and run the simulation
 
             Parameters
             ----------
-            env_name : str
-                name of the mujoco environment
-            lb : float
+            env_name: str
+                name of the mujoco environment, must be a valid
+
+            lb: float, default=-1.0
                 lower bound of the input space
-            ub : float
+
+            ub: float, default=1.0
                 upper bound of the input space
-            num_rollouts : int
+
+            num_rollouts: int, default=3
                 number of times to run the entire episode for a given policy
+
+            seed: int | None, default=None
+                seed for the environment
         """
+
+        if not isinstance(env_name, str):
+            raise TypeError("Provided 'env_name' is not a string object")
+
+        if env_name not in ['Swimmer-v5', 'HalfCheetah-v5', 'Hopper-v5', 'Walker2d-v5', 'Humanoid-v5']:
+            raise ValueError("Provided 'env_name' is not recognized, it must be 'Swimmer-v5', 'HalfCheetah-v5', 'Hopper-v5', 'Walker2d-v5', or 'Humanoid-v5']")
+
+        if not isinstance(lb, float):
+            raise TypeError("Provided 'lb' is not a float object")
+
+        if not isinstance(ub, float):
+            raise TypeError("Provided 'ub' is not a float object")
+
+        if ub <= lb:
+            raise ValueError("Provided 'ub' is less than or equal to 'lb'")
+
+        if not isinstance(num_rollouts, int):
+            raise TypeError("Provided 'num_rollouts' is not an int object")
+
+        if num_rollouts < 1:
+            raise ValueError("Provided 'num_rollouts' is not less than 1")
+
+        if seed is not None:
+            if not isinstance(seed, int):
+                raise TypeError("Provided 'seed' is not an int object")
 
         self.env_name = env_name
         self.env = gym.make(env_name)
-        self.env.reset(seed=2025) # imp to set this seed for consistency
+        self.env.reset(seed=seed) # imp to set this seed for consistency
 
         state_dim = self.env.observation_space.shape[0]
         action_dim = self.env.action_space.shape[0]
@@ -114,12 +143,12 @@ class MujocoPolicyFunc(BaseProblem):
 
             Parameters
             ----------
-            x : np.ndarray
+            x: np.ndarray
                 input to be evaluated, can be a single sample or multiple samples, (dim,) or (n_samples,dim)
 
             Returns
             -------
-            reward : np.ndarray
+            reward: np.ndarray
                 reward of the trajectory for the given input, (1,) or (n_samples,1)
         """
 
@@ -164,8 +193,3 @@ class MujocoPolicyFunc(BaseProblem):
             y = y.reshape(-1,)
 
         return y
-
-class HalfCheetah(MujocoPolicyFunc):
-
-    def __init__(self):
-        super().__init__(*MujocoPolicyFunc.HALF_CHEETAH_ENV)
