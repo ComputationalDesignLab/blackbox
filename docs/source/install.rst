@@ -16,4 +16,8 @@ Follow below steps for installing Blackbox:
 	
 	pip install -e .
 
+- If you want to build or edit documentation, install the package using following command::
+
+	pip install .[docs]
+
 .. note:: This will not install additional packages/libraries required for specific problems, you will need to install those separately. Refer specific problem section for more details about required packages/libraries.
