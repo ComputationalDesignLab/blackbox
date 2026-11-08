@@ -11,3 +11,4 @@ Blackbox is being developed to support problems spanning multiple domains and le
     airfoil
     wing
     aerostruct
+    rover_traj
