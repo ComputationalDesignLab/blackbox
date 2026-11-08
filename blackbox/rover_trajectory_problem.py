@@ -5,7 +5,6 @@
 from .base_classes.base_problem import BaseProblem
 import numpy as np
 import scipy.interpolate as si
-import matplotlib.pyplot as plt
 
 class Rover(BaseProblem):
 
@@ -798,7 +797,15 @@ def plot_traj(control_points, rover, ngrid_points=100, ntraj_points=1000, colorm
             flag to determine whether to show the plot or not, default=True
     """
 
-    total_cost = rover(control_points)
+    import matplotlib.pyplot as plt
+
+    if not isinstance(control_points, np.ndarray):
+        raise TypeError("Provided 'control_points' is not a numpy array")
+
+    if control_points.ndim != 1:
+        raise ValueError("Provided 'control_points' is not a 1D numpy array")
+
+    total_cost = rover(control_points).item()
 
     # get a grid of points over the state space
     s_range = np.array([[-0.1, -0.1], [1.1, 1.1]])
@@ -817,8 +824,7 @@ def plot_traj(control_points, rover, ngrid_points=100, ntraj_points=1000, colorm
     fig, ax = plt.subplots(figsize=(8,6))
 
     # set title to be the total cost
-    ax.set_title(f'Trajectory cost: {total_cost}')
-    print(total_cost)
+    ax.set_title(f'Trajectory cost: {total_cost:.2f}')
 
     # plot cost function
     cmesh = ax.pcolormesh(grid_points[0], grid_points[1], costs.reshape((ngrid_points, -1)), cmap=colormap)
@@ -839,7 +845,5 @@ def plot_traj(control_points, rover, ngrid_points=100, ntraj_points=1000, colorm
     # show plot
     if show_figure:
         plt.show()
-
-    # plt.close()
 
     return fig, ax
