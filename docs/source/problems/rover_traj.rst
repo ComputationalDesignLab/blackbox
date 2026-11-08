@@ -13,7 +13,7 @@ The following example demonstrates how to use the ``Rover`` problem class from B
     :start-after: # rst start
     :end-before: # rst end
 
-The interface is straight-forward to use. The main class is ``Rover``which is imported from ``blackbox.rover_trajectory_problem``. Once this class is initialized, it can be called to evaluate trajectories defined by the control points.
+The interface is straight-forward to use. The main class is ``Rover`` which is imported from ``blackbox.rover_trajectory_problem``. Once this class is initialized, it can be called to evaluate trajectories defined by the control points.
 
 1. Initialize the problem: ``problem = Rover(dim=dim, force_start=force_start, force_goal=force_goal)``
 
@@ -29,7 +29,7 @@ The interface is straight-forward to use. The main class is ``Rover``which is im
 
 3. Evaluate samples: ``y = problem(x)``
 
-   The initialized ``Rover`` object (``problem`` variable in this case) accepts either a numpy array of shape ``(dim,)`` or a 2D array of shape ``(n_samples, dim)``. The returned value is the trajectory cost associated with each sample. When a single design is passed, the result is a 1D array-like scalar output; when several designs are passed together, a 2D numpy array is returned.
+   The initialized ``Rover`` object (``problem`` variable in this case) accepts either a numpy array of shape ``(dim,)`` or a 2D array of shape ``(n_samples, dim)``. The returned value is the trajectory cost associated with each sample. When a single design is passed, the result is a 1D array-like scalar output; when several designs are passed together, a 2D numpy array is returned. You can save the ``x`` and ``y`` as an ``npz`` or ``mat`` file for later use.
 
 4. Plot a trajectory: ``plot_traj(control_points=x[0], rover=problem, show_figure=False)``
 
