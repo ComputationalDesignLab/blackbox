@@ -12,3 +12,4 @@ Blackbox is being developed to support problems spanning multiple domains and le
     wing
     aerostruct
     rover_traj
+    mujoco_problems
