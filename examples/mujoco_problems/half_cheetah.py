@@ -1,3 +1,4 @@
+# rst start
 from pyDOE3 import lhs
 from blackbox.mujoco_problems import MujocoProblem
 
@@ -14,3 +15,4 @@ y = problem(x)
 print(f"Problem dimension: {problem.dim}")
 print(f"\nSampling plan:\n{x}")
 print(f"\nOutput:\n{y}")
+# rst end
