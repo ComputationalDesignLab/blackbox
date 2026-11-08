@@ -188,7 +188,7 @@ class MujocoProblem(BaseProblem):
                     if terminated or truncated:
                         break
 
-            y[i,0] = -total_reward / self.num_rollouts
+            y[i,0] = total_reward / self.num_rollouts
 
         if x.ndim == 1:
             y = y.reshape(-1,)
