@@ -2,18 +2,18 @@
 Rover Trajectory Problem
 ==========================
 
-The rover trajectory problem is introduced in `Batched Large-scale Bayesian Optimization in High-dimensional Spaces <https://arxiv.org/abs/1706.01445>`_ as a high-dimensional blackbox optimization benchmark problem. In this problem, a rover must move through a 2D domain while avoiding obstacles and reaching a target location with a low-cost trajectory. The objective is not to optimize a closed-form function but to evaluate a trajectory defined by a set of control points. The trajectory is parameterized by a smooth B-spline and the cost of the path is computed by integrating pointwise penalties over the path. Even though the ``Rover`` problem is posed as a blackbox optimization problem, it can be treated as general purpose blackbox problem.
+The rover trajectory problem is introduced in `Batched Large-scale Bayesian Optimization in High-dimensional Spaces <https://arxiv.org/abs/1706.01445>`_ article as a high-dimensional blackbox optimization benchmark problem. In this problem, a rover must move through a 2D domain while avoiding obstacles and reaching a target location with a low-cost trajectory. The objective is not to optimize a closed-form function but to evaluate a trajectory defined by a set of control points. The trajectory is parameterized by a smooth B-spline and the cost of the path is computed by integrating pointwise penalties over the path. Even though the ``Rover`` problem is posed as a blackbox optimization problem, it can be treated as general purpose blackbox problem.
 
-Usage
-======
+Basic usage
+============
 
-The following example demonstrates how to use the ``Rover`` problem class implemented in blackbox. Specifically, the ``Rover`` problem class is initialized, a Latin hypercube sampling plan is created, and is evaluated using the initialized problem class. Lastly, trajectory associated with one of the samples is also plotted.
+The following example demonstrates how to use the ``Rover`` problem class from Blackbox. Specifically, the ``Rover`` problem class is initialized, a Latin hypercube sampling plan is created, and is evaluated using the initialized problem class. Lastly, trajectory associated with one of the samples is also plotted.
 
 .. literalinclude:: ../../../examples/rover_problem.py
     :start-after: # rst start
     :end-before: # rst end
 
-The interface is straight-forward to use. The main class is ``Rover``, imported from ``blackbox.rover_trajectory_problem``. Once this class is initialized, it can be called to evaluate various trajectories defined by the control points.
+The interface is straight-forward to use. The main class is ``Rover``which is imported from ``blackbox.rover_trajectory_problem``. Once this class is initialized, it can be called to evaluate trajectories defined by the control points.
 
 1. Initialize the problem: ``problem = Rover(dim=dim, force_start=force_start, force_goal=force_goal)``
 
@@ -25,12 +25,11 @@ The interface is straight-forward to use. The main class is ``Rover``, imported 
 
    Followed by scaling into the problem domain: ``x = problem.lb + (problem.ub - problem.lb) * x``
 
-   This creates a sampling plan of 10 designs, each of dimension ``problem.dim``. In other words, each row of ``x`` is one trajectory parameterization.
+   This creates a sampling plan of 10 designs, each of dimension ``problem.dim``. In other words, each row of ``x`` is one trajectory parameterization. In this example, the shape of ``x`` is (10,80), where 10 denotes the number of samples and 80 refers to the problem dimension. There will be 40 controls points in the space.
 
 3. Evaluate samples: ``y = problem(x)``
 
-   The initialized ``Rover`` object (problem in this case) accepts either a numpy array of shape ``(dim,)`` or a 2D array of shape ``(n_samples, dim)``.
-   The returned value is the trajectory cost associated with each sample. When a single design is passed, the result is a 1D array-like scalar output; when several designs are passed together, one output is computed per sample.
+   The initialized ``Rover`` object (``problem`` variable in this case) accepts either a numpy array of shape ``(dim,)`` or a 2D array of shape ``(n_samples, dim)``. The returned value is the trajectory cost associated with each sample. When a single design is passed, the result is a 1D array-like scalar output; when several designs are passed together, a 2D numpy array is returned.
 
 4. Plot a trajectory: ``plot_traj(control_points=x[0], rover=problem, show_figure=False)``
 
