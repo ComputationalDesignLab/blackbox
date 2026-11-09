@@ -1,0 +1,677 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rover Trajectory Problem &mdash; Blackbox</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=a400c6f5" />
+
+  
+    <link rel="shortcut icon" href="../_static/codelab-logo.png"/>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="MuJoCo problem" href="mujoco_problem.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Blackbox
+              <img src="../_static/codelab-logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../problems/problem.html">Problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hpc.html">Running on HPC</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="API.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="analytical_problems.html">Analytical Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="airfoil_problem.html">Airfoil Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wing_problem.html">Wing Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aerostruct_problem.html">Aerostruct Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mujoco_problem.html">MuJoCo problem</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Rover Trajectory Problem</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.rover_trajectory_problem.AABoxes"><code class="docutils literal notranslate"><span class="pre">AABoxes</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.AABoxes.__init__"><code class="docutils literal notranslate"><span class="pre">AABoxes.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.AABoxes.contains"><code class="docutils literal notranslate"><span class="pre">AABoxes.contains()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.rover_trajectory_problem.AdditiveCosts"><code class="docutils literal notranslate"><span class="pre">AdditiveCosts</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.AdditiveCosts.__call__"><code class="docutils literal notranslate"><span class="pre">AdditiveCosts.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.AdditiveCosts.__init__"><code class="docutils literal notranslate"><span class="pre">AdditiveCosts.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.rover_trajectory_problem.ConstCost"><code class="docutils literal notranslate"><span class="pre">ConstCost</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.ConstCost.__call__"><code class="docutils literal notranslate"><span class="pre">ConstCost.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.ConstCost.__init__"><code class="docutils literal notranslate"><span class="pre">ConstCost.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.rover_trajectory_problem.ConstObstacleCost"><code class="docutils literal notranslate"><span class="pre">ConstObstacleCost</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.ConstObstacleCost.__call__"><code class="docutils literal notranslate"><span class="pre">ConstObstacleCost.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.ConstObstacleCost.__init__"><code class="docutils literal notranslate"><span class="pre">ConstObstacleCost.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.rover_trajectory_problem.ConstantOffsetFn"><code class="docutils literal notranslate"><span class="pre">ConstantOffsetFn</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.ConstantOffsetFn.__call__"><code class="docutils literal notranslate"><span class="pre">ConstantOffsetFn.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.ConstantOffsetFn.__init__"><code class="docutils literal notranslate"><span class="pre">ConstantOffsetFn.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.rover_trajectory_problem.NegGeom"><code class="docutils literal notranslate"><span class="pre">NegGeom</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.NegGeom.__init__"><code class="docutils literal notranslate"><span class="pre">NegGeom.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.NegGeom.contains"><code class="docutils literal notranslate"><span class="pre">NegGeom.contains()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.rover_trajectory_problem.NormalizedInputFn"><code class="docutils literal notranslate"><span class="pre">NormalizedInputFn</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.NormalizedInputFn.__call__"><code class="docutils literal notranslate"><span class="pre">NormalizedInputFn.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.NormalizedInputFn.__init__"><code class="docutils literal notranslate"><span class="pre">NormalizedInputFn.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.NormalizedInputFn.get_range"><code class="docutils literal notranslate"><span class="pre">NormalizedInputFn.get_range()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.NormalizedInputFn.inv_project_input"><code class="docutils literal notranslate"><span class="pre">NormalizedInputFn.inv_project_input()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.NormalizedInputFn.project_input"><code class="docutils literal notranslate"><span class="pre">NormalizedInputFn.project_input()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.rover_trajectory_problem.PointBSpline"><code class="docutils literal notranslate"><span class="pre">PointBSpline</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.PointBSpline.__init__"><code class="docutils literal notranslate"><span class="pre">PointBSpline.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.PointBSpline.fit_bspline"><code class="docutils literal notranslate"><span class="pre">PointBSpline.fit_bspline()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.PointBSpline.get_traj_points"><code class="docutils literal notranslate"><span class="pre">PointBSpline.get_traj_points()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.rover_trajectory_problem.Rover"><code class="docutils literal notranslate"><span class="pre">Rover</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.Rover.__call__"><code class="docutils literal notranslate"><span class="pre">Rover.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.Rover.__init__"><code class="docutils literal notranslate"><span class="pre">Rover.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.rover_trajectory_problem.RoverDomain"><code class="docutils literal notranslate"><span class="pre">RoverDomain</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.RoverDomain.__call__"><code class="docutils literal notranslate"><span class="pre">RoverDomain.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.RoverDomain.__init__"><code class="docutils literal notranslate"><span class="pre">RoverDomain.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.rover_trajectory_problem.UnionGeom"><code class="docutils literal notranslate"><span class="pre">UnionGeom</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.UnionGeom.__init__"><code class="docutils literal notranslate"><span class="pre">UnionGeom.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.rover_trajectory_problem.UnionGeom.contains"><code class="docutils literal notranslate"><span class="pre">UnionGeom.contains()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.rover_trajectory_problem.create_cost"><code class="docutils literal notranslate"><span class="pre">create_cost()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.rover_trajectory_problem.l1cost"><code class="docutils literal notranslate"><span class="pre">l1cost()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.rover_trajectory_problem.plot_traj"><code class="docutils literal notranslate"><span class="pre">plot_traj()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.rover_trajectory_problem.simple_rbf"><code class="docutils literal notranslate"><span class="pre">simple_rbf()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Blackbox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="API.html">API Reference</a></li>
+      <li class="breadcrumb-item active">Rover Trajectory Problem</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/rover_traj_problem.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-blackbox.rover_trajectory_problem">
+<span id="rover-trajectory-problem"></span><h1>Rover Trajectory Problem<a class="headerlink" href="#module-blackbox.rover_trajectory_problem" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.AABoxes">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blackbox.rover_trajectory_problem.</span></span><span class="sig-name descname"><span class="pre">AABoxes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">low</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">high</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#AABoxes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.AABoxes" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.AABoxes.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">low</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">high</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#AABoxes.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.AABoxes.__init__" title="Link to this definition"></a></dt>
+<dd><p>Class to create axis aligned bounding boxes for the obstacles,
+typically used to model rectangular obstacles in 2D or 3D spaces</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>low</strong> (<em>np.ndarray</em>) – lower bound of the bounding box, should be a 2D array of shape (n, dim)
+where n is the number of boxes and dim is the dimension of the space</p></li>
+<li><p><strong>high</strong> (<em>np.ndarray</em>) – upper bound of the bounding box, should be a 2D array of shape (n, dim)
+where n is the number of boxes and dim is the dimension of the space</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.AABoxes.contains">
+<span class="sig-name descname"><span class="pre">contains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#AABoxes.contains"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.AABoxes.contains" title="Link to this definition"></a></dt>
+<dd><p>Check if a set of points X is inside the bounding box</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>np.ndarray</em>) – 2D numpy array containing (x,y) coordinates</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>bool</strong> – 2D boolean numpy array indicating if the point is inside the bounding box</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.AdditiveCosts">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blackbox.rover_trajectory_problem.</span></span><span class="sig-name descname"><span class="pre">AdditiveCosts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fns</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#AdditiveCosts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.AdditiveCosts" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.AdditiveCosts.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#AdditiveCosts.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.AdditiveCosts.__call__" title="Link to this definition"></a></dt>
+<dd><p>Method to compute additive cost for given x</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>np.ndarray</em>) – numpy array containing (x,y) point(s)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>2D numpy array containing constant cost for each point</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.AdditiveCosts.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fns</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#AdditiveCosts.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.AdditiveCosts.__init__" title="Link to this definition"></a></dt>
+<dd><p>Class to create a cost function that is the sum of the given cost functions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fns</strong> (<em>list</em>) – list of cost function handles to be added</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.ConstCost">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blackbox.rover_trajectory_problem.</span></span><span class="sig-name descname"><span class="pre">ConstCost</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constant_cost</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#ConstCost"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.ConstCost" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.ConstCost.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#ConstCost.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.ConstCost.__call__" title="Link to this definition"></a></dt>
+<dd><p>Method to assign a constant cost for each point</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>np.ndarray</em>) – numpy array containing (x,y) point(s)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>2D numpy array containing constant cost for each point</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.ConstCost.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constant_cost</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#ConstCost.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.ConstCost.__init__" title="Link to this definition"></a></dt>
+<dd><p>class to create a constant cost function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cost</strong> (<em>float</em>) – constant cost for each point in the trajectory</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.ConstObstacleCost">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blackbox.rover_trajectory_problem.</span></span><span class="sig-name descname"><span class="pre">ConstObstacleCost</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geometry</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstacle_cost</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#ConstObstacleCost"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.ConstObstacleCost" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.ConstObstacleCost.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#ConstObstacleCost.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.ConstObstacleCost.__call__" title="Link to this definition"></a></dt>
+<dd><p>method to compute obstacle for each point</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>np.ndarray</em>) – numpy array containing (x,y) point(s)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>2D numpy array containing constant obstacle cost for each point</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.ConstObstacleCost.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geometry</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstacle_cost</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#ConstObstacleCost.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.ConstObstacleCost.__init__" title="Link to this definition"></a></dt>
+<dd><p>class to create a cost function for the obstacles</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>geometry</strong> (<em>object</em>) – geometry of the obstacles, should be a class that implements the
+__call__ method to calculate the cost of the trajectory</p></li>
+<li><p><strong>obstacle_cost</strong> (<em>float</em>) – constant obstacle cost if a given point is inside the obstacles</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.ConstantOffsetFn">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blackbox.rover_trajectory_problem.</span></span><span class="sig-name descname"><span class="pre">ConstantOffsetFn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn_instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#ConstantOffsetFn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.ConstantOffsetFn" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.ConstantOffsetFn.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#ConstantOffsetFn.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.ConstantOffsetFn.__call__" title="Link to this definition"></a></dt>
+<dd><p>Method to return the function output with an offset</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.ConstantOffsetFn.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn_instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#ConstantOffsetFn.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.ConstantOffsetFn.__init__" title="Link to this definition"></a></dt>
+<dd><p>Class to add a constant offset to a given function’s output</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fn_instance</strong> (<em>function handle</em>)</p></li>
+<li><p><strong>offset</strong> (<em>float</em>) – offset to be added</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.NegGeom">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blackbox.rover_trajectory_problem.</span></span><span class="sig-name descname"><span class="pre">NegGeom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#NegGeom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.NegGeom" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.NegGeom.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#NegGeom.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.NegGeom.__init__" title="Link to this definition"></a></dt>
+<dd><p>Class to create a negation of the given geometry. The negation
+is used to transform the occupied regions into free space
+and vice versa, which is particularly useful in scenarios
+where defining the complement of a geometric region is more
+straightforward or efficient.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>geom</strong> (<em>object</em>) – geometry to be negated, should be a class that implements the
+<cite>contains</cite> method to check if a point is inside the geometry</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.NegGeom.contains">
+<span class="sig-name descname"><span class="pre">contains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#NegGeom.contains"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.NegGeom.contains" title="Link to this definition"></a></dt>
+<dd><p>Check if a set of points X is inside the negated geometry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>np.ndarray</em>) – 2D numpy array containing (x,y) coordinates</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>bool</strong> – 2D boolean numpy array indicating if the point is inside the bounding box</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.NormalizedInputFn">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blackbox.rover_trajectory_problem.</span></span><span class="sig-name descname"><span class="pre">NormalizedInputFn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn_instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_range</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#NormalizedInputFn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.NormalizedInputFn" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.NormalizedInputFn.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#NormalizedInputFn.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.NormalizedInputFn.__call__" title="Link to this definition"></a></dt>
+<dd><p>Call self as a function.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.NormalizedInputFn.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn_instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_range</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#NormalizedInputFn.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.NormalizedInputFn.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.NormalizedInputFn.get_range">
+<span class="sig-name descname"><span class="pre">get_range</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#NormalizedInputFn.get_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.NormalizedInputFn.get_range" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.NormalizedInputFn.inv_project_input">
+<span class="sig-name descname"><span class="pre">inv_project_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#NormalizedInputFn.inv_project_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.NormalizedInputFn.inv_project_input" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.NormalizedInputFn.project_input">
+<span class="sig-name descname"><span class="pre">project_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#NormalizedInputFn.project_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.NormalizedInputFn.project_input" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.PointBSpline">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blackbox.rover_trajectory_problem.</span></span><span class="sig-name descname"><span class="pre">PointBSpline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_control_points</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#PointBSpline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.PointBSpline" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.PointBSpline.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_control_points</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#PointBSpline.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.PointBSpline.__init__" title="Link to this definition"></a></dt>
+<dd><p>Class to create a smooth B-spline trajectory based on the given points</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dim</strong> (<em>int</em>) – number of dimensions of the domain (env), mostly 2D</p></li>
+<li><p><strong>num_control_points</strong> (<em>int</em>) – number of control points used for fitting B-spline trajectory</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.PointBSpline.fit_bspline">
+<span class="sig-name descname"><span class="pre">fit_bspline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">control_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">goal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#PointBSpline.fit_bspline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.PointBSpline.fit_bspline" title="Link to this definition"></a></dt>
+<dd><p>Method to fit a parameterized b-spline curve</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>control_points</strong> (<em>np.ndarray</em>) – 1D numpy array containing (x,y) coordinates of the control points</p></li>
+<li><p><strong>start</strong> (<em>np.ndarray</em>) – 1D numpy array containing (x,y) for the starting position, default=None</p></li>
+<li><p><strong>goal</strong> (<em>np.ndarray</em>) – 1D numpy array containing (x,y) for the goal position, default=None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.PointBSpline.get_traj_points">
+<span class="sig-name descname"><span class="pre">get_traj_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#PointBSpline.get_traj_points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.PointBSpline.get_traj_points" title="Link to this definition"></a></dt>
+<dd><p>Method to evaluate the parameterized b-spline curve at given
+parameter values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>u</strong> (<em>np.ndarray</em>) – 1D numpy array consisting of parameter values for the b-spline curve, shape (n,)
+where n is the number of parameter values</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>traj_points</strong> – a numpy array representing points along the b-spline curve, shape (n,d)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.Rover">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blackbox.rover_trajectory_problem.</span></span><span class="sig-name descname"><span class="pre">Rover</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([0.05,</span> <span class="pre">0.05])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">goal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([0.95,</span> <span class="pre">0.95])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_goal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#Rover"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.Rover" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseProblem</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.Rover.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#Rover.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.Rover.__call__" title="Link to this definition"></a></dt>
+<dd><p>Evaluate the cost of the trajectory for a given x</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>np.ndarray</em>) – input to be evaluated, can be a single sample or multiple samples, (dim,) or (n_samples,dim)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>cost</strong> – cost of the trajectory for the given input, (1,) or (n_samples,1)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.Rover.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([0.05,</span> <span class="pre">0.05])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">goal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([0.95,</span> <span class="pre">0.95])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_goal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#Rover.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.Rover.__init__" title="Link to this definition"></a></dt>
+<dd><p>Main class for the user to create a domain with obstacles
+and evaluate the cost of a trajectory for a given input</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dim</strong> (<em>int</em>) – dimension of the problem, determines the number of control points for the B-spline trajectory</p></li>
+<li><p><strong>start</strong> (<em>np.ndarray</em>) – 1D numpy array representing (x,y) coordinates of the starting point, default=(0.05,0.05)</p></li>
+<li><p><strong>goal</strong> (<em>np.ndarray</em>) – 1D numpy array representing (x,y) coordinates of the goal point, default=(0.95,0.95)</p></li>
+<li><p><strong>force_start</strong> (<em>bool</em>) – flag to fix the starting point, default=False</p></li>
+<li><p><strong>force_goal</strong> (<em>bool</em>) – flag to fix the goal point, default=False</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.RoverDomain">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blackbox.rover_trajectory_problem.</span></span><span class="sig-name descname"><span class="pre">RoverDomain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cost_fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">goal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_miss_cost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">goal_miss_cost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_goal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#RoverDomain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.RoverDomain" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.RoverDomain.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">control_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#RoverDomain.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.RoverDomain.__call__" title="Link to this definition"></a></dt>
+<dd><p>Method to estimate the cost for a given control points i.e.
+design variable vector x</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>control_points</strong> (<em>np.ndarray</em>) – 1D numpy array representing coordinates of the
+control points for fitting b-spline, shape (n,) where
+n = number of control points X 2. This is essential the design
+variable vector for which cost needs to be computed</p></li>
+<li><p><strong>n_samples</strong> (<em>int</em>) – number of points which will be used to query the
+b-spline after fitting, default = 1000</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>total_cost</strong> – total cost of the trajectory</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.RoverDomain.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cost_fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">goal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_miss_cost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">goal_miss_cost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_goal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#RoverDomain.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.RoverDomain.__init__" title="Link to this definition"></a></dt>
+<dd><p>Class for creating rover domain</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cost_fn</strong> – function handle to compute cost for a given set of points that define a trajectory</p></li>
+<li><p><strong>start</strong> (<em>np.ndarray</em>) – starting position (x,y) of the rover, shape (2,)</p></li>
+<li><p><strong>end</strong> (<em>np.ndarray</em>) – final (end) position (x,y) of the rover, shape (2,)</p></li>
+<li><p><strong>traj</strong> – a parameterized trajectory object that can create a smooth b-spline trajectory
+from the given control points</p></li>
+<li><p><strong>start_miss_cost</strong> – function handle to compute cost for missing starting position, default=None</p></li>
+<li><p><strong>goal_miss_cost</strong> – function handle to compute cost for missing final position, default=None</p></li>
+<li><p><strong>force_start</strong> (<em>bool</em>) – flag to compute cost for missing the start position, default=True</p></li>
+<li><p><strong>force_goal</strong> (<em>bool</em>) – flag to compute cost for missing the goal position, default=True</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.UnionGeom">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blackbox.rover_trajectory_problem.</span></span><span class="sig-name descname"><span class="pre">UnionGeom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geoms</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#UnionGeom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.UnionGeom" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.UnionGeom.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geoms</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#UnionGeom.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.UnionGeom.__init__" title="Link to this definition"></a></dt>
+<dd><p>Class to create a union of the given geometries. The union
+is used to combine multiple geometric regions into a single
+region, which is useful for defining complex obstacles or
+free space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>geoms</strong> (<em>list</em>) – list of geometries to be combined, should be a list of classes
+that implements the <cite>contains</cite> method to calculate the cost of the trajectory</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.UnionGeom.contains">
+<span class="sig-name descname"><span class="pre">contains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#UnionGeom.contains"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.UnionGeom.contains" title="Link to this definition"></a></dt>
+<dd><p>Check if the point X is inside the union of the geometries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>np.ndarray</em>) – 2D numpy array containing (x,y) coordinates</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>bool</strong> – 2D boolean array indicating if the point is inside the union of the geometries</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.create_cost">
+<span class="sig-prename descclassname"><span class="pre">blackbox.rover_trajectory_problem.</span></span><span class="sig-name descname"><span class="pre">create_cost</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#create_cost"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.create_cost" title="Link to this definition"></a></dt>
+<dd><p>function to create a cost function, the location
+of the obstacles is fixed to ensure consistency</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cost_fn</strong> – function handle for calculating the cost of the trajectory</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>function</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.l1cost">
+<span class="sig-prename descclassname"><span class="pre">blackbox.rover_trajectory_problem.</span></span><span class="sig-name descname"><span class="pre">l1cost</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#l1cost"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.l1cost" title="Link to this definition"></a></dt>
+<dd><p>function to calculate the l1 cost if the x deviates from point</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>np.ndarray</em>) – point to be evaluated</p></li>
+<li><p><strong>point</strong> (<em>np.ndarray</em>) – point to be matched</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>a float representing L1 cost</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.plot_traj">
+<span class="sig-prename descclassname"><span class="pre">blackbox.rover_trajectory_problem.</span></span><span class="sig-name descname"><span class="pre">plot_traj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">control_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rover</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ngrid_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ntraj_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colormap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GnBu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">draw_colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_figure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#plot_traj"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.plot_traj" title="Link to this definition"></a></dt>
+<dd><p>function to plot the trajectory for given control points</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>control_points</strong> (<em>np.ndarray</em>) – a 1D numpy array representing the coordinates of the control points</p></li>
+<li><p><strong>rover</strong> (<a class="reference internal" href="#blackbox.rover_trajectory_problem.Rover" title="blackbox.rover_trajectory_problem.Rover"><em>Rover</em></a>) – a Rover object</p></li>
+<li><p><strong>ngrid_points</strong> (<em>int</em>) – number of grid points along one axis, default=100</p></li>
+<li><p><strong>ntraj_points</strong> (<em>int</em>) – number of points along the trajectory, default=1000</p></li>
+<li><p><strong>colormap</strong> (<em>str</em>) – a valid matplotlib colormap, default=”GnBu”</p></li>
+<li><p><strong>draw_colorbar</strong> (<em>bool</em>) – flag to have colorbar or not, default=True</p></li>
+<li><p><strong>show_figure</strong> (<em>bool</em>) – flag to determine whether to show the plot or not, default=True</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="blackbox.rover_trajectory_problem.simple_rbf">
+<span class="sig-prename descclassname"><span class="pre">blackbox.rover_trajectory_problem.</span></span><span class="sig-name descname"><span class="pre">simple_rbf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/rover_trajectory_problem.html#simple_rbf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.rover_trajectory_problem.simple_rbf" title="Link to this definition"></a></dt>
+<dd><p>function to calculate the RBF-based cost if the x deviates from point</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>np.ndarray</em>) – point to be evaluated</p></li>
+<li><p><strong>point</strong> (<em>np.ndarray</em>) – point to be matched</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>a float representing L1 cost</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="mujoco_problem.html" class="btn btn-neutral float-left" title="MuJoCo problem" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, CODE Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

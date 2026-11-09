@@ -1,0 +1,179 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rover Trajectory Problem &mdash; Blackbox</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=a400c6f5" />
+
+  
+    <link rel="shortcut icon" href="../_static/codelab-logo.png"/>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="MuJoCo problems" href="mujoco_problems.html" />
+    <link rel="prev" title="Aerostruct Problem" href="aerostruct.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Blackbox
+              <img src="../_static/codelab-logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="problem.html">Problems</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="analytical_problems.html">Analytical Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="airfoil.html">Airfoil Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wing.html">Wing Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aerostruct.html">Aerostruct Problem</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Rover Trajectory Problem</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#basic-usage">Basic usage</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mujoco_problems.html">MuJoCo problems</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../hpc.html">Running on HPC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/API.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Blackbox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="problem.html">Problems</a></li>
+      <li class="breadcrumb-item active">Rover Trajectory Problem</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/problems/rover_traj.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="rover-trajectory-problem">
+<h1>Rover Trajectory Problem<a class="headerlink" href="#rover-trajectory-problem" title="Link to this heading"></a></h1>
+<p>The rover trajectory problem is introduced in <a class="reference external" href="https://arxiv.org/abs/1706.01445">Batched Large-scale Bayesian Optimization in High-dimensional Spaces</a> article as a high-dimensional blackbox optimization benchmark problem. In this problem, a rover must move through a 2D domain while avoiding obstacles and reaching a target location with a low-cost trajectory. The objective is not to optimize a closed-form function but to evaluate a trajectory defined by a set of control points. The trajectory is parameterized by a smooth B-spline and the cost of the path is computed by integrating pointwise penalties over the path. Even though the <code class="docutils literal notranslate"><span class="pre">Rover</span></code> problem is posed as a blackbox optimization problem, it can be treated as general purpose blackbox problem.</p>
+<section id="basic-usage">
+<h2>Basic usage<a class="headerlink" href="#basic-usage" title="Link to this heading"></a></h2>
+<p>The following example demonstrates how to use the <code class="docutils literal notranslate"><span class="pre">Rover</span></code> problem class from Blackbox. Specifically, the <code class="docutils literal notranslate"><span class="pre">Rover</span></code> problem class is initialized, a Latin hypercube sampling plan is created, and is evaluated using the initialized problem class. Lastly, trajectory associated with one of the samples is also plotted.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyDOE3</span><span class="w"> </span><span class="kn">import</span> <span class="n">lhs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">blackbox.rover_trajectory_problem</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rover</span><span class="p">,</span> <span class="n">plot_traj</span>
+
+<span class="n">dim</span> <span class="o">=</span> <span class="mi">80</span>
+<span class="n">force_start</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">force_goal</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="c1"># create rover object</span>
+<span class="n">problem</span> <span class="o">=</span> <span class="n">Rover</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="n">dim</span><span class="p">,</span> <span class="n">force_start</span><span class="o">=</span><span class="n">force_start</span><span class="p">,</span> <span class="n">force_goal</span><span class="o">=</span><span class="n">force_goal</span><span class="p">)</span>
+
+<span class="c1"># create sampling plan</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">lhs</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">criterion</span><span class="o">=</span><span class="s2">&quot;cm&quot;</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">lb</span> <span class="o">+</span> <span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">ub</span> <span class="o">-</span> <span class="n">problem</span><span class="o">.</span><span class="n">lb</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span> 
+
+<span class="c1"># evaluate sampling plan</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">problem</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Problem dimension: </span><span class="si">{</span><span class="n">problem</span><span class="o">.</span><span class="n">dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Sampling plan:</span><span class="se">\n</span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Output:</span><span class="se">\n</span><span class="si">{</span><span class="n">y</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># plot trajectory for first sample</span>
+<span class="n">plot_traj</span><span class="p">(</span><span class="n">control_points</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rover</span><span class="o">=</span><span class="n">problem</span><span class="p">,</span> <span class="n">show_figure</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The interface is straight-forward to use. The main class is <code class="docutils literal notranslate"><span class="pre">Rover</span></code> which is imported from <code class="docutils literal notranslate"><span class="pre">blackbox.rover_trajectory_problem</span></code>. Once this class is initialized, it can be called to evaluate trajectories defined by the control points.</p>
+<ol class="arabic">
+<li><p>Initialize the problem: <code class="docutils literal notranslate"><span class="pre">problem</span> <span class="pre">=</span> <span class="pre">Rover(dim=dim,</span> <span class="pre">force_start=force_start,</span> <span class="pre">force_goal=force_goal)</span></code></p>
+<p>The <code class="docutils literal notranslate"><span class="pre">dim</span></code> argument controls the dimension of the search space. In this implementation, the rover trajectory is defined by a set of B-spline control points, and the total problem dimension determines how many control points are used. If you set <code class="docutils literal notranslate"><span class="pre">dim</span></code> as 60, then there will be 30 (x,y) pairs that define the control points in the 2D space. The <code class="docutils literal notranslate"><span class="pre">force_start</span></code> and <code class="docutils literal notranslate"><span class="pre">force_goal</span></code> flags keep the trajectory anchored at the start and goal locations when set to <code class="docutils literal notranslate"><span class="pre">True</span></code>. There are other arguments that can be used during initialization, refer to the API <a class="reference internal" href="../api/rover_traj_problem.html"><span class="doc">documentation</span></a>.</p>
+</li>
+<li><p>Generate a sampling plan:</p>
+<p>The example uses a Latin hypercube sample: <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">lhs(problem.dim,</span> <span class="pre">10,</span> <span class="pre">criterion=&quot;cm&quot;,</span> <span class="pre">random_state=10)</span></code></p>
+<p>Followed by scaling into the problem domain: <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">problem.lb</span> <span class="pre">+</span> <span class="pre">(problem.ub</span> <span class="pre">-</span> <span class="pre">problem.lb)</span> <span class="pre">*</span> <span class="pre">x</span></code></p>
+<p>This creates a sampling plan of 10 designs, each of dimension <code class="docutils literal notranslate"><span class="pre">problem.dim</span></code>. In other words, each row of <code class="docutils literal notranslate"><span class="pre">x</span></code> is one trajectory parameterization. In this example, the shape of <code class="docutils literal notranslate"><span class="pre">x</span></code> is (10,80), where 10 denotes the number of samples and 80 refers to the problem dimension. There will be 40 controls points in the space.</p>
+</li>
+<li><p>Evaluate samples: <code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">=</span> <span class="pre">problem(x)</span></code></p>
+<p>The initialized <code class="docutils literal notranslate"><span class="pre">Rover</span></code> object (<code class="docutils literal notranslate"><span class="pre">problem</span></code> variable in this case) accepts either a numpy array of shape <code class="docutils literal notranslate"><span class="pre">(dim,)</span></code> or a 2D array of shape <code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">dim)</span></code>. The returned value is the trajectory cost associated with each sample. When a single design is passed, the result is a 1D array-like scalar output; when several designs are passed together, a 2D numpy array is returned. You can save the <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> as an <code class="docutils literal notranslate"><span class="pre">npz</span></code> or <code class="docutils literal notranslate"><span class="pre">mat</span></code> file for later use.</p>
+</li>
+<li><p>Plot a trajectory: <code class="docutils literal notranslate"><span class="pre">plot_traj(control_points=x[0],</span> <span class="pre">rover=problem,</span> <span class="pre">show_figure=False)</span></code></p>
+<p>The <code class="docutils literal notranslate"><span class="pre">plot_traj</span></code> helper function plots the path over the obstacle field for a given set of control points. The function also displays the obstacle cost map, the start and goal positions, refer to API <a class="reference internal" href="../api/rover_traj_problem.html"><span class="doc">documentation</span></a> for more details about the function. The figure below shows the output from the <code class="docutils literal notranslate"><span class="pre">plot_traj</span></code> function. The red curve is the evaluated path, the background colormap is the environment cost, and the black markers indicate the start and goal positions.</p>
+</li>
+</ol>
+<a class="image-margin reference internal image-reference" href="../_images/rover_traj_example.png"><img alt="rover trajectory example image" class="image-margin align-center" src="../_images/rover_traj_example.png" style="width: 70%;" />
+</a>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="aerostruct.html" class="btn btn-neutral float-left" title="Aerostruct Problem" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mujoco_problems.html" class="btn btn-neutral float-right" title="MuJoCo problems" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, CODE Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

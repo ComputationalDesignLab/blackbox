@@ -1,0 +1,479 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>blackbox.analytical_problems.single_output_problem &mdash; Blackbox</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a400c6f5" />
+
+  
+    <link rel="shortcut icon" href="../../../_static/codelab-logo.png"/>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Blackbox
+              <img src="../../../_static/codelab-logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../problems/problem.html">Problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../hpc.html">Running on HPC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/API.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Blackbox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">blackbox.analytical_problems.single_output_problem</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for blackbox.analytical_problems.single_output_problem</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..base_classes.analytical_base_problem</span><span class="w"> </span><span class="kn">import</span> <span class="n">SingleOutputAnalyticalProblem</span>
+
+<div class="viewcode-block" id="Ackley">
+<a class="viewcode-back" href="../../../api/analytical_problems.html#blackbox.analytical_problems.single_output_problem.Ackley">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Ackley</span><span class="p">(</span><span class="n">SingleOutputAnalyticalProblem</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Class for defining the ackley function. More details about this</span>
+<span class="sd">        problem can be found here: https://www.sfu.ca/~ssurjano/ackley.html</span>
+
+<span class="sd">        Default range of bounds for each design variable is ``[-32.768,32.768]``</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        num_inputs: int</span>
+<span class="sd">            number of input dimensions, default = 10</span>
+<span class="sd">        negate: bool</span>
+<span class="sd">            negate the values before returning</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_inputs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">negate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">num_inputs</span><span class="p">,</span> <span class="n">negate</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">32.768</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">num_inputs</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">32.768</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">num_inputs</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_x_opt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">num_inputs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_y_opt</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+<div class="viewcode-block" id="Ackley._evaluate">
+<a class="viewcode-back" href="../../../api/analytical_problems.html#blackbox.analytical_problems.single_output_problem.Ackley._evaluate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Evaluate the Ackley function for given input `x`</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            x : np.ndarray</span>
+<span class="sd">                input samples with shape ``(n_samples, num_inputs)`` or ``(num_inputs,)``</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            np.ndarray</span>
+<span class="sd">                an array of shape ``(n_samples, 1)`` or ``(1,)`` containing ackley function values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">a</span> <span class="o">=</span> <span class="mf">20.0</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="mf">0.2</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+
+        <span class="k">return</span> <span class="o">-</span><span class="n">a</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span> <span class="o">-</span><span class="n">b</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_inputs</span><span class="p">)</span> <span class="p">)</span> \
+            <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">c</span><span class="o">*</span><span class="n">x</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span> <span class="o">+</span> <span class="n">a</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">e</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Levy">
+<a class="viewcode-back" href="../../../api/analytical_problems.html#blackbox.analytical_problems.single_output_problem.Levy">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Levy</span><span class="p">(</span><span class="n">SingleOutputAnalyticalProblem</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Class for defining the levy function. More details about this</span>
+<span class="sd">        problem can be found here: https://www.sfu.ca/~ssurjano/levy.html</span>
+
+<span class="sd">        Default range of bounds for each design variable is ``[-10,10]``</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        num_inputs: int</span>
+<span class="sd">            number of input dimensions, default = 10</span>
+<span class="sd">        negate: bool</span>
+<span class="sd">            negate the values before returning</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_inputs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">negate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">num_inputs</span><span class="p">,</span> <span class="n">negate</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">10</span><span class="p">]</span><span class="o">*</span><span class="n">num_inputs</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">10</span><span class="p">]</span><span class="o">*</span><span class="n">num_inputs</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_x_opt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">num_inputs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_y_opt</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+<div class="viewcode-block" id="Levy._evaluate">
+<a class="viewcode-back" href="../../../api/analytical_problems.html#blackbox.analytical_problems.single_output_problem.Levy._evaluate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Evaluate the Levy function for given input `x`</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            x : np.ndarray</span>
+<span class="sd">                input samples with shape ``(n_samples, num_inputs)`` or ``(num_inputs,)``</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            np.ndarray</span>
+<span class="sd">                an array of shape ``(n_samples, 1)`` or ``(1,)`` containing levy function values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">w</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">4.0</span>
+
+        <span class="n">part1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">w</span><span class="p">[:,</span><span class="mi">0</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span>
+        
+        <span class="n">part2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span> <span class="p">(</span><span class="n">w</span><span class="p">[:,:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="mf">10.0</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">w</span><span class="p">[:,:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span> <span class="p">)</span>
+
+        <span class="n">part3</span> <span class="o">=</span> <span class="p">(</span><span class="n">w</span><span class="p">[:,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">w</span><span class="p">[:,</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span> <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">part1</span> <span class="o">+</span> <span class="n">part2</span> <span class="o">+</span> <span class="n">part3</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Rastrigin">
+<a class="viewcode-back" href="../../../api/analytical_problems.html#blackbox.analytical_problems.single_output_problem.Rastrigin">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Rastrigin</span><span class="p">(</span><span class="n">SingleOutputAnalyticalProblem</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Class for defining the rastrigin function. More details about this</span>
+<span class="sd">        problem can be found here: https://www.sfu.ca/~ssurjano/rastrigin.html</span>
+
+<span class="sd">        Default range of bounds for each design variable is ``[-5.12,5.12]``</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        num_inputs: int</span>
+<span class="sd">            number of input dimensions, default = 10</span>
+<span class="sd">        negate: bool</span>
+<span class="sd">            negate the values before returning</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_inputs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">negate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">num_inputs</span><span class="p">,</span> <span class="n">negate</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">5.12</span><span class="p">]</span><span class="o">*</span><span class="n">num_inputs</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">5.12</span><span class="p">]</span><span class="o">*</span><span class="n">num_inputs</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_x_opt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">num_inputs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_y_opt</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+<div class="viewcode-block" id="Rastrigin._evaluate">
+<a class="viewcode-back" href="../../../api/analytical_problems.html#blackbox.analytical_problems.single_output_problem.Rastrigin._evaluate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Evaluate the Rastrigin function for given input `x`</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            x : np.ndarray</span>
+<span class="sd">                input samples with shape ``(n_samples, num_inputs)`` or ``(num_inputs,)``</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            np.ndarray</span>
+<span class="sd">                an array of shape ``(n_samples, 1)`` or ``(1,)`` containing rastrigin function values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="mf">10.0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">num_inputs</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mf">10.0</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mf">2.0</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">x</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Hartmann">
+<a class="viewcode-back" href="../../../api/analytical_problems.html#blackbox.analytical_problems.single_output_problem.Hartmann">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Hartmann</span><span class="p">(</span><span class="n">SingleOutputAnalyticalProblem</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Class for defining the hartmann function. More details about this</span>
+<span class="sd">        problem can be found here:</span>
+<span class="sd">        </span>
+<span class="sd">        Hartmann 3D - https://www.sfu.ca/~ssurjano/hart3.html\n</span>
+<span class="sd">        Hartmann 4D - https://www.sfu.ca/~ssurjano/hart4.html\n</span>
+<span class="sd">        Hartmann 6D - https://www.sfu.ca/~ssurjano/hart6.html</span>
+
+<span class="sd">        Default range of bounds for each design variable is ``[0,1]``</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        num_inputs: int</span>
+<span class="sd">            number of input dimensions, default = 6</span>
+<span class="sd">        negate: bool</span>
+<span class="sd">            negate the values before returning</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_inputs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span> <span class="n">negate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">num_inputs</span><span class="p">,</span> <span class="n">negate</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_inputs</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_inputs</span><span class="p">))</span>
+
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_inputs</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="s2">&quot;Hartmann function is only defined for 3, 4 or 6 dimensions&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_inputs</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">3.0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">30</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">35</span><span class="p">],</span> <span class="p">[</span><span class="mf">3.0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">30</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">35</span><span class="p">]])</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">3689</span><span class="p">,</span> <span class="mi">1170</span><span class="p">,</span> <span class="mi">2673</span><span class="p">],</span>
+                               <span class="p">[</span><span class="mi">4699</span><span class="p">,</span> <span class="mi">4387</span><span class="p">,</span> <span class="mi">7470</span><span class="p">],</span>
+                               <span class="p">[</span><span class="mi">1091</span><span class="p">,</span> <span class="mi">8732</span><span class="p">,</span> <span class="mi">5547</span><span class="p">],</span>
+                               <span class="p">[</span><span class="mi">381</span><span class="p">,</span> <span class="mi">5743</span><span class="p">,</span> <span class="mf">8828.0</span><span class="p">]])</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">_x_opt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.114614</span><span class="p">,</span> <span class="mf">0.555649</span><span class="p">,</span> <span class="mf">0.852547</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_y_opt</span> <span class="o">=</span> <span class="o">-</span><span class="mf">3.86278</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_inputs</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">17</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">],</span>
+                               <span class="p">[</span><span class="mf">0.05</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">17</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">],</span>
+                               <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">1.7</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span>
+                               <span class="p">[</span><span class="mi">17</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mi">10</span><span class="p">],])</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1312</span><span class="p">,</span> <span class="mi">1696</span><span class="p">,</span> <span class="mi">5569</span><span class="p">,</span> <span class="mf">124.0</span><span class="p">],</span>
+                               <span class="p">[</span><span class="mi">2329</span><span class="p">,</span> <span class="mi">4135</span><span class="p">,</span> <span class="mi">8307</span><span class="p">,</span> <span class="mi">3736</span><span class="p">],</span>
+                               <span class="p">[</span><span class="mi">2348</span><span class="p">,</span> <span class="mi">1451</span><span class="p">,</span> <span class="mi">3522</span><span class="p">,</span> <span class="mi">2883</span><span class="p">],</span>
+                               <span class="p">[</span><span class="mi">4047</span><span class="p">,</span> <span class="mi">8828</span><span class="p">,</span> <span class="mi">8732</span><span class="p">,</span> <span class="mi">5743</span><span class="p">]])</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">_x_opt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.1873</span><span class="p">,</span> <span class="mf">0.1906</span><span class="p">,</span> <span class="mf">0.5566</span><span class="p">,</span> <span class="mf">0.2647</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_y_opt</span> <span class="o">=</span> <span class="o">-</span><span class="mf">3.134353</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_inputs</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">17</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">1.7</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span>
+                               <span class="p">[</span><span class="mf">0.05</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">17</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">14</span><span class="p">],</span>
+                               <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">1.7</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">17</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span>
+                               <span class="p">[</span><span class="mi">17</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">14</span><span class="p">]])</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1312</span><span class="p">,</span> <span class="mi">1696</span><span class="p">,</span> <span class="mi">5569</span><span class="p">,</span> <span class="mi">124</span><span class="p">,</span> <span class="mi">8283</span><span class="p">,</span> <span class="mi">5886</span><span class="p">],</span>
+                               <span class="p">[</span><span class="mi">2329</span><span class="p">,</span> <span class="mi">4135</span><span class="p">,</span> <span class="mi">8307</span><span class="p">,</span> <span class="mi">3736</span><span class="p">,</span> <span class="mi">1004</span><span class="p">,</span> <span class="mi">9991</span><span class="p">],</span>
+                               <span class="p">[</span><span class="mi">2348</span><span class="p">,</span> <span class="mi">1451</span><span class="p">,</span> <span class="mi">3522</span><span class="p">,</span> <span class="mi">2883</span><span class="p">,</span> <span class="mi">3047</span><span class="p">,</span> <span class="mi">6650</span><span class="p">],</span>
+                               <span class="p">[</span><span class="mi">4047</span><span class="p">,</span> <span class="mi">8828</span><span class="p">,</span> <span class="mi">8732</span><span class="p">,</span> <span class="mi">5743</span><span class="p">,</span> <span class="mi">1091</span><span class="p">,</span> <span class="mi">381</span><span class="p">]])</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">_x_opt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.20169</span><span class="p">,</span> <span class="mf">0.150011</span><span class="p">,</span> <span class="mf">0.476874</span><span class="p">,</span> <span class="mf">0.275332</span><span class="p">,</span> <span class="mf">0.311652</span><span class="p">,</span> <span class="mf">0.6573</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_y_opt</span> <span class="o">=</span> <span class="o">-</span><span class="mf">3.322368</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.2</span><span class="p">],</span> <span class="p">[</span><span class="mf">3.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">3.2</span><span class="p">]])</span>
+
+<div class="viewcode-block" id="Hartmann._evaluate">
+<a class="viewcode-back" href="../../../api/analytical_problems.html#blackbox.analytical_problems.single_output_problem.Hartmann._evaluate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Evaluate the Hartmann function for given input `x`</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            x : np.ndarray</span>
+<span class="sd">                input samples with shape ``(n_samples, num_inputs)`` or ``(num_inputs,)``</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            np.ndarray</span>
+<span class="sd">                an array of shape ``(n_samples, 1)`` or ``(1,)`` containing hartmann function values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">innersum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1e-4</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">y</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">innersum</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_inputs</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.1</span> <span class="o">+</span> <span class="n">y</span><span class="p">)</span><span class="o">/</span><span class="mf">0.839</span>
+
+        <span class="k">return</span> <span class="n">y</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Branin">
+<a class="viewcode-back" href="../../../api/analytical_problems.html#blackbox.analytical_problems.single_output_problem.Branin">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Branin</span><span class="p">(</span><span class="n">SingleOutputAnalyticalProblem</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Class for defining the branin function</span>
+
+<span class="sd">        There are only two variables in this problem. Default</span>
+<span class="sd">        range of bounds for these variables are ``[-5,10]`` and ``[0,15]``</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        negate: bool</span>
+<span class="sd">            negate the values before returning</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">negate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">num_inputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">negate</span><span class="o">=</span><span class="n">negate</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">15.0</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_x_opt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mf">12.275</span><span class="p">])</span> <span class="c1"># TO DO: can add other optima as well</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_y_opt</span> <span class="o">=</span> <span class="mf">0.397887</span>
+    
+<div class="viewcode-block" id="Branin._evaluate">
+<a class="viewcode-back" href="../../../api/analytical_problems.html#blackbox.analytical_problems.single_output_problem.Branin._evaluate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Evaluate the Branin function for given input `x`</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            x : np.ndarray</span>
+<span class="sd">                input samples with shape ``(n_samples, num_inputs)`` or ``(num_inputs,)``</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            np.ndarray</span>
+<span class="sd">                an array of shape ``(n_samples, 1)`` or ``(1,)`` containing branin function values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">a</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="mf">5.1</span> <span class="o">/</span> <span class="p">(</span><span class="mf">4.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="mf">5.0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="mf">6.0</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="mf">10.0</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">8.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+
+        <span class="n">x1</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">x2</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="p">(</span><span class="n">x2</span> <span class="o">-</span> <span class="n">b</span> <span class="o">*</span> <span class="n">x1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">c</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">r</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">s</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span> <span class="o">+</span> <span class="n">s</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ModifiedBranin">
+<a class="viewcode-back" href="../../../api/analytical_problems.html#blackbox.analytical_problems.single_output_problem.ModifiedBranin">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModifiedBranin</span><span class="p">(</span><span class="n">SingleOutputAnalyticalProblem</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Class for defining the modified branin function</span>
+
+<span class="sd">        The number of design variables and their default bounds</span>
+<span class="sd">        are same as the one used for standard Branin function</span>
+
+<span class="sd">        This function is obtained from Forrester&#39;s surrogate modeling book</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        negate: bool</span>
+<span class="sd">            negate the values before returning</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">negate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">num_inputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">negate</span><span class="o">=</span><span class="n">negate</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">15.0</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_x_opt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">3.6893</span><span class="p">,</span> <span class="mf">13.6301</span><span class="p">])</span> <span class="c1"># TO DO: can add other optima as well</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_y_opt</span> <span class="o">=</span> <span class="o">-</span><span class="mf">16.64402</span>
+
+<div class="viewcode-block" id="ModifiedBranin._evaluate">
+<a class="viewcode-back" href="../../../api/analytical_problems.html#blackbox.analytical_problems.single_output_problem.ModifiedBranin._evaluate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Evaluate the modified branin function for given input `x`</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            x : np.ndarray</span>
+<span class="sd">                input samples with shape ``(n_samples, num_inputs)`` or ``(num_inputs,)``</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            np.ndarray</span>
+<span class="sd">                an array of shape ``(n_samples, 1)`` or ``(1,)`` containing modified branin function values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">a</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="mf">5.1</span> <span class="o">/</span> <span class="p">(</span><span class="mf">4.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="mf">5.0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="mf">6.0</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="mf">10.0</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">8.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+
+        <span class="n">x1</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">x2</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="p">(</span><span class="n">x2</span> <span class="o">-</span> <span class="n">b</span> <span class="o">*</span> <span class="n">x1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">c</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">r</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">s</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span> <span class="o">+</span> <span class="n">s</span> <span class="o">+</span> <span class="mi">5</span><span class="o">*</span><span class="n">x1</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, CODE Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

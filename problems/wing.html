@@ -1,0 +1,558 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wing Problem &mdash; Blackbox</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=a400c6f5" />
+
+  
+    <link rel="shortcut icon" href="../_static/codelab-logo.png"/>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Aerostruct Problem" href="aerostruct.html" />
+    <link rel="prev" title="Airfoil Problem" href="airfoil.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Blackbox
+              <img src="../_static/codelab-logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="problem.html">Problems</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="analytical_problems.html">Analytical Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="airfoil.html">Airfoil Problem</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Wing Problem</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#workflow">Workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#basic-usage">Basic usage</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#defining-flow-parameters">Defining flow parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#defining-wing-geometry-parameters">Defining wing geometry parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#initializing-the-problem">Initializing the problem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#evaluating-samples">Evaluating samples</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#options">Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mesh_file"><code class="docutils literal notranslate"><span class="pre">mesh_file</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#solver_options"><code class="docutils literal notranslate"><span class="pre">solver_options</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aero_problem"><code class="docutils literal notranslate"><span class="pre">aero_problem</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wing_vsp"><code class="docutils literal notranslate"><span class="pre">wing_vsp</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scalar_outputs"><code class="docutils literal notranslate"><span class="pre">scalar_outputs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#surface_outputs"><code class="docutils literal notranslate"><span class="pre">surface_outputs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#volume_outputs"><code class="docutils literal notranslate"><span class="pre">volume_outputs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#write_surface_output"><code class="docutils literal notranslate"><span class="pre">write_surface_output</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#write_volume_output"><code class="docutils literal notranslate"><span class="pre">write_volume_output</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#write_vsp_file"><code class="docutils literal notranslate"><span class="pre">write_vsp_file</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#write_stl_file"><code class="docutils literal notranslate"><span class="pre">write_stl_file</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#write_lift_distribution"><code class="docutils literal notranslate"><span class="pre">write_lift_distribution</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#num_segments"><code class="docutils literal notranslate"><span class="pre">num_segments</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#write_slice_file"><code class="docutils literal notranslate"><span class="pre">write_slice_file</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#slice_location"><code class="docutils literal notranslate"><span class="pre">slice_location</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#alpha"><code class="docutils literal notranslate"><span class="pre">alpha</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#target_CL"><code class="docutils literal notranslate"><span class="pre">target_CL</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#target_CL_tol"><code class="docutils literal notranslate"><span class="pre">target_CL_tol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#starting_alpha"><code class="docutils literal notranslate"><span class="pre">starting_alpha</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#initial_delta_alpha"><code class="docutils literal notranslate"><span class="pre">initial_delta_alpha</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#max_iterations"><code class="docutils literal notranslate"><span class="pre">max_iterations</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#directory"><code class="docutils literal notranslate"><span class="pre">directory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#num_processors"><code class="docutils literal notranslate"><span class="pre">num_processors</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="aerostruct.html">Aerostruct Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rover_traj.html">Rover Trajectory Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mujoco_problems.html">MuJoCo problems</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../hpc.html">Running on HPC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/API.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Blackbox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="problem.html">Problems</a></li>
+      <li class="breadcrumb-item active">Wing Problem</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/problems/wing.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="wing-problem">
+<h1>Wing Problem<a class="headerlink" href="#wing-problem" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">Wing</span></code> problem provides an interface for generating aerodynamic datasets for wings using high-fidelity computational fluid dynamics (CFD) workflow. Users can parameterize wing planform parameters, wing airfoil cross-section, flow conditions, and evaluate the resulting configurations without manually setting up the geometry, meshing, solver, and post-processing workflow. The <code class="docutils literal notranslate"><span class="pre">Wing</span></code> problem currently uses <a class="reference external" href="https://github.com/mdolab/adflow">ADflow</a> as the CFD solver and the OpenVSP for wing shape parameteriation. Additional CFD solvers, such as OpenFOAM and SU2, may be supported in future releases. The following sections describe the dependencies, computational workflow, and how to generate aerodynamic datasets with the <code class="docutils literal notranslate"><span class="pre">Wing</span></code> problem.</p>
+<section id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">Wing</span></code> problem requires several additional packages that must be installed before using this problem. The required packages and their corresponding versions are listed below.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Package</p></th>
+<th class="head"><p>Version</p></th>
+<th class="head"><p>Comments</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference external" href="https://mpi4py.readthedocs.io/en/3.1.6/">mpi4py</a></p></td>
+<td><p>3.1.6</p></td>
+<td><p>Used for parallel processing during mesh deformation and CFD solver execution</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://pypi.org/project/psutil/">psutil</a></p></td>
+<td><p><cite>-</cite></p></td>
+<td><p>Used for monitoring child processes launched for analysis</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/mdolab/baseclasses">mdolab-baseclasses</a></p></td>
+<td><p>&gt;= 1.8.4</p></td>
+<td><p>Provides <code class="docutils literal notranslate"><span class="pre">AeroProblem</span></code> for defining flow and operating conditions</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/OpenVSP/OpenVSP/tree/main/src/python_api/packages#openvsp-python-packages">openvsp</a></p></td>
+<td><p><cite>-</cite></p></td>
+<td><p>Handles wing shape paramerization</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/mdolab/pygeo">pygeo</a></p></td>
+<td><p>&gt;= 1.17.0</p></td>
+<td><p>Provides an interface for handling wing shape parameterization through OpenVSP</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/mdolab/idwarp">idwarp</a></p></td>
+<td><p>&gt;= 2.6.2</p></td>
+<td><p>Used for morphing volume mesh based on given shape parameters</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/mdolab/adflow">adflow</a></p></td>
+<td><p>2.11.0</p></td>
+<td><p>Used as the CFD solver for wing flow simulations</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://docs.pyvista.org/">pyvista</a></p></td>
+<td><p><cite>-</cite></p></td>
+<td><p>Used for reading, processing, and writing surface and volume field data</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://docs.h5py.org/">h5py</a></p></td>
+<td><p><cite>-</cite></p></td>
+<td><p>Used for creating and storing field results in HDF5 format</p></td>
+</tr>
+</tbody>
+</table>
+<p>Make sure that all required packages are installed with compatible versions before using the <code class="docutils literal notranslate"><span class="pre">Wing</span></code> problem.</p>
+</section>
+<section id="workflow">
+<h2>Workflow<a class="headerlink" href="#workflow" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">Wing</span></code> problem accepts a set of samples, where each sample contains parameter values. This set may contain a single sample or multiple samples. For each sample <span class="math notranslate nohighlight">\(x_i\)</span> in the sample set, the <code class="docutils literal notranslate"><span class="pre">Wing</span></code> problem performs the sequence of operations described below:</p>
+<ol class="arabic simple">
+<li><p><strong>Wing shape parameterization</strong>: The geometry parameters are used to define the wing planform shape and airfoil cross-section through OpenVSP and pyGeo</p></li>
+<li><p><strong>Volume mesh deformation</strong>: A baseline volume mesh is deformed based on the wing geometry using <code class="docutils literal notranslate"><span class="pre">idwarp</span></code></p></li>
+<li><p><strong>CFD analysis</strong>: The deformed volume mesh and the flow parameters are passed to the <code class="docutils literal notranslate"><span class="pre">ADflow</span></code> solver to compute aerodynamic solution</p></li>
+<li><p><strong>Output extraction</strong>: Scalar and field quantities from the solver are extracted and stored in a folder</p></li>
+</ol>
+<p>When multiple samples are provided, the workflow is evaluated for each sample, and the resulting outputs are stored separately for each sample. This allows the <code class="docutils literal notranslate"><span class="pre">Wing</span></code> problem to provide a consistent interface for generating datasets without requiring users to manually manage geometry processing, mesh deformation, solver execution, or output handling.</p>
+<p>The complete workflow is illustrated in the XDSM diagram below.</p>
+<a class="image-margin reference internal image-reference" href="../_images/xdsm_wing.png"><img alt="wing problem xdsm" class="image-margin align-center" src="../_images/xdsm_wing.png" style="width: 100%;" />
+</a>
+<p>The stacked rectangles representing the shape paramerization, volume mesh deformation, and CFD analysis indicate that these operations use multiple processors through MPI. The <code class="docutils literal notranslate"><span class="pre">Wing</span></code> problem therefore abstracts the geometry processing, mesh deformation, solver execution, and output handling required for each sample.</p>
+</section>
+<section id="basic-usage">
+<span id="wing-basic-usage"></span><h2>Basic usage<a class="headerlink" href="#basic-usage" title="Link to this heading"></a></h2>
+<p>To use the <code class="docutils literal notranslate"><span class="pre">Wing</span></code> problem, you will require a baseline volume mesh in CGNS format. The <code class="docutils literal notranslate"><span class="pre">Wing</span></code> problem does not generate a volume mesh from the wing planform, rather the shape changes are transferred to the volume mesh using <code class="docutils literal notranslate"><span class="pre">pyGeo</span></code> and <code class="docutils literal notranslate"><span class="pre">idwarp</span></code>. It is recommended to check that this baseline volume mesh works with <code class="docutils literal notranslate"><span class="pre">ADFlow</span></code> solver. Along with the volume mesh, you will need an OpenVSP model file (.vsp3) that describes the baseline wing planform and geometry around which the volume mesh is created.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>An OpenVSP model file is only required if you want to modify the wing shape</p>
+</div>
+<p id="wing-openvsp-guidelines">It is important to keep in mind the following guidelines while creating OpenVSP model:</p>
+<ul class="simple">
+<li><p>The OpenVSP model must contain exactly one component of type <code class="docutils literal notranslate"><span class="pre">WING</span></code></p></li>
+<li><p>Use span, root chord, and tip chord triplet to define the wing planform, you can only modify these three quantities.</p></li>
+</ul>
+<p>Additionally, if you are planning to modify the cross-section airfoil, then keep in mind the following things:</p>
+<ul class="simple">
+<li><p>Set the airfoil type to <code class="docutils literal notranslate"><span class="pre">CST_AIRFOIL</span></code>, currently you can only modify the airfoil shape using CST method</p></li>
+<li><p>Trim the trailing edge at each cross-section using an appropraite value relative to the local chord. It is important to use a relative value to avoid collapse of trailing edge thickness when the airfoil cross-section is modfied. You can set this trim value in the trailing edge options under <code class="docutils literal notranslate"><span class="pre">modify</span></code> tab.</p></li>
+</ul>
+<p>The files used in the example demonstrated below are available in the <code class="docutils literal notranslate"><span class="pre">examples/wing_adflow_vsp</span></code> directory.</p>
+<section id="defining-flow-parameters">
+<span id="wing-flow-parameters"></span><h3>Defining flow parameters<a class="headerlink" href="#defining-flow-parameters" title="Link to this heading"></a></h3>
+<p>First step is to define the flow conditions, along with flow parameters, if required. You need to define the nominal flow conditions by creating an <code class="docutils literal notranslate"><span class="pre">AeroProblem</span></code> object. Then, use its <code class="docutils literal notranslate"><span class="pre">addDV</span></code> method to added a flow parameter, if any. You can only modify the value of flow variables that are registered as design variables. Following code snippet illustrates how to create an <code class="docutils literal notranslate"><span class="pre">AeroProblem</span></code> object and add flow parameters:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">baseclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">AeroProblem</span>
+
+<span class="n">aero_problem</span> <span class="o">=</span> <span class="n">AeroProblem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;wing&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span> <span class="n">mach</span><span class="o">=</span><span class="mf">0.85</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">areaRef</span><span class="o">=</span><span class="mf">45.5</span><span class="p">,</span> <span class="n">chordRef</span><span class="o">=</span><span class="mf">3.56</span><span class="p">)</span>
+
+<span class="n">aero_problem</span><span class="o">.</span><span class="n">addDV</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;mach&quot;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+
+<span class="n">aero_problem</span><span class="o">.</span><span class="n">addDV</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;alpha&quot;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="n">aero_problem</span><span class="o">.</span><span class="n">addDV</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;altitude&quot;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">8000</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">12000</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As illustrated in code snippet above, you must also define the lower and upper value while adding design variables. Refer to the <a class="reference external" href="https://mdolab-baseclasses.readthedocs-hosted.com/en/latest/pyAero_problem.html">AeroProblem documentation</a> for available flow conditions.</p>
+</section>
+<section id="defining-wing-geometry-parameters">
+<span id="wing-geometry-parameters"></span><h3>Defining wing geometry parameters<a class="headerlink" href="#defining-wing-geometry-parameters" title="Link to this heading"></a></h3>
+<p>Next step is to create <code class="docutils literal notranslate"><span class="pre">WingVSP</span></code> object and add wing planform and geometry parameters.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You only need to initialize <code class="docutils literal notranslate"><span class="pre">WingVSP</span></code> class if you want to vary the wing shape.</p>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">WingVSP</span></code> class is initialized using the OpenVSP model file (.vsp3) and then shape parameters are added. The <code class="docutils literal notranslate"><span class="pre">WingVSP</span></code> class currently supports two methods for adding shape parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">add_shape_parameter</span></code>: used to add a wing planform variable as a parameter. It accepts four arguments:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: name of the parameter, only following are valid names: span, root_chord, tip_chord, dihedral, sweep, and twist.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lower</span></code>: lower bound for the shape parameter</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">upper</span></code>: upper bound for the shape parameter</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sections</span></code>: list of integers denoting the sections to which this parameter belongs. If more than one section is specified, this one parameter controls that variable across all the listed sections.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">add_airfoil_cst_parameters</span></code>: used to add CST coefficients of an airfoil surface as a parameter. It accepts four arguments:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">surface</span></code>: a string denoting type of airfoil surface, i.e., either <code class="docutils literal notranslate"><span class="pre">upper</span></code> surface or <code class="docutils literal notranslate"><span class="pre">lower</span></code> surface</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lower</span></code>: lower bound for the parameter, must be a numpy array whose size must be same as the number of CST coefficients set in the OpenVSP model</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">upper</span></code>: upper bound for the parameter, must be a numpy array whose size must be same as the number of CST coefficients set in the OpenVSP model</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sections</span></code>: list of integers denoting the airfoil cross-section number. If more than one section is specified, this one parameter controls that variable across all the listed sections.</p></li>
+</ul>
+</li>
+</ul>
+<p>Refer to the <code class="docutils literal notranslate"><span class="pre">WingVSP</span></code> API for details on how to use this class. Following code snippet illustrates how to create an <code class="docutils literal notranslate"><span class="pre">WingVSP</span></code> object and add shape parameters:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">blackbox.wing_problem</span><span class="w"> </span><span class="kn">import</span> <span class="n">WingVSP</span>
+
+<span class="n">wing_vsp</span> <span class="o">=</span> <span class="n">WingVSP</span><span class="p">(</span><span class="s2">&quot;wing.vsp3&quot;</span><span class="p">)</span>
+
+<span class="c1"># add wing planform variables</span>
+<span class="n">wing_vsp</span><span class="o">.</span><span class="n">add_shape_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Dihedral&quot;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">sections</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">wing_vsp</span><span class="o">.</span><span class="n">add_shape_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Sweep&quot;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">25.0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">35.0</span><span class="p">,</span> <span class="n">sections</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">wing_vsp</span><span class="o">.</span><span class="n">add_shape_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Span&quot;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">12.0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">16.0</span><span class="p">,</span> <span class="n">sections</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">wing_vsp</span><span class="o">.</span><span class="n">add_shape_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Twist&quot;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=-</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">sections</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="c1"># cst coefficients</span>
+<span class="n">upper_cst_coeff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.12344046</span><span class="p">,</span> <span class="mf">0.14809657</span><span class="p">,</span> <span class="mf">0.14858145</span><span class="p">,</span> <span class="mf">0.2168004</span><span class="p">,</span>  <span class="mf">0.17607825</span><span class="p">,</span> <span class="mf">0.21018404</span><span class="p">])</span>
+<span class="n">lower_cst_coeff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.13198943</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.11895939</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.22056435</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.12743513</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.08232715</span><span class="p">,</span> <span class="mf">0.05055414</span><span class="p">])</span>
+
+<span class="c1"># add airfoil upper surface cst coefficients</span>
+<span class="n">wing_vsp</span><span class="o">.</span><span class="n">add_airfoil_cst_parameters</span><span class="p">(</span>
+    <span class="s2">&quot;upper&quot;</span><span class="p">,</span> 
+    <span class="n">upper_cst_coeff</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">upper_cst_coeff</span><span class="p">)</span><span class="o">*</span><span class="mf">0.3</span><span class="o">*</span><span class="n">upper_cst_coeff</span><span class="p">,</span>
+    <span class="n">upper_cst_coeff</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">upper_cst_coeff</span><span class="p">)</span><span class="o">*</span><span class="mf">0.3</span><span class="o">*</span><span class="n">upper_cst_coeff</span><span class="p">,</span>
+    <span class="n">sections</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># add airfoil lower surface cst coefficients</span>
+<span class="n">wing_vsp</span><span class="o">.</span><span class="n">add_airfoil_cst_parameters</span><span class="p">(</span>
+    <span class="s2">&quot;lower&quot;</span><span class="p">,</span> 
+    <span class="n">lower_cst_coeff</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">lower_cst_coeff</span><span class="p">)</span><span class="o">*</span><span class="mf">0.3</span><span class="o">*</span><span class="n">lower_cst_coeff</span><span class="p">,</span>
+    <span class="n">lower_cst_coeff</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">lower_cst_coeff</span><span class="p">)</span><span class="o">*</span><span class="mf">0.3</span><span class="o">*</span><span class="n">lower_cst_coeff</span><span class="p">,</span>
+    <span class="n">sections</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>In the above example, the dihedral, sweep, span, and twist are added as parameters. The <code class="docutils literal notranslate"><span class="pre">wing.vsp3</span></code> used in this example contains only one section. Hence, the <code class="docutils literal notranslate"><span class="pre">sections</span></code> argument is set to <code class="docutils literal notranslate"><span class="pre">[1]</span></code> so that each of these four parameters in this section are added as parameters. In contrast, there are two airfoil sections (one at root and other at span). Hence, the <code class="docutils literal notranslate"><span class="pre">sections</span></code> argument is set to <code class="docutils literal notranslate"><span class="pre">[0,1]</span></code> while adding CST coefficients as parameters. As a results, upper surface airfoil shape is controlled by one set of CST coefficients at both sections, same applies for lower surface as well.</p>
+</section>
+<section id="initializing-the-problem">
+<h3>Initializing the problem<a class="headerlink" href="#initializing-the-problem" title="Link to this heading"></a></h3>
+<p>Next step is to initialize the <code class="docutils literal notranslate"><span class="pre">WingADflowVSPOptions</span></code> class by setting appropraite options. There are several options that can be provided while creating the options class, refer to <a class="reference internal" href="#options"><span class="std std-ref">complete options list</span></a> for all available options. Most of the options are optional, except the <code class="docutils literal notranslate"><span class="pre">mesh_file</span></code>, <code class="docutils literal notranslate"><span class="pre">solver_options</span></code>, and <code class="docutils literal notranslate"><span class="pre">aero_problem</span></code> are mandatory options. The initialized options object is used to create the main <code class="docutils literal notranslate"><span class="pre">WingADFflowVSP</span></code> problem object. Following code snippet illustrates how to initialize the <code class="docutils literal notranslate"><span class="pre">Wing</span></code> problem class:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">blackbox.wing_problem</span><span class="w"> </span><span class="kn">import</span> <span class="n">WingADflowVSPOptions</span><span class="p">,</span> <span class="n">WingADflowVSP</span>
+
+<span class="n">solver_options</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># Common Parameters</span>
+    <span class="s2">&quot;monitorvariables&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;cl&quot;</span><span class="p">,</span> <span class="s2">&quot;cd&quot;</span><span class="p">,</span> <span class="s2">&quot;yplus&quot;</span><span class="p">],</span>
+    <span class="c1"># Physics Parameters</span>
+    <span class="s2">&quot;equationType&quot;</span><span class="p">:</span> <span class="s2">&quot;RANS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;smoother&quot;</span><span class="p">:</span> <span class="s2">&quot;DADI&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MGCycle&quot;</span><span class="p">:</span> <span class="s2">&quot;sg&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;nsubiterturb&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="s2">&quot;nCycles&quot;</span><span class="p">:</span> <span class="mi">7000</span><span class="p">,</span>
+    <span class="s2">&quot;liftIndex&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="c1"># ANK Solver Parameters</span>
+    <span class="s2">&quot;useANKSolver&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s2">&quot;ANKSubspaceSize&quot;</span><span class="p">:</span> <span class="mi">400</span><span class="p">,</span>
+    <span class="s2">&quot;ANKASMOverlap&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="s2">&quot;ANKPCILUFill&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="s2">&quot;ANKJacobianLag&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="s2">&quot;ANKOuterPreconIts&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="s2">&quot;ANKInnerPreconIts&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="c1"># Termination Criteria</span>
+    <span class="s2">&quot;L2Convergence&quot;</span><span class="p">:</span> <span class="mf">1e-14</span>
+<span class="p">}</span>
+
+<span class="n">options</span> <span class="o">=</span> <span class="n">WingADflowVSPOptions</span><span class="p">(</span>
+    <span class="n">wing_vsp</span><span class="o">=</span><span class="n">wing_vsp</span><span class="p">,</span>
+    <span class="n">mesh_file</span><span class="o">=</span><span class="s2">&quot;wing_vol_mesh.cgns&quot;</span><span class="p">,</span>
+    <span class="n">solver_options</span><span class="o">=</span><span class="n">solver_options</span><span class="p">,</span>
+    <span class="n">aero_problem</span><span class="o">=</span><span class="n">aero_problem</span><span class="p">,</span>
+    <span class="n">write_surface_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">write_volume_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">num_processors</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">write_vsp_file</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">write_stl_file</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">write_slice_file</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">write_lift_distribution</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+
+<span class="n">wing</span> <span class="o">=</span> <span class="n">WingADflowVSP</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="evaluating-samples">
+<h3>Evaluating samples<a class="headerlink" href="#evaluating-samples" title="Link to this heading"></a></h3>
+<p>After defining the problem, evaluating samples is straightforward. Following code snippet illustrates how to evaluate a set of samples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyDOE3</span><span class="w"> </span><span class="kn">import</span> <span class="n">lhs</span>
+
+<span class="c1"># generate sampling plan for evaluation</span>
+<span class="n">samples</span> <span class="o">=</span> <span class="n">lhs</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">wing</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">samples</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">criterion</span><span class="o">=</span><span class="s2">&quot;cm&quot;</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">samples</span> <span class="o">=</span> <span class="n">wing</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">wing</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">wing</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">samples</span>
+
+<span class="n">wing</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">return_results</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>First, 10 samples are generated using a Latin hypercube sampling (LHS) method within a unit hypercube. You can use any sampling method of your choice to generate the samples. These samples are then scaled to the appropriate bounds for the problem. The bounds can be accessed through the <code class="docutils literal notranslate"><span class="pre">bounds</span></code> property of the initialized problem object. This property is a tuple containing two 1D numpy arrays: the first array contains the lower bounds and the second array contains the upper bounds.</p>
+<p>In the code snippet above, samples is a numpy array with shape (10, 19). The 10 represents the number of samples, while 19 represents the number of parameters. Each row in samples array corresponds to a different sample, i.e., a different set of parameter values. The order of the values in each row is determined by the order in which the parameters were added to the problem.</p>
+<p>For example, in this case, the first three entries correspond to flow parameters. The next four entries are for wing planform parameters. The next six entries correspond to the upper surface CST parameters, and the remaining size entries correspond to lower surface CST parameters. Note that, in wing problem, the flow parameters will always preceed the shape parameters.</p>
+<p>The initialized <code class="docutils literal notranslate"><span class="pre">Wing</span></code> problem object (wing in this case) can then be called with the samples to be evaluated. The <code class="docutils literal notranslate"><span class="pre">__call__</span></code> method accepts two arguments:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">(numpy</span> <span class="pre">array)</span></code>: an array of shape (N,D) or (D,) representing the samples to be evaluated. Here, <code class="docutils literal notranslate"><span class="pre">N</span></code> denotes the number of samples and <code class="docutils literal notranslate"><span class="pre">D</span></code> denotes the number of parameters</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">return_results</span> <span class="pre">(bool)</span></code>: a flag indicating whether the results should be returned by the function (default = <code class="docutils literal notranslate"><span class="pre">False</span></code>). Set this to <code class="docutils literal notranslate"><span class="pre">True</span></code> when the results are needed directly in Python, such as during active learning. When <code class="docutils literal notranslate"><span class="pre">return_results</span></code> is <code class="docutils literal notranslate"><span class="pre">False</span></code>, the requested outputs from each simulation are stored in the corresponding sample directory.</p></li>
+</ul>
+<p>Once the dataset generation process starts, a directory with the name specified by the <code class="docutils literal notranslate"><span class="pre">directory</span></code> option is created. All generated data is stored within this directory. The directory structure is organized as follows:</p>
+<ul class="simple">
+<li><p>The main directory contains a <code class="docutils literal notranslate"><span class="pre">description.txt</span></code> file that provides information about the generated dataset, including the parameters and their bounds.</p></li>
+<li><p>A separate subdirectory is created for each evaluated sample. The subdirectories are numbered sequentially starting from <code class="docutils literal notranslate"><span class="pre">1</span></code> (i.e., <code class="docutils literal notranslate"><span class="pre">1</span></code>, <code class="docutils literal notranslate"><span class="pre">2</span></code>, <code class="docutils literal notranslate"><span class="pre">3</span></code>, and so on), with each number corresponding to the row of the samples array that was evaluated. For example, the directory <code class="docutils literal notranslate"><span class="pre">1</span></code> contains the results for <code class="docutils literal notranslate"><span class="pre">samples[0]</span></code>, <code class="docutils literal notranslate"><span class="pre">2</span></code> contains the results for <code class="docutils literal notranslate"><span class="pre">samples[1]</span></code>, and so on.</p></li>
+<li><p>Each sample directory contains the files generated during the simulation. Depending on the options provided during initializating <code class="docutils literal notranslate"><span class="pre">WingVSPADflowOptions</span></code> class, the following files may be present:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">log.txt</span></code>: a log file containing messages generated during mesh deformation and solver execution</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">parameters.json</span></code>: a JSON file containing the parameter values used for the sample</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scalar_outputs.json</span></code>: a JSON file containing the scalar outputs specified by the <code class="docutils literal notranslate"><span class="pre">scalar_outputs</span></code> option.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">surface_solution.cgns</span></code>: the surface solution written by the solver. This file is stored only when <code class="docutils literal notranslate"><span class="pre">write_surface_output</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">volume_solution.cgns</span></code>: the volume solution written by the solver. This file is stored only when <code class="docutils literal notranslate"><span class="pre">write_volume_output</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">surface_outputs.hdf5</span></code>: field data extracted from the surface solution and stored in an HDF5 file. This file is stored only when <code class="docutils literal notranslate"><span class="pre">write_surface_output</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>. It will contain entities provided in the <code class="docutils literal notranslate"><span class="pre">surface_outputs</span></code> option</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">volume_outputs.hdf5</span></code>: field data extracted from the volume solution and stored in an HDF5 file. This file is stored only when <code class="docutils literal notranslate"><span class="pre">write_volume_output</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>. It will contain entities provided in the <code class="docutils literal notranslate"><span class="pre">volume_outputs</span></code> option</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lift_distribution.dat</span></code>: a dat file containing lift distribution along the wing span, this file is written only when <code class="docutils literal notranslate"><span class="pre">write_lift_distribution</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">slices.dat</span></code>: a dat file containing flow quantities along wing cross-section at different locations (from root till tip), this file is stored only when <code class="docutils literal notranslate"><span class="pre">write_slice_file</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">updated_model.vsp3</span></code>: an OpenVSP file containing updated wing model, this file is stored only when <code class="docutils literal notranslate"><span class="pre">write_vsp_file</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">updated_model.stl</span></code>: a stl file describing the updated wing model, this file is stored only when <code class="docutils literal notranslate"><span class="pre">write_stl_file</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code></p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<section id="options">
+<h2>Options<a class="headerlink" href="#options" title="Link to this heading"></a></h2>
+<p>Following is the exhaustive list of options that can be set by the user for the <code class="docutils literal notranslate"><span class="pre">Wing</span></code> problem:</p>
+<div class="pydantic-options docutils container">
+<dl class="py data">
+<dt class="sig sig-object py" id="mesh_file">
+<span class="sig-name descname"><span class="pre">mesh_file</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#mesh_file" title="Link to this definition"></a></dt>
+<dd><p>Path to the cgns volume mesh file for the wing geometry</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="solver_options">
+<span class="sig-name descname"><span class="pre">solver_options</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#solver_options" title="Link to this definition"></a></dt>
+<dd><p>Dictionary of ADflow solver options passed directly to the solver</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="aero_problem">
+<span class="sig-name descname"><span class="pre">aero_problem</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">AeroProblem</span></em><a class="headerlink" href="#aero_problem" title="Link to this definition"></a></dt>
+<dd><p>AeroProblem instance defining flow conditions for the ADflow solver, this field is excluded from serialization</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="wing_vsp">
+<span class="sig-name descname"><span class="pre">wing_vsp</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../api/wing_problem.html#blackbox.wing_problem.wing_vsp.WingVSP" title="blackbox.wing_problem.wing_vsp.WingVSP"><span class="pre">WingVSP</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#wing_vsp" title="Link to this definition"></a></dt>
+<dd><p>Instance of <code class="docutils literal notranslate"><span class="pre">WingVSP</span></code> class defining various shape parameters</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="scalar_outputs">
+<span class="sig-name descname"><span class="pre">scalar_outputs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['cl',</span> <span class="pre">'clp',</span> <span class="pre">'clv',</span> <span class="pre">'cd',</span> <span class="pre">'cdp',</span> <span class="pre">'cdv',</span> <span class="pre">'cmx',</span> <span class="pre">'cmy',</span> <span class="pre">'cmz']</span></em><a class="headerlink" href="#scalar_outputs" title="Link to this definition"></a></dt>
+<dd><p>List of scalar output identifiers to be written during the simulation, the provided list should contain atleast one valid identifier</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="surface_outputs">
+<span class="sig-name descname"><span class="pre">surface_outputs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['rho',</span> <span class="pre">'p',</span> <span class="pre">'temp',</span> <span class="pre">'cp',</span> <span class="pre">'vx',</span> <span class="pre">'vy',</span> <span class="pre">'vz',</span> <span class="pre">'cf',</span> <span class="pre">'cfx',</span> <span class="pre">'cfy',</span> <span class="pre">'cfz',</span> <span class="pre">'yplus']</span></em><a class="headerlink" href="#surface_outputs" title="Link to this definition"></a></dt>
+<dd><p>List of surface output identifiers to be written during the simulation, the provided list should contain atleast one valid identifier</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="volume_outputs">
+<span class="sig-name descname"><span class="pre">volume_outputs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['cp',</span> <span class="pre">'mach',</span> <span class="pre">'temp']</span></em><a class="headerlink" href="#volume_outputs" title="Link to this definition"></a></dt>
+<dd><p>List of volume output identifiers to be written during the simulation, the provided list should contain atleast one valid identifier</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="write_surface_output">
+<span class="sig-name descname"><span class="pre">write_surface_output</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#write_surface_output" title="Link to this definition"></a></dt>
+<dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, write surface output from adflow in cgns format. A ready-to-use HDF5 file containing surface data extracted from cgns file is also written</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="write_volume_output">
+<span class="sig-name descname"><span class="pre">write_volume_output</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#write_volume_output" title="Link to this definition"></a></dt>
+<dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, write volume output from adflow in cgns format. A ready-to-use HDF5 file containing volume data extracted from cgns file is also written</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="write_vsp_file">
+<span class="sig-name descname"><span class="pre">write_vsp_file</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#write_vsp_file" title="Link to this definition"></a></dt>
+<dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, write the updated VSP model in vsp3 file. This option will only work when shape variables are added</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="write_stl_file">
+<span class="sig-name descname"><span class="pre">write_stl_file</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#write_stl_file" title="Link to this definition"></a></dt>
+<dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, write the updated VSP model in a stl file. This option will only work when shape variables are added</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="write_lift_distribution">
+<span class="sig-name descname"><span class="pre">write_lift_distribution</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#write_lift_distribution" title="Link to this definition"></a></dt>
+<dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, add a lift distribution along the wing span and write the distribution file after analysis</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="num_segments">
+<span class="sig-name descname"><span class="pre">num_segments</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">200</span></em><a class="headerlink" href="#num_segments" title="Link to this definition"></a></dt>
+<dd><p>Number of points to use along the wing span while writing lift distribution file, only relevant when <code class="docutils literal notranslate"><span class="pre">write_lift_distribution</span></code> is set to True</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="write_slice_file">
+<span class="sig-name descname"><span class="pre">write_slice_file</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#write_slice_file" title="Link to this definition"></a></dt>
+<dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, add slices along the wing span and write the slice file after analysis</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="slice_location">
+<span class="sig-name descname"><span class="pre">slice_location</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[0.05,</span> <span class="pre">0.2,</span> <span class="pre">0.4,</span> <span class="pre">0.6,</span> <span class="pre">0.8,</span> <span class="pre">0.95]</span></em><a class="headerlink" href="#slice_location" title="Link to this definition"></a></dt>
+<dd><p>List describing relative slice location along the wing span, only relevant when <code class="docutils literal notranslate"><span class="pre">write_slice_file</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code></p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="alpha">
+<span class="sig-name descname"><span class="pre">alpha</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'explicit'</span></em><a class="headerlink" href="#alpha" title="Link to this definition"></a></dt>
+<dd><p>Angle-of-attack control mode. Use <code class="docutils literal notranslate"><span class="pre">implicit</span></code> if you want solver to solve for alpha based on a target lift coefficient. <code class="docutils literal notranslate"><span class="pre">NOTE</span></code>: If you use <code class="docutils literal notranslate"><span class="pre">implicit</span></code> mode, then <code class="docutils literal notranslate"><span class="pre">alpha</span></code> cannot be set as a parameter</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="target_CL">
+<span class="sig-name descname"><span class="pre">target_CL</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></em><a class="headerlink" href="#target_CL" title="Link to this definition"></a></dt>
+<dd><p>Target lift coefficient used when alpha is solved implicitly</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="target_CL_tol">
+<span class="sig-name descname"><span class="pre">target_CL_tol</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.001</span></em><a class="headerlink" href="#target_CL_tol" title="Link to this definition"></a></dt>
+<dd><p>Tolerance on the lift coefficient when solving for implicit alpha</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="starting_alpha">
+<span class="sig-name descname"><span class="pre">starting_alpha</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2.5</span></em><a class="headerlink" href="#starting_alpha" title="Link to this definition"></a></dt>
+<dd><p>Initial guess for the angle of attack (in degrees) when using implicit alpha mode</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="initial_delta_alpha">
+<span class="sig-name descname"><span class="pre">initial_delta_alpha</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></em><a class="headerlink" href="#initial_delta_alpha" title="Link to this definition"></a></dt>
+<dd><p>Initial guess for the change in alpha for secant search</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="max_iterations">
+<span class="sig-name descname"><span class="pre">max_iterations</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></em><a class="headerlink" href="#max_iterations" title="Link to this definition"></a></dt>
+<dd><p>Number of iterations for secant search</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="directory">
+<span class="sig-name descname"><span class="pre">directory</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'output'</span></em><a class="headerlink" href="#directory" title="Link to this definition"></a></dt>
+<dd><p>Directory where all simulation outputs will be written</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="num_processors">
+<span class="sig-name descname"><span class="pre">num_processors</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></em><a class="headerlink" href="#num_processors" title="Link to this definition"></a></dt>
+<dd><p>Number of processors to use for the ADflow simulation</p>
+</dd></dl>
+
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="airfoil.html" class="btn btn-neutral float-left" title="Airfoil Problem" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="aerostruct.html" class="btn btn-neutral float-right" title="Aerostruct Problem" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, CODE Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

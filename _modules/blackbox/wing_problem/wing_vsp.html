@@ -1,0 +1,478 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>blackbox.wing_problem.wing_vsp &mdash; Blackbox</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a400c6f5" />
+
+  
+    <link rel="shortcut icon" href="../../../_static/codelab-logo.png"/>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Blackbox
+              <img src="../../../_static/codelab-logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../problems/problem.html">Problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../hpc.html">Running on HPC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/API.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Blackbox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">blackbox.wing_problem.wing_vsp</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for blackbox.wing_problem.wing_vsp</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">version</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_version</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">))</span>
+
+<div class="viewcode-block" id="WingVSP">
+<a class="viewcode-back" href="../../../api/wing_problem.html#blackbox.wing_problem.wing_vsp.WingVSP">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WingVSP</span><span class="p">():</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vsp_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Class for parsing OpenVSP file and adding various wing shape parameters</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            vsp_file: str</span>
+<span class="sd">                vsp3 file that contains the wing model</span>
+
+<span class="sd">            `NOTE`: The vsp model should only contain one component of type `WING`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># check openvsp versions</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">openvsp</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;OpenVSP Python API is not installed or can not be imported</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;You can follow the installation guide: https://github.com/OpenVSP/OpenVSP/tree/main/src/python_api/packages&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">MIN_VERSION</span> <span class="o">=</span> <span class="n">parse_version</span><span class="p">(</span><span class="s2">&quot;3.28.0&quot;</span><span class="p">)</span>
+            <span class="n">CURR_VERSION</span> <span class="o">=</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">version</span><span class="p">(</span><span class="s2">&quot;openvsp&quot;</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="n">CURR_VERSION</span> <span class="o">&gt;=</span> <span class="n">MIN_VERSION</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;openvsp version is </span><span class="si">{</span><span class="n">CURR_VERSION</span><span class="si">}</span><span class="s2"> but minimum </span><span class="si">{</span><span class="n">MIN_VERSION</span><span class="si">}</span><span class="s2"> is required&quot;</span>
+
+        <span class="c1"># check pygeo versions</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">pygeo</span><span class="w"> </span><span class="kn">import</span> <span class="n">DVGeometryVSP</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;pyGeo is not installed or can not be imported</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;You can follow the installation guide: https://mdolab-pygeo.readthedocs-hosted.com/en/latest/install.html&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">MIN_VERSION</span> <span class="o">=</span> <span class="n">parse_version</span><span class="p">(</span><span class="s2">&quot;1.17.0&quot;</span><span class="p">)</span>
+            <span class="n">CURR_VERSION</span> <span class="o">=</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">version</span><span class="p">(</span><span class="s2">&quot;pygeo&quot;</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="n">CURR_VERSION</span> <span class="o">&gt;=</span> <span class="n">MIN_VERSION</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;pygeo version is </span><span class="si">{</span><span class="n">CURR_VERSION</span><span class="si">}</span><span class="s2"> but minimum </span><span class="si">{</span><span class="n">MIN_VERSION</span><span class="si">}</span><span class="s2"> is required&quot;</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vsp_file</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="s2">&quot;`vsp_file` argument must be string&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">vsp_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">vsp_file</span><span class="p">)</span> <span class="c1"># set abs path</span>
+
+        <span class="c1"># check if vsp file path exists</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vsp_file</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provided vsp file path does not exist&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">openvsp</span><span class="p">,</span> <span class="s2">&quot;VSPVehicle&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span> <span class="o">=</span> <span class="n">openvsp</span><span class="o">.</span><span class="n">VSPVehicle</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span> <span class="o">=</span> <span class="n">openvsp</span>
+
+        <span class="c1"># clear the vsp model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">ClearVSPModel</span><span class="p">()</span>
+
+        <span class="c1"># read the model file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">ReadVSPFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vsp_file</span><span class="p">)</span>
+
+        <span class="c1"># Some checks</span>
+        <span class="n">geoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">FindGeoms</span><span class="p">()</span>
+        <span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">geoms</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">GetGeomTypeName</span><span class="p">(</span><span class="n">geoms</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="s2">&quot;Wing&quot;</span><span class="p">,</span> <span class="s2">&quot;Your OpenVSP model should contain only one component of type `WING`&quot;</span>
+
+        <span class="c1"># Storing some VSP variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">component_id</span> <span class="o">=</span> <span class="n">geoms</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">component_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">GetGeomName</span><span class="p">(</span><span class="n">geoms</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xsec_surf_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">GetXSecSurf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">component_id</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_xsec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">GetNumXSec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xsec_surf_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_sections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_xsec</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="c1"># intialize some empty variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]))</span>
+
+<div class="viewcode-block" id="WingVSP.add_shape_parameter">
+<a class="viewcode-back" href="../../../api/wing_problem.html#blackbox.wing_problem.wing_vsp.WingVSP.add_shape_parameter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_shape_parameter</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">lower</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">upper</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">sections</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Method for adding a single wing planform parameter for analysis</span>
+
+<span class="sd">            Example: span, dihedral, sweep, twist, root chord, and tip chord</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            name: str</span>
+<span class="sd">                name of the parameter to be added. It can only be:</span>
+<span class="sd">                </span>
+<span class="sd">                    * `Span`: span of the section</span>
+<span class="sd">                    * `Root_Chord`: root chord of the section</span>
+<span class="sd">                    * `Tip_Chord`: tip chord of the section</span>
+<span class="sd">                    * `Dihedral`: dihedral of the section</span>
+<span class="sd">                    * `Sweep`: sweep of the section</span>
+<span class="sd">                    * `Twist`: twist of the section</span>
+
+<span class="sd">                `NOTE`: You can add a single parameter for a set of sections, refer to</span>
+<span class="sd">                        `sections` argument for more detail</span>
+
+<span class="sd">            lower: float</span>
+<span class="sd">                lower bound for the parameter</span>
+
+<span class="sd">            upper: float</span>
+<span class="sd">                upper bound for the parameter</span>
+
+<span class="sd">            sections: list</span>
+<span class="sd">                a list denoting which section the parameters belongs to. The list must</span>
+<span class="sd">                contain integers between 1 and maximum number of sections. If the list contains</span>
+<span class="sd">                more than one entires, then only value will control the parameter across given section</span>
+<span class="sd">                numbers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">possible_section_paramaters</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Span&quot;</span><span class="p">,</span> <span class="s2">&quot;Root_Chord&quot;</span><span class="p">,</span> <span class="s2">&quot;Tip_Chord&quot;</span><span class="p">,</span> <span class="s2">&quot;Dihedral&quot;</span><span class="p">,</span> <span class="s2">&quot;Sweep&quot;</span><span class="p">,</span> <span class="s2">&quot;Twist&quot;</span><span class="p">]</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="s2">&quot;`name` argument must be string&quot;</span>
+        <span class="k">assert</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">possible_section_paramaters</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">` is not a valid parameter&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">upper</span><span class="p">,</span> <span class="nb">float</span><span class="p">),</span> <span class="s2">&quot;`lower` and `upper` must be float values&quot;</span>
+        <span class="k">assert</span> <span class="n">lower</span> <span class="o">&lt;</span> <span class="n">upper</span><span class="p">,</span> <span class="s2">&quot;`upper` must be greater than `lower`&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sections</span><span class="p">,</span> <span class="nb">list</span><span class="p">),</span> <span class="s2">&quot;`sections` argument must be a list&quot;</span>
+
+        <span class="n">dvgeo_name</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">sec</span> <span class="ow">in</span> <span class="n">sections</span><span class="p">:</span>
+
+            <span class="c1"># check list entries</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sec</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="n">sec</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_sections</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;The entires in `sections` list must be integers between 1 and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">number_of_sections</span><span class="si">}</span><span class="s2">&quot;</span>
+
+            <span class="n">dvgeo_name</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">component_name</span><span class="si">}</span><span class="s2">:XSec_</span><span class="si">{</span><span class="n">sec</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="c1"># append dvgeo name</span>
+
+            <span class="c1"># check if this parameter is already added</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">assert</span> <span class="n">dvgeo_name</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> at section </span><span class="si">{</span><span class="n">sec</span><span class="si">}</span><span class="s2"> is already added as a parameter&quot;</span>
+
+        <span class="c1"># parameter name</span>
+        <span class="n">param_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span><span class="n">sections</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="c1"># update parameter list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">dvgeo_name</span>
+
+        <span class="c1"># update bounds</span>
+        <span class="n">lb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">lower</span><span class="p">)</span>
+        <span class="n">ub</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">upper</span><span class="p">)</span>
+
+        <span class="c1"># update variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="n">param_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="p">(</span><span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WingVSP.add_airfoil_cst_parameters">
+<a class="viewcode-back" href="../../../api/wing_problem.html#blackbox.wing_problem.wing_vsp.WingVSP.add_airfoil_cst_parameters">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_airfoil_cst_parameters</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">surface</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">lower</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">upper</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">sections</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Method to add entire upper or lower airfoil as a parameter for analysis</span>
+
+<span class="sd">            Currently, airfoil is parameterized using CST method only</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            surface: str</span>
+<span class="sd">                a string denoting whether to add `upper` or `lower` airfoil surface</span>
+
+<span class="sd">            lower: np.ndarray</span>
+<span class="sd">                a 1D numpy array containing lower bound for all the CST coefficients</span>
+
+<span class="sd">            upper: np.ndarray</span>
+<span class="sd">                a 1D numpy array containing upper bound for all the CST coefficients</span>
+
+<span class="sd">            sections: list</span>
+<span class="sd">                a list containing section indices whose CST coefficients are to be </span>
+<span class="sd">                added as a parameter. ``NOTE``: If there is more than one entry in</span>
+<span class="sd">                this list, then all those sections will have uniform airfoil shape</span>
+<span class="sd">                parametrization</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># some initial checks</span>
+        <span class="k">assert</span> <span class="n">surface</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;upper&quot;</span><span class="p">,</span> <span class="s2">&quot;lower&quot;</span><span class="p">],</span> <span class="s2">&quot;`surface` must be a either &#39;upper&#39; or &#39;lower&#39;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">upper</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">lower</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="n">upper</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">lower</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">upper</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;`lower` and `upper` arugment must be a 1D numpy array of same shape&quot;</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">lower</span> <span class="o">&lt;</span> <span class="n">upper</span><span class="p">),</span> <span class="s2">&quot;`upper` bound must be greater than `lower` bound&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sections</span><span class="p">,</span> <span class="nb">list</span><span class="p">),</span> <span class="s2">&quot;`sections` argument must be a list&quot;</span>
+
+        <span class="n">surface</span> <span class="o">=</span> <span class="n">surface</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="c1"># select CST function/variables dynamically</span>
+        <span class="k">if</span> <span class="n">surface</span> <span class="o">==</span> <span class="s2">&quot;upper&quot;</span><span class="p">:</span>
+            <span class="n">degree_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">GetUpperCSTDegree</span>
+            <span class="n">group_prefix</span> <span class="o">=</span> <span class="s2">&quot;UpperCoeff&quot;</span>
+            <span class="n">param_prefix</span> <span class="o">=</span> <span class="s2">&quot;Au&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">degree_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">GetLowerCSTDegree</span>
+            <span class="n">group_prefix</span> <span class="o">=</span> <span class="s2">&quot;LowerCoeff&quot;</span>
+            <span class="n">param_prefix</span> <span class="o">=</span> <span class="s2">&quot;Al&quot;</span>
+
+        <span class="c1"># individual section checks</span>
+        <span class="k">for</span> <span class="n">sec</span> <span class="ow">in</span> <span class="n">sections</span><span class="p">:</span>
+
+            <span class="c1"># check list entries</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sec</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">sec</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_sections</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;The entires in `sections` list must be an integer between 0 and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">number_of_sections</span><span class="si">}</span><span class="s2">&quot;</span>
+
+            <span class="c1"># get xsec id</span>
+            <span class="n">xsec_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">GetXSec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xsec_surf_id</span><span class="p">,</span> <span class="n">sec</span><span class="p">)</span>
+
+            <span class="c1"># check number xsec type</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">GetXSecShape</span><span class="p">(</span><span class="n">xsec_id</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">XS_CST_AIRFOIL</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;airfoil at section </span><span class="si">{</span><span class="n">sec</span><span class="si">}</span><span class="s2"> is not of type CST&quot;</span>
+
+            <span class="c1"># get number of allowed cst coeffs parametrization</span>
+            <span class="k">if</span> <span class="n">surface</span> <span class="o">==</span> <span class="s2">&quot;lower&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">GetParmVal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">GetXSecParm</span><span class="p">(</span><span class="n">xsec_id</span><span class="p">,</span> <span class="s2">&quot;ContLERad&quot;</span><span class="p">))</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
+                <span class="n">num_allowed_parameters</span> <span class="o">=</span> <span class="n">degree_func</span><span class="p">(</span><span class="n">xsec_id</span><span class="p">)</span> <span class="c1"># the continuous LE is set, then the first lower surface CST coefficient cannot be a design variable</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">num_allowed_parameters</span> <span class="o">=</span> <span class="n">degree_func</span><span class="p">(</span><span class="n">xsec_id</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+                
+            <span class="c1"># check number of cst coeffs</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">lower</span><span class="p">)</span> <span class="o">==</span> <span class="n">num_allowed_parameters</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">upper</span><span class="p">)</span> <span class="o">==</span> <span class="n">num_allowed_parameters</span><span class="p">,</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;lower/upper bound size must match number of alowed CST coefficients for parameterization (</span><span class="si">{</span><span class="n">num_allowed_parameters</span><span class="si">}</span><span class="s2">) at section </span><span class="si">{</span><span class="n">sec</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># empty array for storing</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+
+        <span class="c1"># loop through each coefficient</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_allowed_parameters</span><span class="p">):</span>
+
+            <span class="n">dvgeo_name</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">sec</span> <span class="ow">in</span> <span class="n">sections</span><span class="p">:</span>
+
+                <span class="n">dvgeo_name</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">component_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">group_prefix</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">sec</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">param_prefix</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="c1"># check if this parameter is already added</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="k">assert</span> <span class="sa">f</span><span class="s2">&quot;airfoil_xsec_</span><span class="si">{</span><span class="n">sec</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">param_prefix</span><span class="si">}{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">key</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;CST coefficient </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="n">surface</span><span class="si">}</span><span class="s2"> airfoil at section </span><span class="si">{</span><span class="n">sec</span><span class="si">}</span><span class="s2"> is already added as a parameter&quot;</span>
+
+            <span class="c1"># parameter name</span>
+            <span class="n">param_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;airfoil_xsec_</span><span class="si">{</span><span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span><span class="n">sections</span><span class="p">))</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">param_prefix</span><span class="si">}{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span>
+
+            <span class="c1"># update parameter list</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">dvgeo_name</span>
+
+            <span class="c1"># mask for the parameter</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">param_name</span><span class="p">)</span>
+
+        <span class="c1"># update bounds</span>
+        <span class="n">lb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">lower</span><span class="p">)</span>
+        <span class="n">ub</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">upper</span><span class="p">)</span>
+
+        <span class="c1"># update variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="p">(</span><span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WingVSP.get_pygeo_parameter_dict">
+<a class="viewcode-back" href="../../../api/wing_problem.html#blackbox.wing_problem.wing_vsp.WingVSP.get_pygeo_parameter_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_pygeo_parameter_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Method to get pygeo openvsp parameter dictionary for a given</span>
+<span class="sd">            set of parameters</span>
+
+<span class="sd">            This method is useful when you want to create a pygeo openvsp</span>
+<span class="sd">            object from scratch and add design variables to it</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            x: np.ndarray</span>
+<span class="sd">                1D numpy array that contains value of the parameters</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            pygeo_params: dict[str, float]</span>
+<span class="sd">                a key-value pairs that contains pygeo paramters and corresponding</span>
+<span class="sd">                parameter values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;`x` should be a 1D numpy array&quot;</span>
+        <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;provided `x` does not have correct number of parameters&quot;</span>
+
+        <span class="n">dvgeo_params</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">vals</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;Span&quot;</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
+                    <span class="n">dvgeo_params</span><span class="p">[</span><span class="n">val</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">==</span> <span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">dvgeo_params</span><span class="p">[</span><span class="n">val</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">==</span> <span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">dvgeo_params</span></div>
+
+    
+<div class="viewcode-block" id="WingVSP.compute_volume">
+<a class="viewcode-back" href="../../../api/wing_problem.html#blackbox.wing_problem.wing_vsp.WingVSP.compute_volume">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_volume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Method to compute volume of the wing for given set of parameters</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            x: np.ndarray</span>
+<span class="sd">                1D numpy array that contains value of the parameters</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            volume: float</span>
+<span class="sd">                volume of the wing based on given parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;`x` should be a 1D numpy array&quot;</span>
+        <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;provided `x` does not have correct number of parameters&quot;</span>
+
+        <span class="c1"># some variables</span>
+        <span class="n">analysis_name</span> <span class="o">=</span> <span class="s2">&quot;CompGeom&quot;</span>
+        <span class="n">file_name</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vsp_file</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># get formated dv dict</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pygeo_parameter_dict</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="c1"># update vsp model</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+            <span class="c1"># get group and parameter name</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">group_name</span><span class="p">,</span> <span class="n">param_name</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+
+            <span class="c1"># get param id</span>
+            <span class="n">param_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">FindParm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">component_id</span><span class="p">,</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">group_name</span><span class="p">)</span>
+
+            <span class="c1"># set the val</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">SetParmValUpdate</span><span class="p">(</span><span class="n">param_id</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+        <span class="c1"># update model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">Update</span><span class="p">()</span>
+
+        <span class="c1"># setup comp geom analysis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">SetAnalysisInputDefaults</span><span class="p">(</span><span class="n">analysis_name</span><span class="p">)</span>
+
+        <span class="c1"># set some analysis inputs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">SetIntAnalysisInput</span><span class="p">(</span><span class="n">analysis_name</span><span class="p">,</span> <span class="s2">&quot;WriteCSVFlag&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># execute analysis</span>
+        <span class="n">res_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">ExecAnalysis</span><span class="p">(</span><span class="n">analysis_name</span><span class="p">)</span>
+
+        <span class="c1"># Get wing volume</span>
+        <span class="n">volume</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">GetDoubleResults</span><span class="p">(</span><span class="n">res_id</span><span class="p">,</span> <span class="s2">&quot;Theo_Vol&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Delete mesh geom, results, analysis files</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">DeleteGeom</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">FindGeoms</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vsp_model</span><span class="o">.</span><span class="n">DeleteAllResults</span><span class="p">()</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s2">_CompGeom.txt&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">volume</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, CODE Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

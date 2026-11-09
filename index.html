@@ -6,16 +6,21 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Blackbox &mdash; Blackbox  documentation</title>
+  <title>Blackbox &mdash; Blackbox</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=fc555ede" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=a400c6f5" />
 
   
     <link rel="shortcut icon" href="_static/codelab-logo.png"/>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=5929fcd5"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -42,11 +47,12 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="airfoil/intro.html">Airfoil sample generation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="wing/intro.html">Wing sample generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problems/problem.html">Problems</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hpc.html">Running on HPC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/API.html">API Reference</a></li>
 </ul>
 
         </div>
@@ -74,62 +80,21 @@
            <div itemprop="articleBody">
              
   <section id="blackbox">
-<h1>Blackbox<a class="headerlink" href="#blackbox" title="Link to this heading">¶</a></h1>
-<p>Blackbox streamlines high-fidelity aerodynamic data generation process to facilitate various
-surrogate modeling applications, reducing the time and complexity associated with
-setting up complex analysis chains. Blackbox currently supports airfoil data generation with CST and FFD
-parameterization, as well as wing data generation with FFD parameterization. Additionally, an aerostructural
-module is in active development. Explore the respective sections for detailed information on airfoil and
-wing data generation. Blackbox can also run on High-Performance Computing resources, refer that section for more details.</p>
+<h1>Blackbox<a class="headerlink" href="#blackbox" title="Link to this heading"></a></h1>
+<p>Complex simulations are ubiquitous across engineering and scientific disciplines. These simulations often require solving systems of complex equations, performing computationally expensive numerical procedures, or coupling multiple physics models. As a result, evaluating a simulation can be computationally expensive and may require substantial effort in addition to the simulation itself. This makes it challenging to directly use high-fidelity simulations for downstream tasks such as optimization, uncertainty quantification, sensitivity analysis, and design exploration.</p>
+<p>Surrogate models can alleviate this challenge by approximating the behavior of expensive simulations using data generated from simulations evaluated at selected input points. However, generating this data is itself often a nontrivial process. A typical simulation workflow may involve geometry generation, mesh generation, solver configuration, simulation execution, and post-processing, with each step requiring problem-specific setup and data handling.</p>
+<p>The primary motivation behind <strong>Blackbox</strong> is to provide a consistent and easy-to-use API for evaluating a wide range of problems. Blackbox abstracts away the details of problem setup, simulation execution, and data handling, allowing users to interact with a problem simply by providing input samples and receiving the corresponding outputs. This enables users to focus on higher-level tasks such as surrogate modeling, optimization, uncertainty quantification, and sensitivity analysis, without having to manage the underlying simulation workflow.</p>
+<p>The overall concept is illustrated in the figure below:</p>
+<a class="image-margin reference internal image-reference" href="_images/bb.png"><img alt="blackbox motivation image" class="image-margin align-center" src="_images/bb.png" style="width: 80%;" />
+</a>
+<p>Go through this documentation for more details about various problems availabe in Blackbox and how to use them within higher-level tasks such as surrogate modeling, optimization, uncertainty quantification, etc.</p>
 <div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="airfoil/intro.html">Airfoil sample generation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="airfoil/cst.html">Sample generation with CST</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="airfoil/cst.html#setting-up-options">Setting up options</a></li>
-<li class="toctree-l3"><a class="reference internal" href="airfoil/cst.html#adding-design-variables">Adding design variables</a></li>
-<li class="toctree-l3"><a class="reference internal" href="airfoil/cst.html#generating-samples-and-accessing-data">Generating samples and accessing data</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="airfoil/ffd.html">Sample generation with FFD</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="airfoil/ffd.html#setting-up-options">Setting up options</a></li>
-<li class="toctree-l3"><a class="reference internal" href="airfoil/ffd.html#adding-design-variables">Adding design variables</a></li>
-<li class="toctree-l3"><a class="reference internal" href="airfoil/ffd.html#generating-samples-and-accessing-data">Generating samples and accessing data</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="airfoil/single.html">Running single analysis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="airfoil/field_data.html">Getting field data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="airfoil/imp_alpha.html">Implicit alpha</a></li>
-<li class="toctree-l2"><a class="reference internal" href="airfoil/options.html">Options</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="airfoil/options.html#cst-related-options">CST related options</a></li>
-<li class="toctree-l3"><a class="reference internal" href="airfoil/options.html#ffd-related-options">FFD related options</a></li>
-<li class="toctree-l3"><a class="reference internal" href="airfoil/options.html#general-options">General options</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="wing/intro.html">Wing sample generation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="wing/adflow.html">Sample generation using ADflow</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="wing/adflow.html#setting-up-options">Setting up options</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wing/adflow.html#adding-design-variables">Adding design variables</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wing/adflow.html#generating-samples-and-accessing-data">Generating samples and accessing data</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="wing/dafoam.html">Sample generation using DAFoam</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="wing/dafoam.html#setting-up-options">Setting up options</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wing/dafoam.html#adding-design-variables">Adding design variables</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wing/dafoam.html#generating-samples-and-accessing-data">Generating samples and accessing data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wing/dafoam.html#extracting-surface-force-data">Extracting surface force data</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="wing/options_wing.html">Options</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="wing/options_wing.html#mandatory-arguments">Mandatory arguments</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wing/options_wing.html#optional-arguments">Optional arguments</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="problems/problem.html">Problems</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hpc.html">Running on HPC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/API.html">API Reference</a></li>
 </ul>
 </div>
 </section>
@@ -144,7 +109,7 @@ wing data generation. Blackbox can also run on High-Performance Computing resour
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, CODE Lab.</p>
+    <p>&#169; Copyright 2026, CODE Lab.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

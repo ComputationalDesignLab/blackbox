@@ -1,0 +1,299 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wing Problem &mdash; Blackbox</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=a400c6f5" />
+
+  
+    <link rel="shortcut icon" href="../_static/codelab-logo.png"/>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Aerostruct Problem" href="aerostruct_problem.html" />
+    <link rel="prev" title="Airfoil Problem" href="airfoil_problem.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Blackbox
+              <img src="../_static/codelab-logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../problems/problem.html">Problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hpc.html">Running on HPC</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="API.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="analytical_problems.html">Analytical Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="airfoil_problem.html">Airfoil Problem</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Wing Problem</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.wing_problem.problem.WingADflowVSP"><code class="docutils literal notranslate"><span class="pre">WingADflowVSP</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.wing_problem.problem.WingADflowVSP.__call__"><code class="docutils literal notranslate"><span class="pre">WingADflowVSP.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.wing_problem.problem.WingADflowVSP.bounds"><code class="docutils literal notranslate"><span class="pre">WingADflowVSP.bounds</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.wing_problem.problem.WingADflowVSP.read_results"><code class="docutils literal notranslate"><span class="pre">WingADflowVSP.read_results()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.wing_problem.wing_vsp.WingVSP"><code class="docutils literal notranslate"><span class="pre">WingVSP</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.wing_problem.wing_vsp.WingVSP.add_airfoil_cst_parameters"><code class="docutils literal notranslate"><span class="pre">WingVSP.add_airfoil_cst_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.wing_problem.wing_vsp.WingVSP.add_shape_parameter"><code class="docutils literal notranslate"><span class="pre">WingVSP.add_shape_parameter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.wing_problem.wing_vsp.WingVSP.compute_volume"><code class="docutils literal notranslate"><span class="pre">WingVSP.compute_volume()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.wing_problem.wing_vsp.WingVSP.get_pygeo_parameter_dict"><code class="docutils literal notranslate"><span class="pre">WingVSP.get_pygeo_parameter_dict()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="aerostruct_problem.html">Aerostruct Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mujoco_problem.html">MuJoCo problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rover_traj_problem.html">Rover Trajectory Problem</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Blackbox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="API.html">API Reference</a></li>
+      <li class="breadcrumb-item active">Wing Problem</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/wing_problem.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="wing-problem">
+<h1>Wing Problem<a class="headerlink" href="#wing-problem" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="blackbox.wing_problem.problem.WingADflowVSP">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blackbox.wing_problem.problem.</span></span><span class="sig-name descname"><span class="pre">WingADflowVSP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/wing_problem/problem.html#WingADflowVSP"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.wing_problem.problem.WingADflowVSP" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseProblem</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.wing_problem.problem.WingADflowVSP.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/wing_problem/problem.html#WingADflowVSP.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.wing_problem.problem.WingADflowVSP.__call__" title="Link to this definition"></a></dt>
+<dd><p>Method to evaluate given x. It can be a single or multiple samples of
+size (d,) or (N,d) where N is the number of samples and d is the number of
+parameters added</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>np.ndarray</em>) – a numpy array representing values for added parameters</p></li>
+<li><p><strong>return_results</strong> (<em>bool</em>) – flag to determine if the results should be returned or not.
+This should be set to True only when you want this function to
+return the results. <code class="docutils literal notranslate"><span class="pre">NOTE</span></code>: This is only useful when you are
+doing sequential data generation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="blackbox.wing_problem.problem.WingADflowVSP.bounds">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">bounds</span></span><a class="headerlink" href="#blackbox.wing_problem.problem.WingADflowVSP.bounds" title="Link to this definition"></a></dt>
+<dd><p>Method to get upper and lower bound based on added parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bounds</strong> – a tuple containing two 1d numpy arrays - one for lower bound
+and other for upper bound</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.wing_problem.problem.WingADflowVSP.read_results">
+<span class="sig-name descname"><span class="pre">read_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dir_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/wing_problem/problem.html#WingADflowVSP.read_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.wing_problem.problem.WingADflowVSP.read_results" title="Link to this definition"></a></dt>
+<dd><p>Method to read scalars.json and field_outputs.hdf5 files containing results from a
+wing analysis and convert it to a dictionary which can be used later</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dir_name</strong> (<em>str</em>) – name of directory where the results from the analysis are saved</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out</strong> – a dictionary containing data stored in the folder</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="blackbox.wing_problem.wing_vsp.WingVSP">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blackbox.wing_problem.wing_vsp.</span></span><span class="sig-name descname"><span class="pre">WingVSP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vsp_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/wing_problem/wing_vsp.html#WingVSP"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.wing_problem.wing_vsp.WingVSP" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.wing_problem.wing_vsp.WingVSP.add_airfoil_cst_parameters">
+<span class="sig-name descname"><span class="pre">add_airfoil_cst_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">surface</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sections</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/wing_problem/wing_vsp.html#WingVSP.add_airfoil_cst_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.wing_problem.wing_vsp.WingVSP.add_airfoil_cst_parameters" title="Link to this definition"></a></dt>
+<dd><p>Method to add entire upper or lower airfoil as a parameter for analysis</p>
+<p>Currently, airfoil is parameterized using CST method only</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>surface</strong> (<em>str</em>) – a string denoting whether to add <cite>upper</cite> or <cite>lower</cite> airfoil surface</p></li>
+<li><p><strong>lower</strong> (<em>np.ndarray</em>) – a 1D numpy array containing lower bound for all the CST coefficients</p></li>
+<li><p><strong>upper</strong> (<em>np.ndarray</em>) – a 1D numpy array containing upper bound for all the CST coefficients</p></li>
+<li><p><strong>sections</strong> (<em>list</em>) – a list containing section indices whose CST coefficients are to be
+added as a parameter. <code class="docutils literal notranslate"><span class="pre">NOTE</span></code>: If there is more than one entry in
+this list, then all those sections will have uniform airfoil shape
+parametrization</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.wing_problem.wing_vsp.WingVSP.add_shape_parameter">
+<span class="sig-name descname"><span class="pre">add_shape_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sections</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/wing_problem/wing_vsp.html#WingVSP.add_shape_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.wing_problem.wing_vsp.WingVSP.add_shape_parameter" title="Link to this definition"></a></dt>
+<dd><p>Method for adding a single wing planform parameter for analysis</p>
+<p>Example: span, dihedral, sweep, twist, root chord, and tip chord</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – <p>name of the parameter to be added. It can only be:</p>
+<blockquote>
+<div><ul>
+<li><p><cite>Span</cite>: span of the section</p></li>
+<li><p><cite>Root_Chord</cite>: root chord of the section</p></li>
+<li><p><cite>Tip_Chord</cite>: tip chord of the section</p></li>
+<li><p><cite>Dihedral</cite>: dihedral of the section</p></li>
+<li><p><cite>Sweep</cite>: sweep of the section</p></li>
+<li><p><cite>Twist</cite>: twist of the section</p></li>
+</ul>
+</div></blockquote>
+<dl class="simple">
+<dt><cite>NOTE</cite>: You can add a single parameter for a set of sections, refer to</dt><dd><p><cite>sections</cite> argument for more detail</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>lower</strong> (<em>float</em>) – lower bound for the parameter</p></li>
+<li><p><strong>upper</strong> (<em>float</em>) – upper bound for the parameter</p></li>
+<li><p><strong>sections</strong> (<em>list</em>) – a list denoting which section the parameters belongs to. The list must
+contain integers between 1 and maximum number of sections. If the list contains
+more than one entires, then only value will control the parameter across given section
+numbers.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.wing_problem.wing_vsp.WingVSP.compute_volume">
+<span class="sig-name descname"><span class="pre">compute_volume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/wing_problem/wing_vsp.html#WingVSP.compute_volume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.wing_problem.wing_vsp.WingVSP.compute_volume" title="Link to this definition"></a></dt>
+<dd><p>Method to compute volume of the wing for given set of parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>np.ndarray</em>) – 1D numpy array that contains value of the parameters</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>volume</strong> – volume of the wing based on given parameters</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.wing_problem.wing_vsp.WingVSP.get_pygeo_parameter_dict">
+<span class="sig-name descname"><span class="pre">get_pygeo_parameter_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/wing_problem/wing_vsp.html#WingVSP.get_pygeo_parameter_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.wing_problem.wing_vsp.WingVSP.get_pygeo_parameter_dict" title="Link to this definition"></a></dt>
+<dd><p>Method to get pygeo openvsp parameter dictionary for a given
+set of parameters</p>
+<p>This method is useful when you want to create a pygeo openvsp
+object from scratch and add design variables to it</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>np.ndarray</em>) – 1D numpy array that contains value of the parameters</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>pygeo_params</strong> – a key-value pairs that contains pygeo paramters and corresponding
+parameter values</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict[str, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="airfoil_problem.html" class="btn btn-neutral float-left" title="Airfoil Problem" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="aerostruct_problem.html" class="btn btn-neutral float-right" title="Aerostruct Problem" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, CODE Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

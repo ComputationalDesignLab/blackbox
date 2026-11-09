@@ -1,0 +1,397 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analytical Problems &mdash; Blackbox</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=a400c6f5" />
+
+  
+    <link rel="shortcut icon" href="../_static/codelab-logo.png"/>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Airfoil Problem" href="airfoil_problem.html" />
+    <link rel="prev" title="API Reference" href="API.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Blackbox
+              <img src="../_static/codelab-logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../problems/problem.html">Problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hpc.html">Running on HPC</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="API.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Analytical Problems</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem"><code class="docutils literal notranslate"><span class="pre">SingleOutputAnalyticalProblem</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem.__call__"><code class="docutils literal notranslate"><span class="pre">SingleOutputAnalyticalProblem.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem.set_bounds"><code class="docutils literal notranslate"><span class="pre">SingleOutputAnalyticalProblem.set_bounds()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.analytical_problems.single_output_problem.Ackley"><code class="docutils literal notranslate"><span class="pre">Ackley</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.analytical_problems.single_output_problem.Ackley._evaluate"><code class="docutils literal notranslate"><span class="pre">Ackley._evaluate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.analytical_problems.single_output_problem.Levy"><code class="docutils literal notranslate"><span class="pre">Levy</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.analytical_problems.single_output_problem.Levy._evaluate"><code class="docutils literal notranslate"><span class="pre">Levy._evaluate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.analytical_problems.single_output_problem.Rastrigin"><code class="docutils literal notranslate"><span class="pre">Rastrigin</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.analytical_problems.single_output_problem.Rastrigin._evaluate"><code class="docutils literal notranslate"><span class="pre">Rastrigin._evaluate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.analytical_problems.single_output_problem.Hartmann"><code class="docutils literal notranslate"><span class="pre">Hartmann</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.analytical_problems.single_output_problem.Hartmann._evaluate"><code class="docutils literal notranslate"><span class="pre">Hartmann._evaluate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.analytical_problems.single_output_problem.Branin"><code class="docutils literal notranslate"><span class="pre">Branin</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.analytical_problems.single_output_problem.Branin._evaluate"><code class="docutils literal notranslate"><span class="pre">Branin._evaluate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#blackbox.analytical_problems.single_output_problem.ModifiedBranin"><code class="docutils literal notranslate"><span class="pre">ModifiedBranin</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blackbox.analytical_problems.single_output_problem.ModifiedBranin._evaluate"><code class="docutils literal notranslate"><span class="pre">ModifiedBranin._evaluate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="airfoil_problem.html">Airfoil Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wing_problem.html">Wing Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aerostruct_problem.html">Aerostruct Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mujoco_problem.html">MuJoCo problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rover_traj_problem.html">Rover Trajectory Problem</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Blackbox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="API.html">API Reference</a></li>
+      <li class="breadcrumb-item active">Analytical Problems</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/analytical_problems.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="analytical-problems">
+<h1>Analytical Problems<a class="headerlink" href="#analytical-problems" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blackbox.base_classes.analytical_base_problem.</span></span><span class="sig-name descname"><span class="pre">SingleOutputAnalyticalProblem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">negate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/base_classes/analytical_base_problem.html#SingleOutputAnalyticalProblem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseProblem</span></code></p>
+<p>Base class for all single output analytical problems</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/base_classes/analytical_base_problem.html#SingleOutputAnalyticalProblem.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem.__call__" title="Link to this definition"></a></dt>
+<dd><p>Evalaute the function for given input x</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>np.ndarray</em>) – 1D/2D numpy array of shape <code class="docutils literal notranslate"><span class="pre">(num_inputs,)</span></code> or <code class="docutils literal notranslate"><span class="pre">(n_samples,num_samples)</span></code></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>y</strong> – 1D/2D numpy array of shape <code class="docutils literal notranslate"><span class="pre">(1,)</span></code> or <code class="docutils literal notranslate"><span class="pre">(n_samples,1)</span></code>
+containing the required output value for each input sample</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem.set_bounds">
+<span class="sig-name descname"><span class="pre">set_bounds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bounds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/base_classes/analytical_base_problem.html#SingleOutputAnalyticalProblem.set_bounds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem.set_bounds" title="Link to this definition"></a></dt>
+<dd><p>Method to change the default bounds of the problem</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bounds</strong> (<em>tuple</em>) – a tuple containing two 1D numpy array - first one is lower bound and second
+entry is upper bound</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="blackbox.analytical_problems.single_output_problem.Ackley">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blackbox.analytical_problems.single_output_problem.</span></span><span class="sig-name descname"><span class="pre">Ackley</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">negate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/analytical_problems/single_output_problem.html#Ackley"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.analytical_problems.single_output_problem.Ackley" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem" title="blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">SingleOutputAnalyticalProblem</span></code></a></p>
+<p>Class for defining the ackley function. More details about this
+problem can be found here: <a class="reference external" href="https://www.sfu.ca/~ssurjano/ackley.html">https://www.sfu.ca/~ssurjano/ackley.html</a></p>
+<p>Default range of bounds for each design variable is <code class="docutils literal notranslate"><span class="pre">[-32.768,32.768]</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_inputs</strong> (<em>int</em>) – number of input dimensions, default = 10</p></li>
+<li><p><strong>negate</strong> (<em>bool</em>) – negate the values before returning</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.analytical_problems.single_output_problem.Ackley._evaluate">
+<span class="sig-name descname"><span class="pre">_evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/analytical_problems/single_output_problem.html#Ackley._evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.analytical_problems.single_output_problem.Ackley._evaluate" title="Link to this definition"></a></dt>
+<dd><p>Evaluate the Ackley function for given input <cite>x</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>np.ndarray</em>) – input samples with shape <code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">num_inputs)</span></code> or <code class="docutils literal notranslate"><span class="pre">(num_inputs,)</span></code></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>an array of shape <code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">1)</span></code> or <code class="docutils literal notranslate"><span class="pre">(1,)</span></code> containing ackley function values</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="blackbox.analytical_problems.single_output_problem.Levy">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blackbox.analytical_problems.single_output_problem.</span></span><span class="sig-name descname"><span class="pre">Levy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">negate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/analytical_problems/single_output_problem.html#Levy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.analytical_problems.single_output_problem.Levy" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem" title="blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">SingleOutputAnalyticalProblem</span></code></a></p>
+<p>Class for defining the levy function. More details about this
+problem can be found here: <a class="reference external" href="https://www.sfu.ca/~ssurjano/levy.html">https://www.sfu.ca/~ssurjano/levy.html</a></p>
+<p>Default range of bounds for each design variable is <code class="docutils literal notranslate"><span class="pre">[-10,10]</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_inputs</strong> (<em>int</em>) – number of input dimensions, default = 10</p></li>
+<li><p><strong>negate</strong> (<em>bool</em>) – negate the values before returning</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.analytical_problems.single_output_problem.Levy._evaluate">
+<span class="sig-name descname"><span class="pre">_evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/analytical_problems/single_output_problem.html#Levy._evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.analytical_problems.single_output_problem.Levy._evaluate" title="Link to this definition"></a></dt>
+<dd><p>Evaluate the Levy function for given input <cite>x</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>np.ndarray</em>) – input samples with shape <code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">num_inputs)</span></code> or <code class="docutils literal notranslate"><span class="pre">(num_inputs,)</span></code></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>an array of shape <code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">1)</span></code> or <code class="docutils literal notranslate"><span class="pre">(1,)</span></code> containing levy function values</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="blackbox.analytical_problems.single_output_problem.Rastrigin">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blackbox.analytical_problems.single_output_problem.</span></span><span class="sig-name descname"><span class="pre">Rastrigin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">negate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/analytical_problems/single_output_problem.html#Rastrigin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.analytical_problems.single_output_problem.Rastrigin" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem" title="blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">SingleOutputAnalyticalProblem</span></code></a></p>
+<p>Class for defining the rastrigin function. More details about this
+problem can be found here: <a class="reference external" href="https://www.sfu.ca/~ssurjano/rastrigin.html">https://www.sfu.ca/~ssurjano/rastrigin.html</a></p>
+<p>Default range of bounds for each design variable is <code class="docutils literal notranslate"><span class="pre">[-5.12,5.12]</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_inputs</strong> (<em>int</em>) – number of input dimensions, default = 10</p></li>
+<li><p><strong>negate</strong> (<em>bool</em>) – negate the values before returning</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.analytical_problems.single_output_problem.Rastrigin._evaluate">
+<span class="sig-name descname"><span class="pre">_evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/analytical_problems/single_output_problem.html#Rastrigin._evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.analytical_problems.single_output_problem.Rastrigin._evaluate" title="Link to this definition"></a></dt>
+<dd><p>Evaluate the Rastrigin function for given input <cite>x</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>np.ndarray</em>) – input samples with shape <code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">num_inputs)</span></code> or <code class="docutils literal notranslate"><span class="pre">(num_inputs,)</span></code></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>an array of shape <code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">1)</span></code> or <code class="docutils literal notranslate"><span class="pre">(1,)</span></code> containing rastrigin function values</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="blackbox.analytical_problems.single_output_problem.Hartmann">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blackbox.analytical_problems.single_output_problem.</span></span><span class="sig-name descname"><span class="pre">Hartmann</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">negate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/analytical_problems/single_output_problem.html#Hartmann"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.analytical_problems.single_output_problem.Hartmann" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem" title="blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">SingleOutputAnalyticalProblem</span></code></a></p>
+<p>Class for defining the hartmann function. More details about this
+problem can be found here:</p>
+<p>Hartmann 3D - <a class="reference external" href="https://www.sfu.ca/~ssurjano/hart3.html">https://www.sfu.ca/~ssurjano/hart3.html</a></p>
+<p>Hartmann 4D - <a class="reference external" href="https://www.sfu.ca/~ssurjano/hart4.html">https://www.sfu.ca/~ssurjano/hart4.html</a></p>
+<p>Hartmann 6D - <a class="reference external" href="https://www.sfu.ca/~ssurjano/hart6.html">https://www.sfu.ca/~ssurjano/hart6.html</a></p>
+<p>Default range of bounds for each design variable is <code class="docutils literal notranslate"><span class="pre">[0,1]</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_inputs</strong> (<em>int</em>) – number of input dimensions, default = 6</p></li>
+<li><p><strong>negate</strong> (<em>bool</em>) – negate the values before returning</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.analytical_problems.single_output_problem.Hartmann._evaluate">
+<span class="sig-name descname"><span class="pre">_evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/analytical_problems/single_output_problem.html#Hartmann._evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.analytical_problems.single_output_problem.Hartmann._evaluate" title="Link to this definition"></a></dt>
+<dd><p>Evaluate the Hartmann function for given input <cite>x</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>np.ndarray</em>) – input samples with shape <code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">num_inputs)</span></code> or <code class="docutils literal notranslate"><span class="pre">(num_inputs,)</span></code></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>an array of shape <code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">1)</span></code> or <code class="docutils literal notranslate"><span class="pre">(1,)</span></code> containing hartmann function values</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="blackbox.analytical_problems.single_output_problem.Branin">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blackbox.analytical_problems.single_output_problem.</span></span><span class="sig-name descname"><span class="pre">Branin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">negate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/analytical_problems/single_output_problem.html#Branin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.analytical_problems.single_output_problem.Branin" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem" title="blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">SingleOutputAnalyticalProblem</span></code></a></p>
+<p>Class for defining the branin function</p>
+<p>There are only two variables in this problem. Default
+range of bounds for these variables are <code class="docutils literal notranslate"><span class="pre">[-5,10]</span></code> and <code class="docutils literal notranslate"><span class="pre">[0,15]</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>negate</strong> (<em>bool</em>) – negate the values before returning</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.analytical_problems.single_output_problem.Branin._evaluate">
+<span class="sig-name descname"><span class="pre">_evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/analytical_problems/single_output_problem.html#Branin._evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.analytical_problems.single_output_problem.Branin._evaluate" title="Link to this definition"></a></dt>
+<dd><p>Evaluate the Branin function for given input <cite>x</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>np.ndarray</em>) – input samples with shape <code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">num_inputs)</span></code> or <code class="docutils literal notranslate"><span class="pre">(num_inputs,)</span></code></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>an array of shape <code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">1)</span></code> or <code class="docutils literal notranslate"><span class="pre">(1,)</span></code> containing branin function values</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="blackbox.analytical_problems.single_output_problem.ModifiedBranin">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blackbox.analytical_problems.single_output_problem.</span></span><span class="sig-name descname"><span class="pre">ModifiedBranin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">negate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/analytical_problems/single_output_problem.html#ModifiedBranin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.analytical_problems.single_output_problem.ModifiedBranin" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem" title="blackbox.base_classes.analytical_base_problem.SingleOutputAnalyticalProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">SingleOutputAnalyticalProblem</span></code></a></p>
+<p>Class for defining the modified branin function</p>
+<p>The number of design variables and their default bounds
+are same as the one used for standard Branin function</p>
+<p>This function is obtained from Forrester’s surrogate modeling book</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>negate</strong> (<em>bool</em>) – negate the values before returning</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="blackbox.analytical_problems.single_output_problem.ModifiedBranin._evaluate">
+<span class="sig-name descname"><span class="pre">_evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blackbox/analytical_problems/single_output_problem.html#ModifiedBranin._evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blackbox.analytical_problems.single_output_problem.ModifiedBranin._evaluate" title="Link to this definition"></a></dt>
+<dd><p>Evaluate the modified branin function for given input <cite>x</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>np.ndarray</em>) – input samples with shape <code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">num_inputs)</span></code> or <code class="docutils literal notranslate"><span class="pre">(num_inputs,)</span></code></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>an array of shape <code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">1)</span></code> or <code class="docutils literal notranslate"><span class="pre">(1,)</span></code> containing modified branin function values</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="API.html" class="btn btn-neutral float-left" title="API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="airfoil_problem.html" class="btn btn-neutral float-right" title="Airfoil Problem" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, CODE Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

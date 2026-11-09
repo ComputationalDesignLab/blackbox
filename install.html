@@ -6,20 +6,25 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; Blackbox  documentation</title>
+  <title>Installation &mdash; Blackbox</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=fc555ede" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=a400c6f5" />
 
   
     <link rel="shortcut icon" href="_static/codelab-logo.png"/>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=5929fcd5"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Airfoil sample generation" href="airfoil/intro.html" />
+    <link rel="next" title="Problems" href="problems/problem.html" />
     <link rel="prev" title="Blackbox" href="index.html" /> 
 </head>
 
@@ -43,11 +48,12 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul class="current">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="airfoil/intro.html">Airfoil sample generation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="wing/intro.html">Wing sample generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problems/problem.html">Problems</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hpc.html">Running on HPC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/API.html">API Reference</a></li>
 </ul>
 
         </div>
@@ -75,74 +81,32 @@
            <div itemprop="articleBody">
              
   <section id="installation">
-<span id="install"></span><h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h1>
-<p>Blackbox uses various packages for sample generation and many of them are only supported on Linux-based systems.
-Due to this dependency, Blackbox is limited to these systems only. The dependencies are divided into two categories:</p>
+<span id="install"></span><h1>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h1>
+<p>Follow below steps for installing Blackbox:</p>
 <ul>
-<li><p><strong>MACH-Aero packages</strong>: <a class="reference external" href="https://mdolab-mach-aero.readthedocs-hosted.com/en/latest/index.html">MACH-Aero</a> is a
-framework for performing aerodynamic shape optimization. It consists of various packages, some of which are used
-by Blackbox while generating samples. Below table outlines the requried packages:</p>
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Package</p></th>
-<th class="head"><p>Version</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><a class="reference external" href="https://github.com/mdolab/baseclasses">baseclasses</a></p></td>
-<td><p>1.7.0 or higher</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/mdolab/pygeo">pyGeo</a></p></td>
-<td><p>1.12.2 or higher</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://github.com/mdolab/pyhyp">pyHyp</a></p></td>
-<td><p>2.6.0 or higher</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/mdolab/idwarp">idwarp</a></p></td>
-<td><p>2.6.1 or higher</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://github.com/mdolab/cgnsutilities">cgnsutilities</a></p></td>
-<td><p>2.7.1 or higher</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/mdolab/adflow">ADflow</a></p></td>
-<td><p>2.7.4 or higher</p></td>
-</tr>
-</tbody>
-</table>
-<p>Please refer MACH-Aero’s <a class="reference external" href="https://mdolab-mach-aero.readthedocs-hosted.com/en/latest/installInstructions/installFromScratch.html">installation page</a>
-for more details about installing these packages.</p>
-</li>
-<li><p><strong>Other packages</strong>: Other than MACH-Aero packages, Blackbox also requries following packages:</p>
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Package</p></th>
-<th class="head"><p>Version</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><a class="reference external" href="https://github.com/mdolab/prefoil">prefoil</a></p></td>
-<td><p>2.0.0</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://smt.readthedocs.io/en/stable/">smt</a></p></td>
-<td><p>2.0.0 or higher</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://psutil.readthedocs.io/en/latest/">psutil</a></p></td>
-<td><p>5.9.1 or higher</p></td>
-</tr>
-</tbody>
-</table>
-</li>
-</ul>
-<p>It is recommended to create a virtual environment for installing all the above packages. Follow below steps for installing Blackbox:</p>
-<ul>
-<li><p>Clone or download the latest tagged release from Blackbox’s <a class="reference external" href="https://github.com/ComputationalDesignLab/blackbox">github repository</a>.</p></li>
+<li><p>Clone or download the latest tagged release from Blackbox’s <a class="reference external" href="https://github.com/ComputationalDesignLab/blackbox/releases">github repository</a>.</p></li>
 <li><p>Open the terminal and <code class="docutils literal notranslate"><span class="pre">cd</span></code> into the root of cloned/downloaded repository</p></li>
-<li><p>Activate the virtual environment and run:</p>
+<li><p>Activate the virtual environment in which you want to install Blackbox</p></li>
+<li><p>Run the following command to instal the package:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">.</span>
 </pre></div>
 </div>
 </li>
+<li><p>If you want to install the package in editable mode, run the following command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span>
+</pre></div>
+</div>
+</li>
+<li><p>If you want to build or edit documentation, install the package using following command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">.</span><span class="p">[</span><span class="n">docs</span><span class="p">]</span>
+</pre></div>
+</div>
+</li>
 </ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This will not install additional packages/libraries required for specific problems, you will need to install those separately. Refer specific problem section for more details about required packages/libraries.</p>
+</div>
 </section>
 
 
@@ -150,13 +114,13 @@ for more details about installing these packages.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="index.html" class="btn btn-neutral float-left" title="Blackbox" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="airfoil/intro.html" class="btn btn-neutral float-right" title="Airfoil sample generation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="problems/problem.html" class="btn btn-neutral float-right" title="Problems" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, CODE Lab.</p>
+    <p>&#169; Copyright 2026, CODE Lab.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

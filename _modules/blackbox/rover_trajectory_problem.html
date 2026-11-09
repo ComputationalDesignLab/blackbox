@@ -1,0 +1,1082 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>blackbox.rover_trajectory_problem &mdash; Blackbox</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a400c6f5" />
+
+  
+    <link rel="shortcut icon" href="../../_static/codelab-logo.png"/>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Blackbox
+              <img src="../../_static/codelab-logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../problems/problem.html">Problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hpc.html">Running on HPC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/API.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Blackbox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">blackbox.rover_trajectory_problem</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for blackbox.rover_trajectory_problem</h1><div class="highlight"><pre>
+<span></span><span class="c1"># This module contains functions and classes used for defining rover trajectory</span>
+<span class="c1"># and calculating the cost of the trajectory. The code in this module is based on</span>
+<span class="c1"># the original code: https://github.com/zi-w/Ensemble-Bayesian-Optimization/tree/master/test_functions</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base_classes.base_problem</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseProblem</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">si</span>
+
+<div class="viewcode-block" id="Rover">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.Rover">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Rover</span><span class="p">(</span><span class="n">BaseProblem</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Rover.__init__">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.Rover.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> 
+        <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">60</span><span class="p">,</span> 
+        <span class="n">start</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">]),</span> 
+        <span class="n">goal</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.95</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">]),</span>
+        <span class="n">force_start</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">force_goal</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Main class for the user to create a domain with obstacles </span>
+<span class="sd">            and evaluate the cost of a trajectory for a given input</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            -----------</span>
+<span class="sd">            dim: int</span>
+<span class="sd">                dimension of the problem, determines the number of control points for the B-spline trajectory</span>
+
+<span class="sd">            start: np.ndarray</span>
+<span class="sd">                1D numpy array representing (x,y) coordinates of the starting point, default=(0.05,0.05)</span>
+
+<span class="sd">            goal: np.ndarray</span>
+<span class="sd">                1D numpy array representing (x,y) coordinates of the goal point, default=(0.95,0.95)</span>
+
+<span class="sd">            force_start: bool</span>
+<span class="sd">                flag to fix the starting point, default=False</span>
+
+<span class="sd">            force_goal: bool</span>
+<span class="sd">                flag to fix the goal point, default=False</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="s2">&quot;dim should of int type&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;start should be a numpy array&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">goal</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;goal should be a numpy array&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">force_start</span><span class="p">,</span> <span class="nb">bool</span><span class="p">),</span> <span class="s2">&quot;force_start should be a bool&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">force_goal</span><span class="p">,</span> <span class="nb">bool</span><span class="p">),</span> <span class="s2">&quot;force_goal should be a bool&quot;</span>
+
+        <span class="c1"># some parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">=</span> <span class="n">dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ub</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+        <span class="n">env_dim</span> <span class="o">=</span> <span class="mi">2</span> <span class="c1"># dimension of the domain</span>
+
+        <span class="c1"># n_points = number of control points for the B-spline trajectory</span>
+        <span class="n">num_control_points</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">dim</span><span class="o">/</span><span class="n">env_dim</span><span class="p">)</span>
+
+        <span class="c1"># create cost function</span>
+        <span class="n">cost_fn</span> <span class="o">=</span> <span class="n">create_cost</span><span class="p">()</span>
+
+        <span class="c1"># create trajectory</span>
+        <span class="n">traj</span> <span class="o">=</span> <span class="n">PointBSpline</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="n">env_dim</span><span class="p">,</span> <span class="n">num_control_points</span><span class="o">=</span><span class="n">num_control_points</span><span class="p">)</span>
+
+        <span class="c1"># create domain</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">domain</span> <span class="o">=</span> <span class="n">RoverDomain</span><span class="p">(</span>
+            <span class="n">cost_fn</span><span class="p">,</span>
+            <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span>
+            <span class="n">goal</span><span class="o">=</span><span class="n">goal</span><span class="p">,</span>
+            <span class="n">traj</span><span class="o">=</span><span class="n">traj</span><span class="p">,</span>
+            <span class="n">start_miss_cost</span><span class="o">=</span><span class="n">l1cost</span><span class="p">,</span>
+            <span class="n">goal_miss_cost</span><span class="o">=</span><span class="n">l1cost</span><span class="p">,</span>
+            <span class="n">force_start</span><span class="o">=</span><span class="n">force_start</span><span class="p">,</span>
+            <span class="n">force_goal</span><span class="o">=</span><span class="n">force_goal</span>
+        <span class="p">)</span>
+
+        <span class="c1"># range of states i.e. range of each (x,y) coordinate - NOT sure why this is needed</span>
+        <span class="n">s_range</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">]])</span>
+
+        <span class="c1"># lb and ub for all the design variable</span>
+        <span class="n">raw_x_range</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">s_range</span><span class="p">,</span> <span class="n">num_control_points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># minimum value of f - from the original code</span>
+        <span class="n">f_min</span> <span class="o">=</span> <span class="mf">5.0</span>
+
+        <span class="c1"># setup the function handle to call for evaluation</span>
+        <span class="c1"># not sure why normalizing the input to s_range - borrowing from original code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_func</span> <span class="o">=</span> <span class="n">NormalizedInputFn</span><span class="p">(</span><span class="n">ConstantOffsetFn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">domain</span><span class="p">,</span> <span class="n">f_min</span><span class="p">),</span> <span class="n">raw_x_range</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Rover.__call__">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.Rover.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Evaluate the cost of the trajectory for a given x</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            x : np.ndarray</span>
+<span class="sd">                input to be evaluated, can be a single sample or multiple samples, (dim,) or (n_samples,dim)</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            cost : np.ndarray</span>
+<span class="sd">                cost of the trajectory for the given input, (1,) or (n_samples,1)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;x should be a numpy array, but got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_func</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">,:])</span>
+
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span>
+
+        <span class="k">return</span> <span class="n">y</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="NormalizedInputFn">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.NormalizedInputFn">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NormalizedInputFn</span><span class="p">:</span>
+
+<div class="viewcode-block" id="NormalizedInputFn.__init__">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.NormalizedInputFn.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn_instance</span><span class="p">,</span> <span class="n">x_range</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fn_instance</span> <span class="o">=</span> <span class="n">fn_instance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_range</span> <span class="o">=</span> <span class="n">x_range</span></div>
+
+
+<div class="viewcode-block" id="NormalizedInputFn.__call__">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.NormalizedInputFn.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fn_instance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_input</span><span class="p">(</span><span class="n">x</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="NormalizedInputFn.project_input">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.NormalizedInputFn.project_input">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">project_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_range</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="NormalizedInputFn.inv_project_input">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.NormalizedInputFn.inv_project_input">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">inv_project_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_range</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_range</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="NormalizedInputFn.get_range">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.NormalizedInputFn.get_range">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_range</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span></div>
+</div>
+
+    
+
+<div class="viewcode-block" id="ConstantOffsetFn">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.ConstantOffsetFn">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConstantOffsetFn</span><span class="p">:</span>
+
+<div class="viewcode-block" id="ConstantOffsetFn.__init__">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.ConstantOffsetFn.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn_instance</span><span class="p">,</span> <span class="n">offset</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Class to add a constant offset to a given function&#39;s output</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            -----------</span>
+<span class="sd">            fn_instance: function handle</span>
+
+<span class="sd">            offset: float</span>
+<span class="sd">                offset to be added</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">fn_instance</span> <span class="o">=</span> <span class="n">fn_instance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="n">offset</span></div>
+
+
+<div class="viewcode-block" id="ConstantOffsetFn.__call__">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.ConstantOffsetFn.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Method to return the function output with an offset</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fn_instance</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset</span></div>
+</div>
+
+    
+
+<span class="c1">################################################</span>
+<span class="c1">############## Trajectory classes ##############</span>
+<span class="c1">################################################</span>
+
+<div class="viewcode-block" id="PointBSpline">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.PointBSpline">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PointBSpline</span><span class="p">:</span>
+
+<div class="viewcode-block" id="PointBSpline.__init__">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.PointBSpline.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_control_points</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Class to create a smooth B-spline trajectory based on the given points</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+
+<span class="sd">            dim: int</span>
+<span class="sd">                number of dimensions of the domain (env), mostly 2D</span>
+
+<span class="sd">            num_control_points: int</span>
+<span class="sd">                number of control points used for fitting B-spline trajectory</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">dim_domain</span> <span class="o">=</span> <span class="n">dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_control_points</span> <span class="o">=</span> <span class="n">num_control_points</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tck</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># variable to represent knot vector, coefficients, and degree of the b-spline</span></div>
+
+
+<div class="viewcode-block" id="PointBSpline.fit_bspline">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.PointBSpline.fit_bspline">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit_bspline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_points</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">goal</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Method to fit a parameterized b-spline curve</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            control_points: np.ndarray</span>
+<span class="sd">                1D numpy array containing (x,y) coordinates of the control points</span>
+
+<span class="sd">            start: np.ndarray</span>
+<span class="sd">                1D numpy array containing (x,y) for the starting position, default=None</span>
+
+<span class="sd">            goal: np.ndarray</span>
+<span class="sd">                1D numpy array containing (x,y) for the goal position, default=None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">control_points</span> <span class="o">=</span> <span class="n">control_points</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">dim_domain</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">control_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span> <span class="n">start</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">control_points</span> <span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">goal</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">control_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span> <span class="n">control_points</span><span class="p">,</span> <span class="n">goal</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="p">))</span>
+
+        <span class="c1"># fit the b-spline, k = degree</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tck</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">si</span><span class="o">.</span><span class="n">splprep</span><span class="p">(</span><span class="n">control_points</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+        <span class="c1"># Setting coefficients to start and goal value</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">sv</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tck</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">start</span><span class="p">):</span>
+                <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">sv</span>
+
+        <span class="k">if</span> <span class="n">goal</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">gv</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tck</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">goal</span><span class="p">):</span>
+                <span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">gv</span></div>
+
+
+<div class="viewcode-block" id="PointBSpline.get_traj_points">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.PointBSpline.get_traj_points">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_traj_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Method to evaluate the parameterized b-spline curve at given</span>
+<span class="sd">            parameter values</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            u: np.ndarray</span>
+<span class="sd">                1D numpy array consisting of parameter values for the b-spline curve, shape (n,)</span>
+<span class="sd">                where n is the number of parameter values</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            --------</span>
+<span class="sd">            traj_points: np.ndarray</span>
+<span class="sd">               a numpy array representing points along the b-spline curve, shape (n,d)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">tck</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Fit the B-spline before evaluating it&quot;</span>
+        <span class="k">assert</span> <span class="n">u</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span>
+
+        <span class="n">traj_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">si</span><span class="o">.</span><span class="n">splev</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tck</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="k">return</span> <span class="n">traj_points</span></div>
+</div>
+
+    
+<span class="c1">################################################</span>
+<span class="c1">############# Rover Domain class ###############</span>
+<span class="c1">################################################</span>
+
+<div class="viewcode-block" id="RoverDomain">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.RoverDomain">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RoverDomain</span><span class="p">():</span>
+
+<div class="viewcode-block" id="RoverDomain.__init__">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.RoverDomain.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+        <span class="n">cost_fn</span><span class="p">,</span>
+        <span class="n">start</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">goal</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">traj</span><span class="p">,</span>
+        <span class="n">start_miss_cost</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">goal_miss_cost</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">force_start</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">force_goal</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Class for creating rover domain</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            cost_fn: </span>
+<span class="sd">                function handle to compute cost for a given set of points that define a trajectory</span>
+
+<span class="sd">            start: np.ndarray</span>
+<span class="sd">                starting position (x,y) of the rover, shape (2,)</span>
+
+<span class="sd">            end: np.ndarray</span>
+<span class="sd">                final (end) position (x,y) of the rover, shape (2,)</span>
+
+<span class="sd">            traj:</span>
+<span class="sd">                a parameterized trajectory object that can create a smooth b-spline trajectory</span>
+<span class="sd">                from the given control points</span>
+
+<span class="sd">            start_miss_cost:</span>
+<span class="sd">                function handle to compute cost for missing starting position, default=None</span>
+
+<span class="sd">            goal_miss_cost:</span>
+<span class="sd">                function handle to compute cost for missing final position, default=None</span>
+<span class="sd">                </span>
+<span class="sd">            force_start: bool</span>
+<span class="sd">                flag to compute cost for missing the start position, default=True</span>
+
+<span class="sd">            force_goal: bool</span>
+<span class="sd">                flag to compute cost for missing the goal position, default=True</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="n">start</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="k">assert</span> <span class="n">goal</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cost_fn</span> <span class="o">=</span> <span class="n">cost_fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">start</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">goal</span> <span class="o">=</span> <span class="n">goal</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">=</span> <span class="n">start</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">traj</span> <span class="o">=</span> <span class="n">traj</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_miss_cost</span> <span class="o">=</span> <span class="n">start_miss_cost</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">goal_miss_cost</span> <span class="o">=</span> <span class="n">goal_miss_cost</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">force_start</span> <span class="o">=</span> <span class="n">force_start</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">force_goal</span> <span class="o">=</span> <span class="n">force_goal</span>
+
+        <span class="c1"># assign cost function for missing start or end position, if not provided by user</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_miss_cost</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">start_miss_cost</span> <span class="o">=</span> <span class="n">simple_rbf</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">goal_miss_cost</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">goal_miss_cost</span> <span class="o">=</span> <span class="n">simple_rbf</span></div>
+
+
+<div class="viewcode-block" id="RoverDomain.__call__">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.RoverDomain.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_points</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Method to estimate the cost for a given control points i.e.</span>
+<span class="sd">            design variable vector x</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            control_points: np.ndarray</span>
+<span class="sd">                1D numpy array representing coordinates of the </span>
+<span class="sd">                control points for fitting b-spline, shape (n,) where</span>
+<span class="sd">                n = number of control points X 2. This is essential the design</span>
+<span class="sd">                variable vector for which cost needs to be computed</span>
+
+<span class="sd">            n_samples: int</span>
+<span class="sd">                number of points which will be used to query the </span>
+<span class="sd">                b-spline after fitting, default = 1000</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            total_cost: float</span>
+<span class="sd">                total cost of the trajectory</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># fit b-spline for given control points</span>
+        <span class="c1"># Not sure why the noise is added to the control point</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">fit_bspline</span><span class="p">(</span><span class="n">control_points</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">scale</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="n">control_points</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">force_start</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">goal</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">force_goal</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+        
+        <span class="c1"># query points for the parameterized b-spline</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># points on the trajectory</span>
+        <span class="n">traj_points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">get_traj_points</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+
+        <span class="n">costs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost_fn</span><span class="p">(</span><span class="n">traj_points</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span> <span class="c1"># cost at each point - shape (n,)</span>
+
+        <span class="c1"># estimate cost for the entire trajectory using trapezoidal integration</span>
+        <span class="c1"># Note: first and last point is not included in the integration</span>
+        <span class="n">avg_cost</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">costs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">costs</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">delx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">traj_points</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">traj_points</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">total_cost</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">delx</span> <span class="o">*</span> <span class="n">avg_cost</span><span class="p">)</span>
+
+        <span class="c1"># total cost if the start and goal are part of objective</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">force_start</span><span class="p">:</span>
+            <span class="n">total_cost</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_miss_cost</span><span class="p">(</span><span class="n">traj_points</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">force_goal</span><span class="p">:</span>
+            <span class="n">total_cost</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">goal_miss_cost</span><span class="p">(</span><span class="n">traj_points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">goal</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">total_cost</span></div>
+</div>
+
+    
+
+<div class="viewcode-block" id="AABoxes">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.AABoxes">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AABoxes</span><span class="p">():</span>
+    
+<div class="viewcode-block" id="AABoxes.__init__">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.AABoxes.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">low</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">high</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Class to create axis aligned bounding boxes for the obstacles,</span>
+<span class="sd">            typically used to model rectangular obstacles in 2D or 3D spaces</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            low : np.ndarray</span>
+<span class="sd">                lower bound of the bounding box, should be a 2D array of shape (n, dim)</span>
+<span class="sd">                where n is the number of boxes and dim is the dimension of the space</span>
+
+<span class="sd">            high : np.ndarray</span>
+<span class="sd">                upper bound of the bounding box, should be a 2D array of shape (n, dim)</span>
+<span class="sd">                where n is the number of boxes and dim is the dimension of the space</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">low</span> <span class="o">=</span> <span class="n">low</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">high</span> <span class="o">=</span> <span class="n">high</span></div>
+
+
+<div class="viewcode-block" id="AABoxes.contains">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.AABoxes.contains">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">contains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Check if a set of points X is inside the bounding box</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            X : np.ndarray</span>
+<span class="sd">                2D numpy array containing (x,y) coordinates</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            bool : np.ndarray</span>
+<span class="sd">                2D boolean numpy array indicating if the point is inside the bounding box</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="n">X</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;X should be 2D numpy array&quot;</span>
+    
+        <span class="c1"># convert the arrays to higher dimension so that numpy</span>
+        <span class="c1"># arrays of different sizes can be compared</span>
+        <span class="n">lX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">low</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">&lt;=</span> <span class="n">X</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">hX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">high</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">&gt;</span> <span class="n">X</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">lX</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">hX</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span></div>
+</div>
+
+    
+
+<div class="viewcode-block" id="NegGeom">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.NegGeom">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NegGeom</span><span class="p">():</span>
+
+<div class="viewcode-block" id="NegGeom.__init__">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.NegGeom.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geom</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Class to create a negation of the given geometry. The negation</span>
+<span class="sd">            is used to transform the occupied regions into free space</span>
+<span class="sd">            and vice versa, which is particularly useful in scenarios </span>
+<span class="sd">            where defining the complement of a geometric region is more </span>
+<span class="sd">            straightforward or efficient.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            geom : object</span>
+<span class="sd">                geometry to be negated, should be a class that implements the</span>
+<span class="sd">                `contains` method to check if a point is inside the geometry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">geom</span> <span class="o">=</span> <span class="n">geom</span></div>
+
+
+<div class="viewcode-block" id="NegGeom.contains">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.NegGeom.contains">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">contains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Check if a set of points X is inside the negated geometry. </span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            x : np.ndarray</span>
+<span class="sd">                2D numpy array containing (x,y) coordinates</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            bool : np.ndarray</span>
+<span class="sd">                2D boolean numpy array indicating if the point is inside the bounding box</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="o">~</span><span class="bp">self</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">X</span><span class="p">)</span></div>
+</div>
+
+    
+
+<div class="viewcode-block" id="UnionGeom">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.UnionGeom">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">UnionGeom</span><span class="p">():</span>
+
+<div class="viewcode-block" id="UnionGeom.__init__">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.UnionGeom.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geoms</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Class to create a union of the given geometries. The union</span>
+<span class="sd">            is used to combine multiple geometric regions into a single</span>
+<span class="sd">            region, which is useful for defining complex obstacles or</span>
+<span class="sd">            free space.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            geoms : list</span>
+<span class="sd">                list of geometries to be combined, should be a list of classes </span>
+<span class="sd">                that implements the `contains` method to calculate the cost of the trajectory</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">geoms</span> <span class="o">=</span> <span class="n">geoms</span></div>
+
+
+<div class="viewcode-block" id="UnionGeom.contains">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.UnionGeom.contains">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">contains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Check if the point X is inside the union of the geometries.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            X : np.ndarray</span>
+<span class="sd">                2D numpy array containing (x,y) coordinates</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            bool : np.ndarray</span>
+<span class="sd">                2D boolean array indicating if the point is inside the union of the geometries</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">geom</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">geoms</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+</div>
+
+    
+
+<span class="c1">################################################</span>
+<span class="c1">################ Cost functions ################</span>
+<span class="c1">################################################</span>
+
+<div class="viewcode-block" id="ConstObstacleCost">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.ConstObstacleCost">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConstObstacleCost</span><span class="p">():</span>
+
+<div class="viewcode-block" id="ConstObstacleCost.__init__">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.ConstObstacleCost.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geometry</span><span class="p">,</span> <span class="n">obstacle_cost</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            class to create a cost function for the obstacles</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            geometry : object</span>
+<span class="sd">                geometry of the obstacles, should be a class that implements the</span>
+<span class="sd">                __call__ method to calculate the cost of the trajectory</span>
+
+<span class="sd">            obstacle_cost : float</span>
+<span class="sd">                constant obstacle cost if a given point is inside the obstacles</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">geom</span> <span class="o">=</span> <span class="n">geometry</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">obstacle_cost</span> <span class="o">=</span> <span class="n">obstacle_cost</span></div>
+
+
+<div class="viewcode-block" id="ConstObstacleCost.__call__">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.ConstObstacleCost.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            method to compute obstacle for each point</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            x: np.ndarray</span>
+<span class="sd">                numpy array containing (x,y) point(s)</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            2D numpy array containing constant obstacle cost for each point</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstacle_cost</span></div>
+</div>
+
+    
+
+<div class="viewcode-block" id="ConstCost">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.ConstCost">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConstCost</span><span class="p">():</span>
+
+<div class="viewcode-block" id="ConstCost.__init__">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.ConstCost.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constant_cost</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            class to create a constant cost function</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            cost : float</span>
+<span class="sd">                constant cost for each point in the trajectory</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">constant_cost</span> <span class="o">=</span> <span class="n">constant_cost</span></div>
+
+
+<div class="viewcode-block" id="ConstCost.__call__">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.ConstCost.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Method to assign a constant cost for each point</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            x: np.ndarray</span>
+<span class="sd">                numpy array containing (x,y) point(s)</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            2D numpy array containing constant cost for each point</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">constant_cost</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span></div>
+</div>
+
+    
+
+<div class="viewcode-block" id="AdditiveCosts">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.AdditiveCosts">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AdditiveCosts</span><span class="p">():</span>
+    
+<div class="viewcode-block" id="AdditiveCosts.__init__">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.AdditiveCosts.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fns</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Class to create a cost function that is the sum of the given cost functions.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            fns : list</span>
+<span class="sd">                list of cost function handles to be added</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">fns</span> <span class="o">=</span> <span class="n">fns</span></div>
+
+
+<div class="viewcode-block" id="AdditiveCosts.__call__">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.AdditiveCosts.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Method to compute additive cost for given x</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            x: np.ndarray</span>
+<span class="sd">                numpy array containing (x,y) point(s)</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            2D numpy array containing constant cost for each point</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">fn</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fns</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+</div>
+
+
+<div class="viewcode-block" id="create_cost">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.create_cost">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_cost</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        function to create a cost function, the location</span>
+<span class="sd">        of the obstacles is fixed to ensure consistency</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        cost_fn : function</span>
+<span class="sd">            function handle for calculating the cost of the trajectory</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># center of the obstacles</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.43143755</span><span class="p">,</span> <span class="mf">0.20876147</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.38485367</span><span class="p">,</span> <span class="mf">0.39183579</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.02985961</span><span class="p">,</span> <span class="mf">0.22328303</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.7803707</span><span class="p">,</span> <span class="mf">0.3447003</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.93685657</span><span class="p">,</span> <span class="mf">0.56297285</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.04194252</span><span class="p">,</span> <span class="mf">0.23598362</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.28049582</span><span class="p">,</span> <span class="mf">0.40984475</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.6756053</span><span class="p">,</span> <span class="mf">0.70939481</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.01926493</span><span class="p">,</span> <span class="mf">0.86972335</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.5993437</span><span class="p">,</span> <span class="mf">0.63347932</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.57807619</span><span class="p">,</span> <span class="mf">0.40180792</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.56824287</span><span class="p">,</span> <span class="mf">0.75486851</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.35403502</span><span class="p">,</span> <span class="mf">0.38591056</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.72492026</span><span class="p">,</span> <span class="mf">0.59969313</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.27618746</span><span class="p">,</span> <span class="mf">0.64322757</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.54029566</span><span class="p">,</span> <span class="mf">0.25492943</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.30903526</span><span class="p">,</span> <span class="mf">0.60166842</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.2913432</span><span class="p">,</span> <span class="mf">0.29636879</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.78512072</span><span class="p">,</span> <span class="mf">0.62340245</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.29592116</span><span class="p">,</span> <span class="mf">0.08400595</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.87548394</span><span class="p">,</span> <span class="mf">0.04877622</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.21714791</span><span class="p">,</span> <span class="mf">0.9607346</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.92624074</span><span class="p">,</span> <span class="mf">0.53441687</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.53639253</span><span class="p">,</span> <span class="mf">0.45127928</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.99892031</span><span class="p">,</span> <span class="mf">0.79537837</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.84621631</span><span class="p">,</span> <span class="mf">0.41891986</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.39432819</span><span class="p">,</span> <span class="mf">0.06768617</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.92365693</span><span class="p">,</span> <span class="mf">0.72217512</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.95520914</span><span class="p">,</span> <span class="mf">0.73956575</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.820383</span><span class="p">,</span> <span class="mf">0.53880139</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.22378049</span><span class="p">,</span> <span class="mf">0.9971974</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.34023233</span><span class="p">,</span> <span class="mf">0.91014706</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.64960636</span><span class="p">,</span> <span class="mf">0.35661133</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.29976464</span><span class="p">,</span> <span class="mf">0.33578931</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.43202238</span><span class="p">,</span> <span class="mf">0.11563227</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.66764947</span><span class="p">,</span> <span class="mf">0.52086962</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.45431078</span><span class="p">,</span> <span class="mf">0.94582745</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.12819915</span><span class="p">,</span> <span class="mf">0.33555344</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.19287232</span><span class="p">,</span> <span class="mf">0.8112075</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.61214791</span><span class="p">,</span> <span class="mf">0.71940626</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.4522542</span><span class="p">,</span> <span class="mf">0.47352186</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.95623345</span><span class="p">,</span> <span class="mf">0.74174186</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.17340293</span><span class="p">,</span> <span class="mf">0.89136853</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.04600255</span><span class="p">,</span> <span class="mf">0.53040724</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.42493468</span><span class="p">,</span> <span class="mf">0.41006649</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.37631485</span><span class="p">,</span> <span class="mf">0.88033853</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.66951947</span><span class="p">,</span> <span class="mf">0.29905739</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.4151516</span><span class="p">,</span> <span class="mf">0.77308712</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.55762991</span><span class="p">,</span> <span class="mf">0.26400156</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.6280609</span><span class="p">,</span> <span class="mf">0.53201974</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.92727447</span><span class="p">,</span> <span class="mf">0.61054975</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.93206587</span><span class="p">,</span> <span class="mf">0.42107549</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.63885574</span><span class="p">,</span> <span class="mf">0.37540613</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.15303425</span><span class="p">,</span> <span class="mf">0.57377797</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.8208471</span><span class="p">,</span> <span class="mf">0.16566631</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.14889043</span><span class="p">,</span> <span class="mf">0.35157346</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.71724622</span><span class="p">,</span> <span class="mf">0.57110725</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.32866327</span><span class="p">,</span> <span class="mf">0.8929578</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.74435871</span><span class="p">,</span> <span class="mf">0.47464421</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.9252026</span><span class="p">,</span> <span class="mf">0.21034329</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.57039306</span><span class="p">,</span> <span class="mf">0.54356078</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.56611551</span><span class="p">,</span> <span class="mf">0.02531317</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.84830056</span><span class="p">,</span> <span class="mf">0.01180542</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.51282028</span><span class="p">,</span> <span class="mf">0.73916524</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.58795481</span><span class="p">,</span> <span class="mf">0.46527371</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.83259048</span><span class="p">,</span> <span class="mf">0.98598188</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.00242488</span><span class="p">,</span> <span class="mf">0.83734691</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.72505789</span><span class="p">,</span> <span class="mf">0.04846931</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.07312971</span><span class="p">,</span> <span class="mf">0.30147979</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.55250344</span><span class="p">,</span> <span class="mf">0.23891255</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.51161315</span><span class="p">,</span> <span class="mf">0.46466442</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.802125</span><span class="p">,</span> <span class="mf">0.93440495</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.9157825</span><span class="p">,</span> <span class="mf">0.32441602</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.44927665</span><span class="p">,</span> <span class="mf">0.53380074</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.67708372</span><span class="p">,</span> <span class="mf">0.67527231</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.81868924</span><span class="p">,</span> <span class="mf">0.88356194</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.48228814</span><span class="p">,</span> <span class="mf">0.88668497</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.39805433</span><span class="p">,</span> <span class="mf">0.99341196</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.86671752</span><span class="p">,</span> <span class="mf">0.79016975</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.01115417</span><span class="p">,</span> <span class="mf">0.6924913</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.34272199</span><span class="p">,</span> <span class="mf">0.89543756</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.40721675</span><span class="p">,</span> <span class="mf">0.86164495</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.26317679</span><span class="p">,</span> <span class="mf">0.37334193</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.74446787</span><span class="p">,</span> <span class="mf">0.84782643</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.55560143</span><span class="p">,</span> <span class="mf">0.46405104</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.73567977</span><span class="p">,</span> <span class="mf">0.12776233</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.28080322</span><span class="p">,</span> <span class="mf">0.26036748</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.17507419</span><span class="p">,</span> <span class="mf">0.95540673</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.54233783</span><span class="p">,</span> <span class="mf">0.1196808</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.76670967</span><span class="p">,</span> <span class="mf">0.88396285</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.61297539</span><span class="p">,</span> <span class="mf">0.79057776</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.9344029</span><span class="p">,</span> <span class="mf">0.86252764</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.48746839</span><span class="p">,</span> <span class="mf">0.74942784</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.18657635</span><span class="p">,</span> <span class="mf">0.58127321</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.10377802</span><span class="p">,</span> <span class="mf">0.71463978</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.7771771</span><span class="p">,</span> <span class="mf">0.01463505</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.7635042</span><span class="p">,</span> <span class="mf">0.45498358</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.83345861</span><span class="p">,</span> <span class="mf">0.34749363</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.38273809</span><span class="p">,</span> <span class="mf">0.51890558</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.33887574</span><span class="p">,</span> <span class="mf">0.82842507</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.02073685</span><span class="p">,</span> <span class="mf">0.41776737</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.68754547</span><span class="p">,</span> <span class="mf">0.96430979</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.4704215</span><span class="p">,</span> <span class="mf">0.92717361</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.72666234</span><span class="p">,</span> <span class="mf">0.63241306</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.48494401</span><span class="p">,</span> <span class="mf">0.72003268</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.52601215</span><span class="p">,</span> <span class="mf">0.81641253</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.71426732</span><span class="p">,</span> <span class="mf">0.47077212</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.00258906</span><span class="p">,</span> <span class="mf">0.30377501</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.35495269</span><span class="p">,</span> <span class="mf">0.98585155</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.65507544</span><span class="p">,</span> <span class="mf">0.03458909</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.10550588</span><span class="p">,</span> <span class="mf">0.62032937</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.60259145</span><span class="p">,</span> <span class="mf">0.87110846</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mf">0.04959159</span><span class="p">,</span> <span class="mf">0.535785</span><span class="p">]])</span>
+    
+    <span class="c1"># low and high values of the obstacles</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">c</span> <span class="o">-</span> <span class="mf">0.025</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">c</span> <span class="o">+</span> <span class="mf">0.025</span>
+
+    <span class="c1"># boundary of the env</span>
+    <span class="n">r_box</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]])</span> <span class="c1"># center of the env</span>
+    <span class="n">r_l</span> <span class="o">=</span> <span class="n">r_box</span> <span class="o">-</span> <span class="mf">0.5</span>
+    <span class="n">r_h</span> <span class="o">=</span> <span class="n">r_box</span> <span class="o">+</span> <span class="mf">0.5</span>
+
+    <span class="c1"># create obstalces</span>
+    <span class="n">trees</span> <span class="o">=</span> <span class="n">AABoxes</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+
+    <span class="c1"># create the env</span>
+    <span class="n">r_box</span> <span class="o">=</span> <span class="n">NegGeom</span><span class="p">(</span><span class="n">AABoxes</span><span class="p">(</span><span class="n">r_l</span><span class="p">,</span> <span class="n">r_h</span><span class="p">))</span>
+
+    <span class="c1"># create obstacles</span>
+    <span class="n">obstacles</span> <span class="o">=</span> <span class="n">UnionGeom</span><span class="p">([</span><span class="n">trees</span><span class="p">,</span> <span class="n">r_box</span><span class="p">])</span>
+
+    <span class="n">costs</span> <span class="o">=</span> <span class="p">[</span><span class="n">ConstObstacleCost</span><span class="p">(</span><span class="n">obstacles</span><span class="p">,</span> <span class="n">obstacle_cost</span><span class="o">=</span><span class="mf">20.</span><span class="p">),</span> <span class="n">ConstCost</span><span class="p">(</span><span class="mf">0.05</span><span class="p">)]</span> <span class="c1"># list of cost functions</span>
+    <span class="n">cost_fn</span> <span class="o">=</span> <span class="n">AdditiveCosts</span><span class="p">(</span><span class="n">costs</span><span class="p">)</span> <span class="c1"># add all the costs</span>
+
+    <span class="k">return</span> <span class="n">cost_fn</span></div>
+
+
+<div class="viewcode-block" id="l1cost">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.l1cost">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">l1cost</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">point</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        function to calculate the l1 cost if the x deviates from point</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x: np.ndarray</span>
+<span class="sd">            point to be evaluated</span>
+<span class="sd">        point: np.ndarray</span>
+<span class="sd">            point to be matched</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        a float representing L1 cost</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">point</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="simple_rbf">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.simple_rbf">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">simple_rbf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">point</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        function to calculate the RBF-based cost if the x deviates from point</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x: np.ndarray</span>
+<span class="sd">            point to be evaluated</span>
+<span class="sd">        point: np.ndarray</span>
+<span class="sd">            point to be matched</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        a float representing L1 cost</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">return</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(((</span><span class="n">x</span> <span class="o">-</span> <span class="n">point</span><span class="p">)</span> <span class="o">/</span> <span class="mf">0.25</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="plot_traj">
+<a class="viewcode-back" href="../../api/rover_traj_problem.html#blackbox.rover_trajectory_problem.plot_traj">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_traj</span><span class="p">(</span><span class="n">control_points</span><span class="p">,</span> <span class="n">rover</span><span class="p">,</span> <span class="n">ngrid_points</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">ntraj_points</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s1">&#39;GnBu&#39;</span><span class="p">,</span> <span class="n">draw_colorbar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_figure</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        function to plot the trajectory for given control points</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        control_points: np.ndarray</span>
+<span class="sd">            a 1D numpy array representing the coordinates of the control points</span>
+<span class="sd">        </span>
+<span class="sd">        rover: Rover</span>
+<span class="sd">            a Rover object</span>
+
+<span class="sd">        ngrid_points: int</span>
+<span class="sd">            number of grid points along one axis, default=100</span>
+
+<span class="sd">        ntraj_points: int</span>
+<span class="sd">            number of points along the trajectory, default=1000</span>
+
+<span class="sd">        colormap: str</span>
+<span class="sd">            a valid matplotlib colormap, default=&quot;GnBu&quot;</span>
+
+<span class="sd">        draw_colorbar: bool</span>
+<span class="sd">            flag to have colorbar or not, default=True</span>
+
+<span class="sd">        show_figure: bool</span>
+<span class="sd">            flag to determine whether to show the plot or not, default=True</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">control_points</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Provided &#39;control_points&#39; is not a numpy array&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">control_points</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provided &#39;control_points&#39; is not a 1D numpy array&quot;</span><span class="p">)</span>
+
+    <span class="n">total_cost</span> <span class="o">=</span> <span class="n">rover</span><span class="p">(</span><span class="n">control_points</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+    <span class="c1"># get a grid of points over the state space</span>
+    <span class="n">s_range</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">]])</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">mi</span><span class="p">,</span> <span class="n">ma</span><span class="p">,</span> <span class="n">ngrid_points</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">mi</span><span class="p">,</span> <span class="n">ma</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">s_range</span><span class="p">)]</span>
+    <span class="n">grid_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="n">points</span><span class="p">)</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">g</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">grid_points</span><span class="p">])</span>
+
+    <span class="c1"># compute the cost at each point on the grid - not for trajectory</span>
+    <span class="n">costs</span> <span class="o">=</span> <span class="n">rover</span><span class="o">.</span><span class="n">domain</span><span class="o">.</span><span class="n">cost_fn</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+
+    <span class="c1"># get points on the current trajectory</span>
+    <span class="n">traj_points</span> <span class="o">=</span> <span class="n">rover</span><span class="o">.</span><span class="n">domain</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">get_traj_points</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">ntraj_points</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+    <span class="n">fs</span> <span class="o">=</span> <span class="mi">12</span> <span class="c1"># fontsize</span>
+
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+
+    <span class="c1"># set title to be the total cost</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Trajectory cost: </span><span class="si">{</span><span class="n">total_cost</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="c1"># plot cost function</span>
+    <span class="n">cmesh</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="n">grid_points</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">grid_points</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">costs</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">ngrid_points</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)),</span> <span class="n">cmap</span><span class="o">=</span><span class="n">colormap</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">draw_colorbar</span><span class="p">:</span>
+        <span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">cmesh</span><span class="p">)</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;$c(x)$&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
+
+    <span class="c1"># plot traj</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">traj_points</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">traj_points</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+
+    <span class="c1"># plot start and goal</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">([</span><span class="n">rover</span><span class="o">.</span><span class="n">domain</span><span class="o">.</span><span class="n">start</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rover</span><span class="o">.</span><span class="n">domain</span><span class="o">.</span><span class="n">goal</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">rover</span><span class="o">.</span><span class="n">domain</span><span class="o">.</span><span class="n">start</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">rover</span><span class="o">.</span><span class="n">domain</span><span class="o">.</span><span class="n">goal</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="n">fs</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+
+    <span class="c1"># show plot</span>
+    <span class="k">if</span> <span class="n">show_figure</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, CODE Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

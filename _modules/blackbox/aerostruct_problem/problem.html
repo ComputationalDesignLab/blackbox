@@ -1,0 +1,646 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>blackbox.aerostruct_problem.problem &mdash; Blackbox</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a400c6f5" />
+
+  
+    <link rel="shortcut icon" href="../../../_static/codelab-logo.png"/>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Blackbox
+              <img src="../../../_static/codelab-logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../problems/problem.html">Problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../hpc.html">Running on HPC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/API.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Blackbox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">blackbox.aerostruct_problem.problem</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for blackbox.aerostruct_problem.problem</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span><span class="o">,</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="w"> </span><span class="nn">pickle</span><span class="o">,</span><span class="w"> </span><span class="nn">json</span><span class="o">,</span><span class="w"> </span><span class="nn">h5py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyvista</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">version</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..base_classes.base_problem</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseProblem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.options</span><span class="w"> </span><span class="kn">import</span> <span class="n">WingAeroStructOptions</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_version</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">))</span>
+
+<div class="viewcode-block" id="WingAeroStructVSP">
+<a class="viewcode-back" href="../../../api/aerostruct_problem.html#blackbox.aerostruct_problem.problem.WingAeroStructVSP">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WingAeroStructVSP</span><span class="p">(</span><span class="n">BaseProblem</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="n">WingAeroStructOptions</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Class for performing wing analysis using ADflow solver</span>
+<span class="sd">            </span>
+<span class="sd">            OpenVSP is used for parametrizing the wing shape in this problem</span>
+
+<span class="sd">            idwarp is used for deforming the given volume mesh based on the wing geometry changes</span>
+
+<span class="sd">            Refer to the documentation for more details about the analysis pipeline</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            options: WingADflowVSPOptions</span>
+<span class="sd">                wing vsp option dataclass object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">WingAeroStructOptions</span><span class="p">),</span> <span class="s2">&quot;options argument should be an object of AirfoilOptions class&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="n">options</span>
+
+        <span class="c1"># check if required packages are available with specific versions</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">adflow</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;ADFLOW solver is not installed or can not be imported</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;You can follow the installation guide: https://mdolab-adflow.readthedocs-hosted.com/en/latest/install.html&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">MIN_VERSION</span> <span class="o">=</span> <span class="n">parse_version</span><span class="p">(</span><span class="s2">&quot;2.11.0&quot;</span><span class="p">)</span>
+            <span class="n">CURR_VERSION</span> <span class="o">=</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">version</span><span class="p">(</span><span class="s2">&quot;adflow&quot;</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="n">CURR_VERSION</span> <span class="o">&gt;=</span> <span class="n">MIN_VERSION</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;ADFlow version is </span><span class="si">{</span><span class="n">CURR_VERSION</span><span class="si">}</span><span class="s2"> but minimum </span><span class="si">{</span><span class="n">MIN_VERSION</span><span class="si">}</span><span class="s2"> is required&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">tacs</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;TACS is not installed or can not be imported</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;You can follow the installation guide: https://smdogroup.github.io/tacs/install.html&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">MIN_VERSION</span> <span class="o">=</span> <span class="n">parse_version</span><span class="p">(</span><span class="s2">&quot;3.7.2&quot;</span><span class="p">)</span>
+            <span class="n">CURR_VERSION</span> <span class="o">=</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">version</span><span class="p">(</span><span class="s2">&quot;tacs&quot;</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="n">CURR_VERSION</span> <span class="o">&gt;=</span> <span class="n">MIN_VERSION</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;TACS version is </span><span class="si">{</span><span class="n">CURR_VERSION</span><span class="si">}</span><span class="s2"> but minimum </span><span class="si">{</span><span class="n">MIN_VERSION</span><span class="si">}</span><span class="s2"> is required&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">funtofem</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;FUNtoFEM is not installed or can not be imported</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;You can follow the installation guide: https://smdogroup.github.io/funtofem/install.html&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">MIN_VERSION</span> <span class="o">=</span> <span class="n">parse_version</span><span class="p">(</span><span class="s2">&quot;0.3.7&quot;</span><span class="p">)</span>
+            <span class="n">CURR_VERSION</span> <span class="o">=</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">version</span><span class="p">(</span><span class="s2">&quot;funtofem&quot;</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="n">CURR_VERSION</span> <span class="o">&gt;=</span> <span class="n">MIN_VERSION</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;FUNtoFEM version is </span><span class="si">{</span><span class="n">CURR_VERSION</span><span class="si">}</span><span class="s2"> but minimum </span><span class="si">{</span><span class="n">MIN_VERSION</span><span class="si">}</span><span class="s2"> is required&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">mphys</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;MPhys is not installed or can not be imported</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;You can follow the installation guide: https://github.com/OpenMDAO/mphys&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">REQ_VERSION</span> <span class="o">=</span> <span class="n">parse_version</span><span class="p">(</span><span class="s2">&quot;1.3.0&quot;</span><span class="p">)</span>
+            <span class="n">CURR_VERSION</span> <span class="o">=</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">version</span><span class="p">(</span><span class="s2">&quot;mphys&quot;</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="n">CURR_VERSION</span> <span class="o">==</span> <span class="n">REQ_VERSION</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;MPhys version is </span><span class="si">{</span><span class="n">CURR_VERSION</span><span class="si">}</span><span class="s2"> but </span><span class="si">{</span><span class="n">REQ_VERSION</span><span class="si">}</span><span class="s2"> is required&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">idwarp</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;IDwarp is not installed or can not be imported</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;You can follow the installation guide: https://mdolab-idwarp.readthedocs-hosted.com/en/latest/index.html&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">MIN_VERSION</span> <span class="o">=</span> <span class="n">parse_version</span><span class="p">(</span><span class="s2">&quot;2.6.2&quot;</span><span class="p">)</span>
+            <span class="n">CURR_VERSION</span> <span class="o">=</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">version</span><span class="p">(</span><span class="s2">&quot;idwarp&quot;</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="n">CURR_VERSION</span> <span class="o">&gt;=</span> <span class="n">MIN_VERSION</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;IDwarp version is </span><span class="si">{</span><span class="n">CURR_VERSION</span><span class="si">}</span><span class="s2"> but minimum </span><span class="si">{</span><span class="n">MIN_VERSION</span><span class="si">}</span><span class="s2"> is required&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">write_surface_output</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">write_volume_output</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">import</span><span class="w"> </span><span class="nn">pyvista</span><span class="o">,</span><span class="w"> </span><span class="nn">h5py</span>
+            <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;`pyvista` and `h5py` are not installed, it is required when surface or volume output is set to `True`&quot;</span>
+                    <span class="s2">&quot;Run this command to install both these pacages: pip install pyvista h5py&quot;</span>
+                <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+            
+        <span class="c1"># Creating directory for storing the results</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">directory</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;mkdir </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">directory</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;rm -r </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">directory</span><span class="p">))</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;mkdir </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">directory</span><span class="p">))</span>
+
+        <span class="c1"># Some initializations which will be used later</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">samples_generated</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Method to get upper and lower bound based on added parameters</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            bounds: tuple</span>
+<span class="sd">                a tuple containing two 1d numpy arrays - one for lower bound</span>
+<span class="sd">                and other for upper bound</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">lb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+        <span class="n">ub</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">aero_problem</span><span class="o">.</span><span class="n">DVs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">lb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lb</span><span class="p">,</span> <span class="n">val</span><span class="o">.</span><span class="n">lower</span><span class="p">)</span>
+            <span class="n">ub</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ub</span><span class="p">,</span> <span class="n">val</span><span class="o">.</span><span class="n">upper</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">wing_vsp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+            <span class="n">lb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">wing_vsp</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">ub</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ub</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">wing_vsp</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">load_factor_parameter</span><span class="p">:</span>
+
+            <span class="n">lb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">load_factor_lb</span><span class="p">)</span>
+            <span class="n">ub</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ub</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">load_factor_ub</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="WingAeroStructVSP.__call__">
+<a class="viewcode-back" href="../../../api/aerostruct_problem.html#blackbox.aerostruct_problem.problem.WingAeroStructVSP.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">return_results</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Method to evaluate given x. It can be a single or multiple samples of</span>
+<span class="sd">            size (d,) or (N,d) where N is the number of samples and d is the number of parameters added</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            x: np.ndarray</span>
+<span class="sd">                a numpy array representing values for added parameters</span>
+
+<span class="sd">            return_results: bool</span>
+<span class="sd">                flag to determine if the results should be returned or not.</span>
+<span class="sd">                This should be set to True only when you want this function to</span>
+<span class="sd">                return the results. `NOTE`: This is only useful when you are doing sequential data generation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;add some parameters before running analysis&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;given sample &#39;x&#39; should be a numpy array&quot;</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;size of given sample &#39;x&#39; is not same as the number of parameters&quot;</span>
+
+        <span class="c1"># Creating and writing a description file</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/description.txt&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">directory</span><span class="p">),</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">buffering</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Write intro</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples_generated</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_initial_description</span><span class="p">(</span><span class="n">description</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_results</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+
+            <span class="n">description</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Analysis </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">samples_generated</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+
+            <span class="n">t1</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_run_analysis</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">,:])</span>
+
+                <span class="k">if</span> <span class="n">return_results</span><span class="p">:</span>
+                    <span class="n">output</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">samples_generated</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_results</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">samples_generated</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">output</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">samples_generated</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;parameters&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">,:]</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">description</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">description</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> -------- Analysis failed ----------&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">return_results</span><span class="p">:</span>
+                    <span class="n">output</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">samples_generated</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="n">output</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">samples_generated</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;scalar&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;fail&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+                
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="c1"># Write time taken for analysis to desc file</span>
+                <span class="n">description</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Time taken for analysis: </span><span class="si">{</span><span class="p">(</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">t1</span><span class="p">)</span><span class="o">/</span><span class="mi">60</span><span class="si">}</span><span class="s2"> min.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">samples_generated</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">description</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c1"># close the description file</span>
+
+        <span class="k">if</span> <span class="n">return_results</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">output</span></div>
+
+
+<div class="viewcode-block" id="WingAeroStructVSP.read_results">
+<a class="viewcode-back" href="../../../api/aerostruct_problem.html#blackbox.aerostruct_problem.problem.WingAeroStructVSP.read_results">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dir_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Method to read scalars.json and field_outputs.hdf5 files containing results from a</span>
+<span class="sd">            wing analysis and convert it to a dictionary which can be used later</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            dir_name: str</span>
+<span class="sd">                name of directory where the results from the analysis are saved</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            out: dict </span>
+<span class="sd">                a dictionary containing data stored in the folder</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dir_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="s2">&quot;file name should be a string&quot;</span>
+
+        <span class="n">output</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dir_name</span><span class="si">}</span><span class="s2">/scalar_outputs.json&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="n">scalar_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+        <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">output</span><span class="p">[</span><span class="s2">&quot;scalar&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">scalar_data</span>
+
+        <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;surface&quot;</span><span class="p">,</span> <span class="s2">&quot;volume&quot;</span><span class="p">]:</span>
+
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dir_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">_outputs.hdf5&quot;</span><span class="p">):</span>
+
+                <span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+
+                <span class="n">output</span><span class="p">[</span><span class="n">fname</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dir_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">_outputs.hdf5&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span> <span class="c1"># reading a group containing only </span>
+                    <span class="n">output</span><span class="p">[</span><span class="n">fname</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">key</span><span class="p">][()]</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">output</span></div>
+
+    
+    <span class="c1">###########################################################</span>
+    <span class="c1">######### Below methods are for internal use only #########</span>
+    <span class="c1">###########################################################</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Method to evaluate a given set of parameters</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            x: np.ndarray</span>
+<span class="sd">                a 1D numpy array representing values for added parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="kn">import</span><span class="w"> </span><span class="nn">psutil</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">mpi4py</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPI</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Running analysis </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples_generated</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">directory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">directory</span>
+
+        <span class="c1"># Create the folder for saving the results</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;mkdir </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples_generated</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="c1"># Getting the directory where package is saved</span>
+        <span class="n">pkgdir</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="s2">&quot;blackbox&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pkgdir</span><span class="p">,</span> <span class="s2">&quot;aerostruct_problem/runscript.py&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Copy the runscript to analysis directory</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cp </span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">samples_generated</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/runscript.py&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Changing the directory to analysis folder</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples_generated</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="c1"># write parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write_parameters</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="c1"># create input file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_input_file</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Spawning the runscript on desired number of processors</span>
+            <span class="n">child_comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_SELF</span><span class="o">.</span><span class="n">Spawn</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;runscript.py&quot;</span><span class="p">],</span> <span class="n">maxprocs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">num_processors</span><span class="p">)</span>
+
+            <span class="c1"># Creating empty process id list</span>
+            <span class="n">pid_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="c1"># Getting each spawned process</span>
+            <span class="k">for</span> <span class="n">processor</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">num_processors</span><span class="p">):</span>
+                <span class="n">pid</span> <span class="o">=</span> <span class="n">child_comm</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">ANY_SOURCE</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">processor</span><span class="p">)</span>
+                <span class="n">pid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">pid</span><span class="p">))</span>
+
+            <span class="c1"># Disconnecting from intercommunicator</span>
+            <span class="n">child_comm</span><span class="o">.</span><span class="n">Disconnect</span><span class="p">()</span>
+
+            <span class="c1"># Waiting till all the child processors are finished</span>
+            <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">pid_list</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">pid_list</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">pid</span><span class="o">.</span><span class="n">is_running</span><span class="p">():</span>
+                        <span class="n">pid_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;surface&quot;</span><span class="p">,</span> <span class="s2">&quot;volume&quot;</span><span class="p">]:</span>
+
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">_solution.cgns&quot;</span><span class="p">):</span>
+
+                    <span class="c1"># Storing the results in output file</span>
+                    <span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s1">_outputs.hdf5&#39;</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
+                    
+                    <span class="n">reader</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">CGNSReader</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">_solution.cgns&quot;</span><span class="p">)</span> <span class="c1"># initialize the CGNS reader</span>
+                    <span class="n">reader</span><span class="o">.</span><span class="n">load_boundary_patch</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="n">dataset</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="c1"># read the cgns file</span>
+
+                    <span class="c1"># from surface solution, only keep surface data</span>
+                    <span class="k">if</span> <span class="n">fname</span> <span class="o">==</span> <span class="s2">&quot;surface&quot;</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                            <span class="k">if</span> <span class="s2">&quot;Wall&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
+                                <span class="k">del</span> <span class="n">dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">key</span><span class="p">]</span>
+
+                    <span class="c1"># combine all multi-blocks</span>
+                    <span class="n">combined</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span>
+
+                    <span class="c1"># store data as vtu</span>
+                    <span class="n">combined</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">_solution.vtu&quot;</span><span class="p">)</span>
+
+                    <span class="c1"># get point data</span>
+                    <span class="n">point_data</span> <span class="o">=</span> <span class="n">combined</span><span class="o">.</span><span class="n">cell_data_to_point_data</span><span class="p">()</span><span class="o">.</span><span class="n">point_data</span>
+
+                    <span class="c1"># get mesh points</span>
+                    <span class="n">mesh_points</span> <span class="o">=</span> <span class="n">combined</span><span class="o">.</span><span class="n">cell_data_to_point_data</span><span class="p">()</span><span class="o">.</span><span class="n">points</span>
+
+                    <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s2">&quot;MeshPoints&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">mesh_points</span><span class="p">))</span> <span class="c1"># write mesh points</span>
+
+                    <span class="c1"># store data as hdf5</span>
+                    <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">point_data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">point_data</span><span class="p">[</span><span class="n">var_name</span><span class="p">]))</span>
+
+                    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;structural_solution.f5&quot;</span><span class="p">):</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_convert_f5_to_vtk</span><span class="p">(</span><span class="s2">&quot;structural_solution.f5&quot;</span><span class="p">)</span>
+
+                <span class="n">reader</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">VTKDataSetReader</span><span class="p">(</span><span class="s2">&quot;structural_solution.vtk&quot;</span><span class="p">)</span> <span class="c1"># initialize the VTK reader</span>
+
+                <span class="n">dataset</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="c1"># read the vtk file</span>
+
+                <span class="n">dataset</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s2">&quot;thickness&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s2">&quot;dv1&quot;</span><span class="p">]</span> <span class="c1"># rename the thickness</span>
+
+                <span class="c1"># remove dv variables from dataset</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">point_data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="s2">&quot;dv&quot;</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
+                        <span class="n">dataset</span><span class="o">.</span><span class="n">point_data</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+                <span class="n">dataset</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;structural_solution.vtu&quot;</span><span class="p">)</span>
+
+                <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;rm structural_solution.vtk&quot;</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="k">finally</span><span class="p">:</span>
+
+            <span class="c1"># Changing the directory back to root</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s2">&quot;../..&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_input_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Method to create an input file for a specific analysis</span>
+<span class="sd">            for a given parameter set</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            x: np.ndarray</span>
+<span class="sd">                1D numpy array representing a single set of parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># make a copy of ap</span>
+        <span class="n">aero_problem</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">aero_problem</span><span class="p">)</span>
+
+        <span class="c1"># empty dict for storing parameters</span>
+        <span class="n">flow_params</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># separate flow and shape variables</span>
+        <span class="n">x_flow</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">aero_problem</span><span class="o">.</span><span class="n">DVs</span><span class="p">)]</span>
+
+        <span class="c1"># assign flow variables</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">aero_problem</span><span class="o">.</span><span class="n">DVs</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">flow_params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_flow</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+        <span class="c1"># set flow conditions in ap</span>
+        <span class="n">aero_problem</span><span class="o">.</span><span class="n">setDesignVars</span><span class="p">(</span><span class="n">flow_params</span><span class="p">)</span>
+
+        <span class="c1"># Creating input dict</span>
+        <span class="nb">input</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;aero_solver_options&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">aero_solver_options</span><span class="p">,</span>
+            <span class="s2">&quot;aero_problem&quot;</span><span class="p">:</span> <span class="n">aero_problem</span><span class="p">,</span>
+            <span class="s2">&quot;scalar_outputs&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">scalar_outputs</span><span class="p">,</span>
+            <span class="s2">&quot;struct_mesh_file&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">struct_mesh_file</span><span class="p">,</span>
+            <span class="s2">&quot;element_callback_function&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">element_callback_function</span><span class="p">,</span>
+            <span class="c1"># write options</span>
+            <span class="s2">&quot;write_structural_output&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">write_structural_output</span><span class="p">,</span>
+            <span class="s2">&quot;write_vsp_file&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">write_vsp_file</span><span class="p">,</span>
+            <span class="s2">&quot;write_stl_file&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">write_stl_file</span><span class="p">,</span>
+            <span class="s2">&quot;write_lift_distribution&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">write_lift_distribution</span><span class="p">,</span>
+            <span class="s2">&quot;num_segments&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">num_segments</span><span class="p">,</span>
+            <span class="s2">&quot;write_slice_file&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">write_slice_file</span><span class="p">,</span>
+            <span class="s2">&quot;slice_location&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">slice_location</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">wing_vsp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">input</span><span class="p">[</span><span class="s2">&quot;vsp_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">wing_vsp</span><span class="o">.</span><span class="n">vsp_file</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">input</span><span class="p">[</span><span class="s2">&quot;vsp_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Saving the input file</span>
+        <span class="n">filehandler</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;input.pickle&quot;</span><span class="p">,</span> <span class="s2">&quot;xb&quot;</span><span class="p">)</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">filehandler</span><span class="p">)</span>
+        <span class="n">filehandler</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_write_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Method to write a set of prameters `x` to a json file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;add some parameters before calling this method&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;x must be a 1D numpy array&quot;</span>
+        <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;number of entries in x is not same as the number of parameters&quot;</span>
+
+        <span class="n">ap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">aero_problem</span> <span class="c1"># get aero problem</span>
+        
+        <span class="n">parameters</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># empty dict for storing parameters</span>
+
+        <span class="c1"># separate flow and shape variables</span>
+        <span class="n">x_flow</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">ap</span><span class="o">.</span><span class="n">DVs</span><span class="p">)]</span>
+        <span class="n">x_shape</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">ap</span><span class="o">.</span><span class="n">DVs</span><span class="p">):</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">load_factor_parameter</span> <span class="k">else</span> <span class="n">x</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">ap</span><span class="o">.</span><span class="n">DVs</span><span class="p">):]</span>
+
+        <span class="c1"># assign flow variables</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ap</span><span class="o">.</span><span class="n">DVs</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_flow</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+        <span class="c1"># assign shape variables, if any</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">wing_vsp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+            <span class="n">wing_vsp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">wing_vsp</span> <span class="c1"># get wing vsp</span>
+
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">wing_vsp</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">parameters</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="n">x_shape</span><span class="p">[</span><span class="n">wing_vsp</span><span class="o">.</span><span class="n">mask</span> <span class="o">==</span> <span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+                <span class="c1"># write pygeo parameters</span>
+                <span class="n">pygeo_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">wing_vsp</span><span class="o">.</span><span class="n">get_pygeo_parameter_dict</span><span class="p">(</span><span class="n">x_shape</span><span class="p">)</span>
+
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;pygeo_parameters.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+                    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">pygeo_params</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+                <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="c1"># add load factor if it is a parameter</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">load_factor_parameter</span><span class="p">:</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;load_factor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;parameters.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+        <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_write_initial_description</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Method to write initial description containing parameters,</span>
+<span class="sd">            and corresponding upper and lower bound</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># parameters</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">aero_problem</span><span class="o">.</span><span class="n">DVs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">parameters</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">wing_vsp</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+
+        <span class="c1"># Initial message</span>
+        <span class="n">description</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;--------------------------------------------------</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">description</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Wing aerostructural analysis</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">description</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;--------------------------------------------------</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Parameter table header</span>
+        <span class="n">description</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">description</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;Parameter&#39;</span><span class="si">:</span><span class="s2">&lt;35</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;Lower Bound&#39;</span><span class="si">:</span><span class="s2">&gt;15</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;Upper Bound&#39;</span><span class="si">:</span><span class="s2">&gt;15</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">description</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">67</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Table rows</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">description</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">&lt;35</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">lb</span><span class="si">:</span><span class="s2">&gt;15.6f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">ub</span><span class="si">:</span><span class="s2">&gt;15.6f</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Analysis description section</span>
+        <span class="n">description</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">description</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;-----------------------------</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">description</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Analysis specific description</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">description</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;-----------------------------</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">_convert_f5_to_vtk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Method to convert f5 file (generated from TACS) to vtk</span>
+
+<span class="sd">            You need to remove MPI initialized env variables before calling f5tovtk utility</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            filename: str</span>
+<span class="sd">                name of the f5 file that will be converted to vtk</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+
+        <span class="n">env</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">env</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;OMPI_&quot;</span><span class="p">):</span>
+                <span class="n">env</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="p">[</span><span class="s2">&quot;f5tovtk&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="p">],</span>
+            <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">env</span><span class="o">=</span><span class="n">env</span>
+        <span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, CODE Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
